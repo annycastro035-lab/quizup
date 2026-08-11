@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizUp</title>
+</head>
+<body>  <h1>🎯 QuizUp</h1>
+  <p>Gire. Responda. Pontue!</p><button onclick="girar()">🎡 GIRAR</button>
+
+  <div id="jogo"></div>  <script>
+    const perguntas = [
+      {
+        pergunta: "Qual é a capital do Brasil?",
+        respostas: ["Brasília", "São Paulo", "Rio de Janeiro", "Salvador"],
+        correta: 0
+      },
+      {
+        pergunta: "Quanto é 2 + 2?",
+        respostas: ["3", "4", "5", "6"],
+        correta: 1
+      },
+      {
+        pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
+        respostas: ["Terra", "Marte", "Júpiter", "Vênus"],
+        correta: 1
+      }
+    ];
+
+    let pontos = 0;
+    let perguntaAtual = 0;
+
+    function girar() {
+      perguntaAtual = Math.floor(Math.random() * perguntas.length);
+      mostrarPergunta();
+    }
+
+    function mostrarPergunta() {
+      const q = perguntas[perguntaAtual];
+
+      let html = `<h2>${q.pergunta}</h2>`;
+
+      q.respostas.forEach((resposta, indice) => {
+        html += `<button onclick="responder(${indice})">${resposta}</button><br><br>`;
+      });
+
+      document.getElementById("jogo").innerHTML = html;
+    }
+
+    function responder(indice) {
+      const q = perguntas[perguntaAtual];
+
+      if (indice === q.correta) {
+        pontos++;
+        alert("🎉 Acertou! Pontos: " + pontos);
+      } else {
+        alert("❌ Errou! A resposta correta era: " + q.respostas[q.correta]);
+      }
+    }
+  </script></body>
+</html>
