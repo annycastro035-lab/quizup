@@ -1,375 +1,502 @@
 <!DOCTYPE html><html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QuizUp</title>  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizUp</title><style>
+* {
+  box-sizing: border-box;
+}
 
-    body {
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #17104f, #4b168f, #e83e8c);
-      color: white;
-      display: flex;
-      justify-content: center;
-      padding: 20px;
-    }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #12002f, #5b168d, #e92f75);
+  color: white;
+  min-height: 100vh;
+}
 
-    .app {
-      width: 100%;
-      max-width: 430px;
-    }
+.app {
+  width: 100%;
+  max-width: 430px;
+  margin: auto;
+  padding: 18px;
+}
 
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+header {
+  text-align: center;
+  padding: 15px 0;
+}
 
-    .logo {
-      font-size: 48px;
-      margin-bottom: 5px;
-    }
+.logo {
+  font-size: 55px;
+}
 
-    h1 {
-      font-size: 36px;
-      font-weight: 900;
-    }
+h1 {
+  margin: 5px 0;
+  font-size: 38px;
+}
 
-    .subtitulo {
-      opacity: 0.85;
-      margin-top: 5px;
-    }
+.subtitulo {
+  opacity: .8;
+}
 
-    .placar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+.menu {
+  display: flex;
+  gap: 8px;
+  margin: 15px 0;
+}
 
-    .placar div {
-      flex: 1;
-      background: rgba(255,255,255,0.15);
-      border-radius: 18px;
-      padding: 12px;
-      text-align: center;
-    }
+.menu button {
+  flex: 1;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 5px;
+  background: rgba(255,255,255,.16);
+  color: white;
+  font-weight: bold;
+}
 
-    .numero {
-      display: block;
-      font-size: 25px;
-      font-weight: bold;
-      margin-top: 4px;
-    }
+.card {
+  background: rgba(255,255,255,.13);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 22px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+}
 
-    .roleta-area {
-      display: flex;
-      justify-content: center;
-      margin: 10px 0 25px;
-    }
+.placar {
+  display: flex;
+  gap: 10px;
+}
 
-    .roleta {
-      width: 210px;
-      height: 210px;
-      border-radius: 50%;
-      border: 10px solid white;
-      background: conic-gradient(
-        #ff4d6d 0deg 60deg,
-        #ffd166 60deg 120deg,
-        #06d6a0 120deg 180deg,
-        #118ab2 180deg 240deg,
-        #8338ec 240deg 300deg,
-        #ff7b00 300deg 360deg
-      );
-      box-shadow: 0 12px 35px rgba(0,0,0,0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 1.2s cubic-bezier(.17,.67,.12,1);
-    }
+.placar div {
+  flex: 1;
+  text-align: center;
+  background: rgba(255,255,255,.12);
+  border-radius: 15px;
+  padding: 12px;
+}
 
-    .roleta-centro {
-      width: 75px;
-      height: 75px;
-      background: white;
-      color: #35155f;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 30px;
-    }
+.valor {
+  display: block;
+  font-size: 25px;
+  font-weight: bold;
+  margin-top: 5px;
+}
 
-    .ponteiro {
-      position: absolute;
-      margin-top: -225px;
-      font-size: 35px;
-    }
+.dados {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 25px 0;
+}
 
-    .girar {
-      width: 100%;
-      border: none;
-      border-radius: 18px;
-      padding: 17px;
-      background: white;
-      color: #551b91;
-      font-size: 20px;
-      font-weight: 900;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
+.dado {
+  width: 105px;
+  height: 105px;
+  background: white;
+  color: #41136f;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 55px;
+  font-weight: 900;
+  box-shadow: 0 8px 20px rgba(0,0,0,.3);
+}
 
-    .pergunta-card {
-      background: rgba(255,255,255,0.14);
-      border-radius: 25px;
-      padding: 22px;
-    }
+.girar {
+  width: 100%;
+  padding: 17px;
+  border: 0;
+  border-radius: 17px;
+  background: #ffd166;
+  color: #351052;
+  font-size: 20px;
+  font-weight: 900;
+}
 
-    .categoria {
-      text-align: center;
-      font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 10px;
-    }
+.pergunta {
+  font-size: 21px;
+  line-height: 1.35;
+  text-align: center;
+  margin-bottom: 18px;
+}
 
-    .pergunta {
-      text-align: center;
-      font-size: 23px;
-      line-height: 1.3;
-      margin-bottom: 20px;
-    }
+.resposta {
+  width: 100%;
+  padding: 14px;
+  margin: 7px 0;
+  border-radius: 13px;
+  border: 2px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.1);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: left;
+}
 
-    .resposta {
-      width: 100%;
-      border: 2px solid rgba(255,255,255,0.35);
-      background: rgba(255,255,255,0.12);
-      color: white;
-      border-radius: 15px;
-      padding: 15px;
-      margin-top: 10px;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-      text-align: left;
-    }
+.certa {
+  background: #08c98a !important;
+}
 
-    .certa {
-      background: #06d6a0 !important;
-    }
+.errada {
+  background: #ef476f !important;
+}
 
-    .errada {
-      background: #ef476f !important;
-    }
+.anuncio {
+  background: #fff;
+  color: #333;
+  border-radius: 15px;
+  padding: 18px;
+  text-align: center;
+}
 
-    .resultado {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-      min-height: 25px;
-    }
+.anuncio small {
+  display: block;
+  color: #777;
+  margin-bottom: 8px;
+}
 
-    .rodape {
-      text-align: center;
-      margin-top: 25px;
-      opacity: 0.7;
-      font-size: 13px;
-    }
-  </style></head><body>  <main class="app"><header>
+input {
+  width: 100%;
+  padding: 14px;
+  margin: 7px 0;
+  border: 0;
+  border-radius: 12px;
+}
+
+.acao {
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #06d6a0;
+  color: #102a24;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.saque {
+  background: rgba(255,255,255,.1);
+  border-radius: 15px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+.mensagem {
+  text-align: center;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+footer {
+  text-align: center;
+  opacity: .65;
+  font-size: 12px;
+  padding: 20px 0;
+}
+</style></head><body><div class="app"><header>
   <div class="logo">🎯</div>
   <h1>QuizUp</h1>
-  <p class="subtitulo">Gire. Responda. Pontue!</p>
-</header>
-
-<section class="placar">
-  <div>
-    🏆
-    <span class="numero" id="pontos">0</span>
-    Pontos
-  </div>
-
-  <div>
-    ❓
-    <span class="numero" id="rodada">0</span>
-    Rodada
-  </div>
-</section>
-
-<section class="roleta-area">
-  <div>
-    <div class="roleta" id="roleta">
-      <div class="roleta-centro">🎯</div>
-    </div>
-    <div class="ponteiro">🔻</div>
-  </div>
-</section>
-
-<button class="girar" onclick="girarRoleta()">
-  🎡 GIRAR A ROLETA
-</button>
-
-<section class="pergunta-card">
-
-  <div class="categoria" id="categoria">
-    PRONTO PARA JOGAR?
-  </div>
-
-  <h2 class="pergunta" id="pergunta">
-    Gire a roleta para começar!
-  </h2>
-
-  <div id="respostas"></div>
-
-  <div class="resultado" id="resultado"></div>
-
-</section>
-
-<div class="rodape">
-  QuizUp 🎮 • Gire. Responda. Pontue.
+  <div class="subtitulo">Gire. Responda. Pontue!</div>
+</header><div class="menu">
+  <button onclick="mostrar('jogo')">🎮 Jogo</button>
+  <button onclick="mostrar('conta')">👤 Conta</button>
+  <button onclick="mostrar('saque')">💰 Saque</button>
+  <button onclick="mostrar('sac')">💬 SAC</button>
+</div><section id="jogo">  <div class="card placar">
+    <div>
+      🏆
+      <span class="valor" id="pontos">0</span>
+      Pontos
+    </div><div>
+  🎲
+  <span class="valor" id="rodadas">0</span>
+  Rodadas
 </div>
 
-  </main>  <script>
+  </div>  <div class="card"><h2 style="text-align:center;">🎲 Jogue os dados</h2>
 
-    const perguntas = [
-      {
-        categoria: "🌎 GEOGRAFIA",
-        pergunta: "Qual é a capital do Brasil?",
-        respostas: ["Brasília", "São Paulo", "Salvador", "Recife"],
-        correta: 0
-      },
+<div class="dados">
+  <div class="dado" id="dado1">1</div>
+  <div class="dado" id="dado2">1</div>
+</div>
 
-      {
-        categoria: "🧮 MATEMÁTICA",
-        pergunta: "Quanto é 2 + 2?",
-        respostas: ["3", "4", "5", "6"],
-        correta: 1
-      },
+<button class="girar" onclick="jogarDados()">
+  🎲 JOGAR DADOS
+</button>
 
-      {
-        categoria: "🚀 CIÊNCIA",
-        pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
-        respostas: ["Terra", "Marte", "Júpiter", "Vênus"],
-        correta: 1
-      },
+<p id="resultadoDados" class="mensagem">
+  Cada dado pode mostrar de 1 a 10.
+</p>
 
-      {
-        categoria: "🐾 ANIMAIS",
-        pergunta: "Qual animal é conhecido como o rei da selva?",
-        respostas: ["Elefante", "Tigre", "Leão", "Girafa"],
-        correta: 2
-      },
+  </div>  <div class="card"><div class="pergunta" id="pergunta">
+  Clique em "JOGAR DADOS" para começar!
+</div>
 
-      {
-        categoria: "🎬 CINEMA",
-        pergunta: "Qual personagem vive em Gotham City?",
-        respostas: ["Superman", "Batman", "Hulk", "Homem-Aranha"],
-        correta: 1
-      },
+<div id="respostas"></div>
 
-      {
-        categoria: "⚽ ESPORTES",
-        pergunta: "Quantos jogadores cada time tem em campo no futebol?",
-        respostas: ["9", "10", "11", "12"],
-        correta: 2
-      }
-    ];
+<div id="resultado" class="mensagem"></div>
 
-    let pontos = 0;
-    let rodada = 0;
-    let perguntaAtual = null;
-    let girando = false;
+  </div>  <div class="anuncio">
+    <small>PUBLICIDADE</small>
+    📢 Espaço para anúncio patrocinado
+  </div></section><section id="conta" class="hidden">  <div class="card"><h2>👤 Minha conta</h2>
 
-    function girarRoleta() {
+<input type="email" id="email" placeholder="Seu e-mail">
 
-      if (girando) return;
+<input type="password" id="senha" placeholder="Sua senha">
 
-      girando = true;
+<button class="acao" onclick="cadastrar()">
+  Criar conta
+</button>
 
-      const roleta = document.getElementById("roleta");
+<button class="acao" onclick="entrar()">
+  Entrar
+</button>
 
-      const graus = 1440 + Math.floor(Math.random() * 360);
+<p id="contaMensagem" class="mensagem"></p>
 
-      roleta.style.transform = `rotate(${graus}deg)`;
+  </div></section><section id="saque" class="hidden">  <div class="card"><h2>💰 Saque</h2>
 
-      setTimeout(() => {
+<p>
+  Saldo de pontos:
+  <strong id="saldoSaque">0</strong>
+</p>
 
-        const indice = Math.floor(Math.random() * perguntas.length);
+<div class="saque">
+  1.000 pontos → R$ 1,00
+</div>
 
-        perguntaAtual = perguntas[indice];
+<div class="saque">
+  5.000 pontos → R$ 5,00
+</div>
 
-        rodada++;
+<div class="saque">
+  10.000 pontos → R$ 10,00
+</div>
 
-        document.getElementById("rodada").textContent = rodada;
+<p>
+  Limite configurado: até 2 solicitações por dia.
+</p>
 
-        mostrarPergunta();
+<button class="acao" onclick="solicitarSaque()">
+  Solicitar saque
+</button>
 
-        girando = false;
+<p id="saqueMensagem" class="mensagem"></p>
 
-      }, 1200);
-    }
+<hr>
 
-    function mostrarPergunta() {
+<p>💳 Métodos planejados:</p>
+<p>🔑 Pix</p>
+<p>🅿️ PayPal</p>
 
-      document.getElementById("categoria").textContent =
-        perguntaAtual.categoria;
+  </div></section><section id="sac" class="hidden">  <div class="card"><h2>💬 SAC</h2>
 
-      document.getElementById("pergunta").textContent =
-        perguntaAtual.pergunta;
+<p>
+  Precisa de ajuda com o QuizUp?
+</p>
 
-      document.getElementById("resultado").textContent = "";
+<input id="assunto" placeholder="Assunto">
 
-      const container = document.getElementById("respostas");
+<input id="mensagemSac" placeholder="Digite sua mensagem">
 
-      container.innerHTML = "";
+<button class="acao" onclick="enviarSAC()">
+  Enviar mensagem
+</button>
 
-      perguntaAtual.respostas.forEach((resposta, indice) => {
+<p id="sacMensagem" class="mensagem"></p>
 
-        const botao = document.createElement("button");
+  </div></section><footer>
+  QuizUp © 2026
+</footer></div><script>
 
-        botao.className = "resposta";
+let pontos = 0;
+let rodadas = 0;
+let saquesHoje = 0;
+let perguntaAtual = null;
 
-        botao.textContent = resposta;
+const perguntas = [
+  {
+    pergunta: "Qual é a capital do Brasil?",
+    respostas: ["Brasília", "São Paulo", "Salvador", "Recife"],
+    correta: 0
+  },
+  {
+    pergunta: "Quanto é 2 + 2?",
+    respostas: ["3", "4", "5", "6"],
+    correta: 1
+  },
+  {
+    pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
+    respostas: ["Terra", "Marte", "Júpiter", "Vênus"],
+    correta: 1
+  },
+  {
+    pergunta: "Qual animal é conhecido como rei da selva?",
+    respostas: ["Elefante", "Tigre", "Leão", "Girafa"],
+    correta: 2
+  }
+];
 
-        botao.onclick = () => responder(indice, botao);
+function mostrar(tela) {
 
-        container.appendChild(botao);
+  document.getElementById("jogo").classList.add("hidden");
+  document.getElementById("conta").classList.add("hidden");
+  document.getElementById("saque").classList.add("hidden");
+  document.getElementById("sac").classList.add("hidden");
 
-      });
-    }
+  document.getElementById(tela).classList.remove("hidden");
+}
 
-    function responder(indice, botao) {
+function jogarDados() {
 
-      const botoes = document.querySelectorAll(".resposta");
+  const d1 = Math.floor(Math.random() * 10) + 1;
+  const d2 = Math.floor(Math.random() * 10) + 1;
 
-      botoes.forEach(b => {
-        b.disabled = true;
-      });
+  document.getElementById("dado1").textContent = d1;
+  document.getElementById("dado2").textContent = d2;
 
-      if (indice === perguntaAtual.correta) {
+  const pontosRodada = d1 + d2;
 
-        botao.classList.add("certa");
+  pontos += pontosRodada;
+  rodadas++;
 
-        pontos += 10;
+  document.getElementById("pontos").textContent = pontos;
+  document.getElementById("rodadas").textContent = rodadas;
+  document.getElementById("saldoSaque").textContent = pontos;
 
-        document.getElementById("pontos").textContent = pontos;
+  document.getElementById("resultadoDados").textContent =
+    "🎉 Você ganhou " + pontosRodada + " pontos!";
 
-        document.getElementById("resultado").textContent =
-          "🎉 ACERTOU! +10 pontos";
+  mostrarPergunta();
+}
 
-      } else {
+function mostrarPergunta() {
 
-        botao.classList.add("errada");
+  perguntaAtual =
+    perguntas[Math.floor(Math.random() * perguntas.length)];
 
-        botoes[perguntaAtual.correta].classList.add("certa");
+  document.getElementById("pergunta").textContent =
+    perguntaAtual.pergunta;
 
-        document.getElementById("resultado").textContent =
-          "❌ ERROU! A resposta correta está em verde.";
+  const container = document.getElementById("respostas");
 
-      }
-    }
+  container.innerHTML = "";
 
-  </script></body>
+  perguntaAtual.respostas.forEach((resposta, indice) => {
+
+    const botao = document.createElement("button");
+
+    botao.className = "resposta";
+    botao.textContent = resposta;
+
+    botao.onclick = function() {
+      responder(indice, botao);
+    };
+
+    container.appendChild(botao);
+  });
+
+  document.getElementById("resultado").textContent = "";
+}
+
+function responder(indice, botao) {
+
+  const botoes = document.querySelectorAll(".resposta");
+
+  botoes.forEach(b => b.disabled = true);
+
+  if (indice === perguntaAtual.correta) {
+
+    botao.classList.add("certa");
+
+    pontos += 10;
+
+    document.getElementById("pontos").textContent = pontos;
+    document.getElementById("saldoSaque").textContent = pontos;
+
+    document.getElementById("resultado").textContent =
+      "🎉 Acertou! +10 pontos";
+
+  } else {
+
+    botao.classList.add("errada");
+
+    botoes[perguntaAtual.correta].classList.add("certa");
+
+    document.getElementById("resultado").textContent =
+      "❌ Resposta errada!";
+  }
+}
+
+function cadastrar() {
+
+  const email = document.getElementById("email").value;
+
+  if (!email) {
+    document.getElementById("contaMensagem").textContent =
+      "Digite seu e-mail.";
+    return;
+  }
+
+  document.getElementById("contaMensagem").textContent =
+    "✅ Cadastro demonstrativo criado!";
+}
+
+function entrar() {
+
+  document.getElementById("contaMensagem").textContent =
+    "✅ Login demonstrativo realizado!";
+}
+
+function solicitarSaque() {
+
+  if (saquesHoje >= 2) {
+
+    document.getElementById("saqueMensagem").textContent =
+      "⚠️ Limite de 2 solicitações por dia atingido.";
+
+    return;
+  }
+
+  if (pontos < 1000) {
+
+    document.getElementById("saqueMensagem").textContent =
+      "Você precisa de pelo menos 1.000 pontos.";
+
+    return;
+  }
+
+  saquesHoje++;
+
+  document.getElementById("saqueMensagem").textContent =
+    "✅ Solicitação registrada nesta demonstração.";
+}
+
+function enviarSAC() {
+
+  const mensagem =
+    document.getElementById("mensagemSac").value;
+
+  if (!mensagem) {
+
+    document.getElementById("sacMensagem").textContent =
+      "Digite sua mensagem.";
+
+    return;
+  }
+
+  document.getElementById("sacMensagem").textContent =
+    "✅ Mensagem registrada. Obrigado!";
+}
+
+</script></body>
 </html>
