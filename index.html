@@ -1,8 +1,11 @@
-<!DOCTYPE html><html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>QuizUp</title><style>
+<title>QuizUp</title>
+
+<style>
 *{box-sizing:border-box}
 
 body{
@@ -170,6 +173,11 @@ font-weight:bold;
 text-align:left;
 }
 
+.resposta:disabled{
+cursor:not-allowed;
+opacity:1;
+}
+
 .verde{
 background:#06d6a0!important;
 color:#092b22;
@@ -207,95 +215,273 @@ opacity:.6;
 font-size:12px;
 padding:20px;
 }
-</style></head><body><div class="app"><!-- LOGIN --><section id="login" class="login"><div class="logo">🎯</div><h1>QuizUp</h1><p>Gire. Responda. Pontue!</p><div class="card"><h2>👤 Entrar</h2><input id="email"
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- LOGIN -->
+
+<section id="login" class="login">
+
+<div class="logo">🎯</div>
+
+<h1>QuizUp</h1>
+
+<p>Gire. Responda. Pontue!</p>
+
+<div class="card">
+
+<h2>👤 Entrar</h2>
+
+<input
+id="email"
 type="email"
 placeholder="Seu e-mail">
 
-<input id="senha"
+<input
+id="senha"
 type="password"
 placeholder="Sua senha">
 
 <button class="principal" onclick="entrar()">
 ENTRAR
-</button><button class="secundario" onclick="criarConta()">
+</button>
+
+<button class="secundario" onclick="criarConta()">
 CRIAR CONTA
-</button><p id="loginMsg"></p></div></section><!-- JOGO --><section id="jogo" class="escondido"><header style="text-align:center">
+</button>
+
+<p id="loginMsg"></p>
+
+</div>
+
+</section>
+
+
+<!-- JOGO -->
+
+<section id="jogo" class="escondido">
+
+<header style="text-align:center">
+
 <h1>🎯 QuizUp</h1>
+
 <p>Boa sorte!</p>
-</header><div class="menu">
-<button onclick="mostrar('jogo')">🎮 Jogo</button>
-<button onclick="mostrar('saque')">💰 Saque</button>
-<button onclick="mostrar('sac')">💬 SAC</button>
-<button onclick="sair()">🚪 Sair</button>
-</div><div class="card placar"><div>
+
+</header>
+
+
+<div class="menu">
+
+<button onclick="mostrar('jogo')">
+🎮 Jogo
+</button>
+
+<button onclick="mostrar('saque')">
+💰 Saque
+</button>
+
+<button onclick="mostrar('sac')">
+💬 SAC
+</button>
+
+<button onclick="sair()">
+🚪 Sair
+</button>
+
+</div>
+
+
+<div class="card placar">
+
+<div>
 🏆
 <span class="numero" id="pontos">0</span>
 Pontos
-</div><div>
+</div>
+
+<div>
 📚
 <span class="numero" id="rodada">0</span>
 Questão
-</div></div><div class="card dado-area"><h2>🎲 Seu dado</h2><div class="dado" id="dado">1</div><button class="principal" onclick="jogarDado()">
+</div>
+
+</div>
+
+
+<div class="card dado-area">
+
+<h2>🎲 Seu dado</h2>
+
+<div class="dado" id="dado">
+1
+</div>
+
+<button class="principal" onclick="jogarDado()">
 🎲 JOGAR
-</button><p id="resultadoDado">
+</button>
+
+<p id="resultadoDado">
 Jogue o dado para começar.
-</p></div><div class="card"><div style="text-align:center"><span class="nivel" id="nivel">
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div style="text-align:center">
+
+<span class="nivel" id="nivel">
 FÁCIL
-</span><div class="timer">
+</span>
+
+<div class="timer">
 ⏱️ <span id="tempo">5</span>
-</div></div><div class="pergunta" id="pergunta">
+</div>
+
+</div>
+
+
+<div class="pergunta" id="pergunta">
 A pergunta aparecerá aqui.
-</div><div id="respostas"></div><p class="mensagem" id="resultado"></p></div><div class="anuncio">📢<br>
+</div>
+
+
+<div id="respostas"></div>
+
+<p class="mensagem" id="resultado"></p>
+
+</div>
+
+
+<div class="anuncio">
+
+📢<br>
+
 <b>ANÚNCIO PATROCINADO</b>
 
 <br><br>
 
 Espaço reservado para publicidade.
 
-</div></section><!-- SAQUE --><section id="saque" class="card escondido"><h2>💰 Saque</h2><p>
+</div>
+
+</section>
+
+
+<!-- SAQUE -->
+
+<section id="saque" class="card escondido">
+
+<h2>💰 Saque</h2>
+
+<p>
 Seus pontos:
 <b id="saldo">0</b>
-</p><div class="saque">
+</p>
+
+
+<div class="saque">
 1.000 pontos → R$ 1,00
-</div><div class="saque">
+</div>
+
+<div class="saque">
 5.000 pontos → R$ 5,00
-</div><div class="saque">
+</div>
+
+<div class="saque">
 10.000 pontos → R$ 10,00
-</div><p>
+</div>
+
+
+<p>
 Máximo de 2 solicitações por dia.
-</p><button class="principal" onclick="solicitarSaque()">
+</p>
+
+
+<button class="principal" onclick="solicitarSaque()">
 SOLICITAR SAQUE
-</button><p id="saqueMsg"></p><p>💠 Pix</p>
-<p>🅿️ PayPal</p><button class="secundario" onclick="mostrar('jogo')">
+</button>
+
+<p id="saqueMsg"></p>
+
+
+<p>💠 Pix</p>
+
+<p>🅿️ PayPal</p>
+
+
+<button class="secundario" onclick="mostrar('jogo')">
 ⬅️ VOLTAR
-</button></section><!-- SAC --><section id="sac" class="card escondido"><h2>💬 SAC</h2><p>Como podemos ajudar?</p><input id="assunto"
+</button>
+
+</section>
+
+
+<!-- SAC -->
+
+<section id="sac" class="card escondido">
+
+<h2>💬 SAC</h2>
+
+<p>Como podemos ajudar?</p>
+
+<input
+id="assunto"
 placeholder="Assunto">
 
-<input id="mensagemSac"
+<input
+id="mensagemSac"
 placeholder="Digite sua mensagem">
 
 <button class="principal" onclick="enviarSAC()">
 ENVIAR
-</button><p id="sacMsg"></p><button class="secundario" onclick="mostrar('jogo')">
+</button>
+
+<p id="sacMsg"></p>
+
+<button class="secundario" onclick="mostrar('jogo')">
 ⬅️ VOLTAR
-</button></section><footer>
+</button>
+
+</section>
+
+
+<footer>
 QuizUp © 2026
-</footer></div><script>
+</footer>
+
+</div>
+
+
+<script>
 
 let pontos=0;
+
 let rodada=0;
+
 let saques=0;
+
 let tempo=5;
+
 let intervalo=null;
+
 let perguntaAtual=null;
+
 let jogadaLiberada=false;
+
+/* PONTOS DA RODADA */
+
+let pontosDaRodada=0;
 
 
 /* PERGUNTAS */
 
 const perguntas=[
-
-/* FÁCIL */
 
 {
 nivel:"FÁCIL",
@@ -318,8 +504,6 @@ r:["Terra","Marte","Júpiter","Vênus"],
 c:1
 },
 
-/* MÉDIO */
-
 {
 nivel:"MÉDIO",
 p:"Qual é o maior planeta do Sistema Solar?",
@@ -341,8 +525,6 @@ r:["5","6","7","8"],
 c:1
 },
 
-/* DIFÍCIL */
-
 {
 nivel:"DIFÍCIL",
 p:"Qual é o elemento químico representado pela letra O?",
@@ -363,8 +545,6 @@ p:"Qual é a raiz quadrada de 144?",
 r:["10","11","12","14"],
 c:2
 },
-
-/* SUPER DIFÍCIL */
 
 {
 nivel:"SUPER DIFÍCIL",
@@ -395,6 +575,7 @@ c:2
 function entrar(){
 
 let email=document.getElementById("email").value;
+
 let senha=document.getElementById("senha").value;
 
 if(email===""||senha===""){
@@ -410,9 +591,11 @@ abrirJogo();
 
 }
 
+
 function criarConta(){
 
 let email=document.getElementById("email").value;
+
 let senha=document.getElementById("senha").value;
 
 if(email===""||senha===""){
@@ -431,9 +614,11 @@ setTimeout(abrirJogo,800);
 
 }
 
+
 function abrirJogo(){
 
 document.getElementById("login").classList.add("escondido");
+
 document.getElementById("jogo").classList.remove("escondido");
 
 }
@@ -444,7 +629,9 @@ document.getElementById("jogo").classList.remove("escondido");
 function mostrar(tela){
 
 document.getElementById("jogo").classList.add("escondido");
+
 document.getElementById("saque").classList.add("escondido");
+
 document.getElementById("sac").classList.add("escondido");
 
 document.getElementById(tela).classList.remove("escondido");
@@ -452,23 +639,67 @@ document.getElementById(tela).classList.remove("escondido");
 }
 
 
-/* DADO */
+/* DADO / ROLETA DE PONTOS */
 
 function jogarDado(){
 
 if(jogadaLiberada) return;
 
-let numero=Math.floor(Math.random()*10)+1;
+
+/*
+1 a 4 = muito frequentes
+5 a 7 = menos frequentes
+8 e 9 = raros
+10 = muito raro
+*/
+
+let sorteio=Math.random();
+
+let numero;
+
+if(sorteio<0.18){
+numero=1;
+}
+else if(sorteio<0.36){
+numero=2;
+}
+else if(sorteio<0.54){
+numero=3;
+}
+else if(sorteio<0.70){
+numero=4;
+}
+else if(sorteio<0.78){
+numero=5;
+}
+else if(sorteio<0.84){
+numero=6;
+}
+else if(sorteio<0.89){
+numero=7;
+}
+else if(sorteio<0.94){
+numero=8;
+}
+else if(sorteio<0.98){
+numero=9;
+}
+else{
+numero=10;
+}
+
+
+/*
+Os pontos ficam reservados.
+Ainda NÃO entram no saldo.
+*/
+
+pontosDaRodada=numero;
 
 document.getElementById("dado").innerText=numero;
 
-pontos+=numero;
-
-document.getElementById("pontos").innerText=pontos;
-document.getElementById("saldo").innerText=pontos;
-
 document.getElementById("resultadoDado").innerText=
-"🎉 Você ganhou "+numero+" pontos!";
+"🎉 A roleta sorteou "+numero+" ponto"+(numero===1?"":"s")+"! Acerte para ganhar.";
 
 jogadaLiberada=true;
 
@@ -501,11 +732,13 @@ let caixa=document.getElementById("respostas");
 
 caixa.innerHTML="";
 
+
 perguntaAtual.r.forEach(function(resp,i){
 
 let botao=document.createElement("button");
 
 botao.innerText=resp;
+
 botao.className="resposta";
 
 botao.onclick=function(){
@@ -517,6 +750,7 @@ responder(i,botao);
 caixa.appendChild(botao);
 
 });
+
 
 iniciarTempo();
 
@@ -566,17 +800,29 @@ b.disabled=true;
 
 });
 
+
 if(i===perguntaAtual.c){
 
 botao.classList.add("verde");
 
-pontos+=10;
+
+/*
+SÓ AGORA os pontos da roleta entram no saldo.
+*/
+
+pontos+=pontosDaRodada;
 
 document.getElementById("pontos").innerText=pontos;
+
 document.getElementById("saldo").innerText=pontos;
 
 document.getElementById("resultado").innerText=
-"🎉 ACERTOU! +10 pontos";
+"🎉 ACERTOU! +"+pontosDaRodada+" pontos";
+
+
+document.getElementById("resultadoDado").innerText=
+"🎉 Você ganhou "+pontosDaRodada+" pontos!";
+
 
 }else{
 
@@ -584,17 +830,33 @@ botao.classList.add("vermelho");
 
 botoes[perguntaAtual.c].classList.add("verde");
 
+
+/*
+ERROU = NÃO GANHA OS PONTOS.
+*/
+
 document.getElementById("resultado").innerText=
-"❌ ERROU!";
+"❌ ERROU! Você não ganhou os "+pontosDaRodada+" pontos.";
+
+
+document.getElementById("resultadoDado").innerText=
+"❌ Você perdeu a chance de ganhar "+pontosDaRodada+" pontos.";
 
 }
+
+
+/*
+A rodada terminou.
+*/
+
+pontosDaRodada=0;
 
 jogadaLiberada=false;
 
 }
 
 
-/* TEMPO ACABOU */
+/* TEMPO ESGOTADO */
 
 function tempoEsgotado(){
 
@@ -606,14 +868,23 @@ b.disabled=true;
 
 });
 
+
 if(perguntaAtual){
 
 botoes[perguntaAtual.c].classList.add("verde");
 
 }
 
+
 document.getElementById("resultado").innerText=
-"⏰ TEMPO ESGOTADO!";
+"⏰ TEMPO ESGOTADO! Você não ganhou os pontos.";
+
+
+document.getElementById("resultadoDado").innerText=
+"⏰ Você não ganhou os "+pontosDaRodada+" pontos.";
+
+
+pontosDaRodada=0;
 
 jogadaLiberada=false;
 
@@ -633,6 +904,7 @@ return;
 
 }
 
+
 if(pontos<1000){
 
 document.getElementById("saqueMsg").innerText=
@@ -642,7 +914,9 @@ return;
 
 }
 
+
 saques++;
+
 
 document.getElementById("saqueMsg").innerText=
 "✅ Solicitação registrada nesta versão de teste.";
@@ -657,6 +931,7 @@ function enviarSAC(){
 let mensagem=
 document.getElementById("mensagemSac").value;
 
+
 if(mensagem===""){
 
 document.getElementById("sacMsg").innerText=
@@ -665,6 +940,7 @@ document.getElementById("sacMsg").innerText=
 return;
 
 }
+
 
 document.getElementById("sacMsg").innerText=
 "✅ Mensagem registrada.";
@@ -684,5 +960,7 @@ document.getElementById("login").classList.remove("escondido");
 
 }
 
-</script></body>
-</html>
+</script>
+
+</body>
+  </html>
