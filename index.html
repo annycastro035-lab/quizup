@@ -2,59 +2,374 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QuizUp</title>
-</head>
-<body>  <h1>🎯 QuizUp</h1>
-  <p>Gire. Responda. Pontue!</p><button onclick="girar()">🎡 GIRAR</button>
+  <title>QuizUp</title>  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  <div id="jogo"></div>  <script>
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #17104f, #4b168f, #e83e8c);
+      color: white;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 430px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 48px;
+      margin-bottom: 5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 900;
+    }
+
+    .subtitulo {
+      opacity: 0.85;
+      margin-top: 5px;
+    }
+
+    .placar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .placar div {
+      flex: 1;
+      background: rgba(255,255,255,0.15);
+      border-radius: 18px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .numero {
+      display: block;
+      font-size: 25px;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    .roleta-area {
+      display: flex;
+      justify-content: center;
+      margin: 10px 0 25px;
+    }
+
+    .roleta {
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      border: 10px solid white;
+      background: conic-gradient(
+        #ff4d6d 0deg 60deg,
+        #ffd166 60deg 120deg,
+        #06d6a0 120deg 180deg,
+        #118ab2 180deg 240deg,
+        #8338ec 240deg 300deg,
+        #ff7b00 300deg 360deg
+      );
+      box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 1.2s cubic-bezier(.17,.67,.12,1);
+    }
+
+    .roleta-centro {
+      width: 75px;
+      height: 75px;
+      background: white;
+      color: #35155f;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+
+    .ponteiro {
+      position: absolute;
+      margin-top: -225px;
+      font-size: 35px;
+    }
+
+    .girar {
+      width: 100%;
+      border: none;
+      border-radius: 18px;
+      padding: 17px;
+      background: white;
+      color: #551b91;
+      font-size: 20px;
+      font-weight: 900;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .pergunta-card {
+      background: rgba(255,255,255,0.14);
+      border-radius: 25px;
+      padding: 22px;
+    }
+
+    .categoria {
+      text-align: center;
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 10px;
+    }
+
+    .pergunta {
+      text-align: center;
+      font-size: 23px;
+      line-height: 1.3;
+      margin-bottom: 20px;
+    }
+
+    .resposta {
+      width: 100%;
+      border: 2px solid rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.12);
+      color: white;
+      border-radius: 15px;
+      padding: 15px;
+      margin-top: 10px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .certa {
+      background: #06d6a0 !important;
+    }
+
+    .errada {
+      background: #ef476f !important;
+    }
+
+    .resultado {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      min-height: 25px;
+    }
+
+    .rodape {
+      text-align: center;
+      margin-top: 25px;
+      opacity: 0.7;
+      font-size: 13px;
+    }
+  </style></head><body>  <main class="app"><header>
+  <div class="logo">🎯</div>
+  <h1>QuizUp</h1>
+  <p class="subtitulo">Gire. Responda. Pontue!</p>
+</header>
+
+<section class="placar">
+  <div>
+    🏆
+    <span class="numero" id="pontos">0</span>
+    Pontos
+  </div>
+
+  <div>
+    ❓
+    <span class="numero" id="rodada">0</span>
+    Rodada
+  </div>
+</section>
+
+<section class="roleta-area">
+  <div>
+    <div class="roleta" id="roleta">
+      <div class="roleta-centro">🎯</div>
+    </div>
+    <div class="ponteiro">🔻</div>
+  </div>
+</section>
+
+<button class="girar" onclick="girarRoleta()">
+  🎡 GIRAR A ROLETA
+</button>
+
+<section class="pergunta-card">
+
+  <div class="categoria" id="categoria">
+    PRONTO PARA JOGAR?
+  </div>
+
+  <h2 class="pergunta" id="pergunta">
+    Gire a roleta para começar!
+  </h2>
+
+  <div id="respostas"></div>
+
+  <div class="resultado" id="resultado"></div>
+
+</section>
+
+<div class="rodape">
+  QuizUp 🎮 • Gire. Responda. Pontue.
+</div>
+
+  </main>  <script>
+
     const perguntas = [
       {
+        categoria: "🌎 GEOGRAFIA",
         pergunta: "Qual é a capital do Brasil?",
-        respostas: ["Brasília", "São Paulo", "Rio de Janeiro", "Salvador"],
+        respostas: ["Brasília", "São Paulo", "Salvador", "Recife"],
         correta: 0
       },
+
       {
+        categoria: "🧮 MATEMÁTICA",
         pergunta: "Quanto é 2 + 2?",
         respostas: ["3", "4", "5", "6"],
         correta: 1
       },
+
       {
+        categoria: "🚀 CIÊNCIA",
         pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
         respostas: ["Terra", "Marte", "Júpiter", "Vênus"],
         correta: 1
+      },
+
+      {
+        categoria: "🐾 ANIMAIS",
+        pergunta: "Qual animal é conhecido como o rei da selva?",
+        respostas: ["Elefante", "Tigre", "Leão", "Girafa"],
+        correta: 2
+      },
+
+      {
+        categoria: "🎬 CINEMA",
+        pergunta: "Qual personagem vive em Gotham City?",
+        respostas: ["Superman", "Batman", "Hulk", "Homem-Aranha"],
+        correta: 1
+      },
+
+      {
+        categoria: "⚽ ESPORTES",
+        pergunta: "Quantos jogadores cada time tem em campo no futebol?",
+        respostas: ["9", "10", "11", "12"],
+        correta: 2
       }
     ];
 
     let pontos = 0;
-    let perguntaAtual = 0;
+    let rodada = 0;
+    let perguntaAtual = null;
+    let girando = false;
 
-    function girar() {
-      perguntaAtual = Math.floor(Math.random() * perguntas.length);
-      mostrarPergunta();
+    function girarRoleta() {
+
+      if (girando) return;
+
+      girando = true;
+
+      const roleta = document.getElementById("roleta");
+
+      const graus = 1440 + Math.floor(Math.random() * 360);
+
+      roleta.style.transform = `rotate(${graus}deg)`;
+
+      setTimeout(() => {
+
+        const indice = Math.floor(Math.random() * perguntas.length);
+
+        perguntaAtual = perguntas[indice];
+
+        rodada++;
+
+        document.getElementById("rodada").textContent = rodada;
+
+        mostrarPergunta();
+
+        girando = false;
+
+      }, 1200);
     }
 
     function mostrarPergunta() {
-      const q = perguntas[perguntaAtual];
 
-      let html = `<h2>${q.pergunta}</h2>`;
+      document.getElementById("categoria").textContent =
+        perguntaAtual.categoria;
 
-      q.respostas.forEach((resposta, indice) => {
-        html += `<button onclick="responder(${indice})">${resposta}</button><br><br>`;
+      document.getElementById("pergunta").textContent =
+        perguntaAtual.pergunta;
+
+      document.getElementById("resultado").textContent = "";
+
+      const container = document.getElementById("respostas");
+
+      container.innerHTML = "";
+
+      perguntaAtual.respostas.forEach((resposta, indice) => {
+
+        const botao = document.createElement("button");
+
+        botao.className = "resposta";
+
+        botao.textContent = resposta;
+
+        botao.onclick = () => responder(indice, botao);
+
+        container.appendChild(botao);
+
+      });
+    }
+
+    function responder(indice, botao) {
+
+      const botoes = document.querySelectorAll(".resposta");
+
+      botoes.forEach(b => {
+        b.disabled = true;
       });
 
-      document.getElementById("jogo").innerHTML = html;
-    }
+      if (indice === perguntaAtual.correta) {
 
-    function responder(indice) {
-      const q = perguntas[perguntaAtual];
+        botao.classList.add("certa");
 
-      if (indice === q.correta) {
-        pontos++;
-        alert("🎉 Acertou! Pontos: " + pontos);
+        pontos += 10;
+
+        document.getElementById("pontos").textContent = pontos;
+
+        document.getElementById("resultado").textContent =
+          "🎉 ACERTOU! +10 pontos";
+
       } else {
-        alert("❌ Errou! A resposta correta era: " + q.respostas[q.correta]);
+
+        botao.classList.add("errada");
+
+        botoes[perguntaAtual.correta].classList.add("certa");
+
+        document.getElementById("resultado").textContent =
+          "❌ ERROU! A resposta correta está em verde.";
+
       }
     }
+
   </script></body>
 </html>
