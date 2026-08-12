@@ -1,501 +1,309 @@
 <!DOCTYPE html><html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>QuizUp</title><style>
-* {
-  box-sizing: border-box;
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#18004d,#7b1fa2,#e91e63);
+color:white;
+text-align:center;
 }
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #12002f, #5b168d, #e92f75);
-  color: white;
-  min-height: 100vh;
+.app{
+max-width:430px;
+margin:auto;
+padding:20px;
 }
-
-.app {
-  width: 100%;
-  max-width: 430px;
-  margin: auto;
-  padding: 18px;
+h1{font-size:40px;margin:5px}
+.card{
+background:#ffffff22;
+border-radius:20px;
+padding:20px;
+margin:15px 0;
 }
-
-header {
-  text-align: center;
-  padding: 15px 0;
+.menu button,.resposta,.principal{
+width:100%;
+padding:14px;
+margin:6px 0;
+border:0;
+border-radius:12px;
+font-weight:bold;
 }
-
-.logo {
-  font-size: 55px;
+.menu{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:6px;
 }
-
-h1 {
-  margin: 5px 0;
-  font-size: 38px;
+.menu button{
+background:#ffffff22;
+color:white;
 }
-
-.subtitulo {
-  opacity: .8;
+.dados{
+display:flex;
+justify-content:center;
+gap:20px;
+margin:20px;
 }
-
-.menu {
-  display: flex;
-  gap: 8px;
-  margin: 15px 0;
+.dado{
+width:90px;
+height:90px;
+background:white;
+color:#53147a;
+border-radius:20px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:45px;
+font-weight:bold;
 }
-
-.menu button {
-  flex: 1;
-  border: 0;
-  border-radius: 12px;
-  padding: 10px 5px;
-  background: rgba(255,255,255,.16);
-  color: white;
-  font-weight: bold;
+.principal{
+background:#ffd166;
+color:#351052;
+font-size:19px;
 }
-
-.card {
-  background: rgba(255,255,255,.13);
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: 22px;
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+.resposta{
+background:#ffffff20;
+color:white;
+border:2px solid #ffffff44;
+text-align:left;
 }
-
-.placar {
-  display: flex;
-  gap: 10px;
+input{
+width:100%;
+padding:13px;
+margin:6px 0;
+border:0;
+border-radius:10px;
+box-sizing:border-box;
 }
-
-.placar div {
-  flex: 1;
-  text-align: center;
-  background: rgba(255,255,255,.12);
-  border-radius: 15px;
-  padding: 12px;
+.verde{background:#06d6a0!important}
+.vermelho{background:#ef476f!important}
+.anuncio{
+background:white;
+color:#333;
+padding:18px;
+border-radius:15px;
+margin-top:15px;
 }
+.escondido{display:none}
+</style></head><body><div class="app"><h1>🎯 QuizUp</h1>
+<p>Gire. Responda. Pontue!</p><div class="menu">
+<button onclick="tela('jogo')">🎮 Jogo</button>
+<button onclick="tela('conta')">👤 Login</button>
+<button onclick="tela('saque')">💰 Saque</button>
+<button onclick="tela('sac')">💬 SAC</button>
+</div><div id="jogo"><div class="card">
+<h2>🏆 Pontos</h2>
+<h1 id="pontos">0</h1>
+</div><div class="card"><h2>🎲 Seus dados</h2><div class="dados">
+<div class="dado" id="dado1">1</div>
+<div class="dado" id="dado2">1</div>
+</div><button class="principal" onclick="jogar()">
+🎲 JOGAR DADOS
+</button><p id="ganhou">Jogue os dados!</p></div><div class="card"><h2 id="pergunta">Clique em JOGAR DADOS</h2><div id="respostas"></div><p id="resultado"></p></div><div class="anuncio">
+📢<br>
+<b>ANÚNCIO PATROCINADO</b>
+<br>
+Espaço reservado para publicidade
+</div></div><div id="conta" class="card escondido"><h2>👤 Minha conta</h2><input id="email" type="email" placeholder="Seu e-mail"><input id="senha" type="password" placeholder="Sua senha"><button class="principal" onclick="login()">
+Entrar / Cadastrar
+</button><p id="loginMsg"></p></div><div id="saque" class="card escondido"><h2>💰 Saque</h2><p>Seus pontos:</p>
+<h1 id="saldo">0</h1><p>1.000 pontos = R$ 1,00</p>
+<p>5.000 pontos = R$ 5,00</p>
+<p>10.000 pontos = R$ 10,00</p><p>Máximo de 2 solicitações por dia.</p><button class="principal" onclick="saque()">
+Solicitar saque
+</button><p id="saqueMsg"></p><p>💠 Pix</p>
+<p>🅿️ PayPal</p></div><div id="sac" class="card escondido"><h2>💬 SAC</h2><input id="assunto" placeholder="Assunto"><input id="mensagem" placeholder="Sua mensagem"><button class="principal" onclick="sac()">
+Enviar mensagem
+</button><p id="sacMsg"></p></div></div><script>
 
-.valor {
-  display: block;
-  font-size: 25px;
-  font-weight: bold;
-  margin-top: 5px;
+let pontos=0;
+let saques=0;
+let perguntaAtual;
+
+const perguntas=[
+{
+p:"Qual planeta é conhecido como Planeta Vermelho?",
+r:["Terra","Marte","Júpiter","Vênus"],
+c:1
+},
+{
+p:"Qual é a capital do Brasil?",
+r:["Rio de Janeiro","Brasília","São Paulo","Salvador"],
+c:1
+},
+{
+p:"Quanto é 2 + 2?",
+r:["3","4","5","6"],
+c:1
+},
+{
+p:"Qual animal é conhecido como rei da selva?",
+r:["Tigre","Elefante","Leão","Girafa"],
+c:2
 }
-
-.dados {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin: 25px 0;
-}
-
-.dado {
-  width: 105px;
-  height: 105px;
-  background: white;
-  color: #41136f;
-  border-radius: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 55px;
-  font-weight: 900;
-  box-shadow: 0 8px 20px rgba(0,0,0,.3);
-}
-
-.girar {
-  width: 100%;
-  padding: 17px;
-  border: 0;
-  border-radius: 17px;
-  background: #ffd166;
-  color: #351052;
-  font-size: 20px;
-  font-weight: 900;
-}
-
-.pergunta {
-  font-size: 21px;
-  line-height: 1.35;
-  text-align: center;
-  margin-bottom: 18px;
-}
-
-.resposta {
-  width: 100%;
-  padding: 14px;
-  margin: 7px 0;
-  border-radius: 13px;
-  border: 2px solid rgba(255,255,255,.3);
-  background: rgba(255,255,255,.1);
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: left;
-}
-
-.certa {
-  background: #08c98a !important;
-}
-
-.errada {
-  background: #ef476f !important;
-}
-
-.anuncio {
-  background: #fff;
-  color: #333;
-  border-radius: 15px;
-  padding: 18px;
-  text-align: center;
-}
-
-.anuncio small {
-  display: block;
-  color: #777;
-  margin-bottom: 8px;
-}
-
-input {
-  width: 100%;
-  padding: 14px;
-  margin: 7px 0;
-  border: 0;
-  border-radius: 12px;
-}
-
-.acao {
-  width: 100%;
-  padding: 14px;
-  border: 0;
-  border-radius: 12px;
-  background: #06d6a0;
-  color: #102a24;
-  font-weight: bold;
-  margin-top: 8px;
-}
-
-.saque {
-  background: rgba(255,255,255,.1);
-  border-radius: 15px;
-  padding: 12px;
-  margin-top: 10px;
-}
-
-.hidden {
-  display: none;
-}
-
-.mensagem {
-  text-align: center;
-  margin-top: 12px;
-  font-weight: bold;
-}
-
-footer {
-  text-align: center;
-  opacity: .65;
-  font-size: 12px;
-  padding: 20px 0;
-}
-</style></head><body><div class="app"><header>
-  <div class="logo">🎯</div>
-  <h1>QuizUp</h1>
-  <div class="subtitulo">Gire. Responda. Pontue!</div>
-</header><div class="menu">
-  <button onclick="mostrar('jogo')">🎮 Jogo</button>
-  <button onclick="mostrar('conta')">👤 Conta</button>
-  <button onclick="mostrar('saque')">💰 Saque</button>
-  <button onclick="mostrar('sac')">💬 SAC</button>
-</div><section id="jogo">  <div class="card placar">
-    <div>
-      🏆
-      <span class="valor" id="pontos">0</span>
-      Pontos
-    </div><div>
-  🎲
-  <span class="valor" id="rodadas">0</span>
-  Rodadas
-</div>
-
-  </div>  <div class="card"><h2 style="text-align:center;">🎲 Jogue os dados</h2>
-
-<div class="dados">
-  <div class="dado" id="dado1">1</div>
-  <div class="dado" id="dado2">1</div>
-</div>
-
-<button class="girar" onclick="jogarDados()">
-  🎲 JOGAR DADOS
-</button>
-
-<p id="resultadoDados" class="mensagem">
-  Cada dado pode mostrar de 1 a 10.
-</p>
-
-  </div>  <div class="card"><div class="pergunta" id="pergunta">
-  Clique em "JOGAR DADOS" para começar!
-</div>
-
-<div id="respostas"></div>
-
-<div id="resultado" class="mensagem"></div>
-
-  </div>  <div class="anuncio">
-    <small>PUBLICIDADE</small>
-    📢 Espaço para anúncio patrocinado
-  </div></section><section id="conta" class="hidden">  <div class="card"><h2>👤 Minha conta</h2>
-
-<input type="email" id="email" placeholder="Seu e-mail">
-
-<input type="password" id="senha" placeholder="Sua senha">
-
-<button class="acao" onclick="cadastrar()">
-  Criar conta
-</button>
-
-<button class="acao" onclick="entrar()">
-  Entrar
-</button>
-
-<p id="contaMensagem" class="mensagem"></p>
-
-  </div></section><section id="saque" class="hidden">  <div class="card"><h2>💰 Saque</h2>
-
-<p>
-  Saldo de pontos:
-  <strong id="saldoSaque">0</strong>
-</p>
-
-<div class="saque">
-  1.000 pontos → R$ 1,00
-</div>
-
-<div class="saque">
-  5.000 pontos → R$ 5,00
-</div>
-
-<div class="saque">
-  10.000 pontos → R$ 10,00
-</div>
-
-<p>
-  Limite configurado: até 2 solicitações por dia.
-</p>
-
-<button class="acao" onclick="solicitarSaque()">
-  Solicitar saque
-</button>
-
-<p id="saqueMensagem" class="mensagem"></p>
-
-<hr>
-
-<p>💳 Métodos planejados:</p>
-<p>🔑 Pix</p>
-<p>🅿️ PayPal</p>
-
-  </div></section><section id="sac" class="hidden">  <div class="card"><h2>💬 SAC</h2>
-
-<p>
-  Precisa de ajuda com o QuizUp?
-</p>
-
-<input id="assunto" placeholder="Assunto">
-
-<input id="mensagemSac" placeholder="Digite sua mensagem">
-
-<button class="acao" onclick="enviarSAC()">
-  Enviar mensagem
-</button>
-
-<p id="sacMensagem" class="mensagem"></p>
-
-  </div></section><footer>
-  QuizUp © 2026
-</footer></div><script>
-
-let pontos = 0;
-let rodadas = 0;
-let saquesHoje = 0;
-let perguntaAtual = null;
-
-const perguntas = [
-  {
-    pergunta: "Qual é a capital do Brasil?",
-    respostas: ["Brasília", "São Paulo", "Salvador", "Recife"],
-    correta: 0
-  },
-  {
-    pergunta: "Quanto é 2 + 2?",
-    respostas: ["3", "4", "5", "6"],
-    correta: 1
-  },
-  {
-    pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
-    respostas: ["Terra", "Marte", "Júpiter", "Vênus"],
-    correta: 1
-  },
-  {
-    pergunta: "Qual animal é conhecido como rei da selva?",
-    respostas: ["Elefante", "Tigre", "Leão", "Girafa"],
-    correta: 2
-  }
 ];
 
-function mostrar(tela) {
+function tela(nome){
 
-  document.getElementById("jogo").classList.add("hidden");
-  document.getElementById("conta").classList.add("hidden");
-  document.getElementById("saque").classList.add("hidden");
-  document.getElementById("sac").classList.add("hidden");
+document.getElementById("jogo").classList.add("escondido");
+document.getElementById("conta").classList.add("escondido");
+document.getElementById("saque").classList.add("escondido");
+document.getElementById("sac").classList.add("escondido");
 
-  document.getElementById(tela).classList.remove("hidden");
+document.getElementById(nome).classList.remove("escondido");
+
 }
 
-function jogarDados() {
+function jogar(){
 
-  const d1 = Math.floor(Math.random() * 10) + 1;
-  const d2 = Math.floor(Math.random() * 10) + 1;
+let a=Math.floor(Math.random()*10)+1;
+let b=Math.floor(Math.random()*10)+1;
 
-  document.getElementById("dado1").textContent = d1;
-  document.getElementById("dado2").textContent = d2;
+document.getElementById("dado1").innerText=a;
+document.getElementById("dado2").innerText=b;
 
-  const pontosRodada = d1 + d2;
+let ganho=a+b;
 
-  pontos += pontosRodada;
-  rodadas++;
+pontos+=ganho;
 
-  document.getElementById("pontos").textContent = pontos;
-  document.getElementById("rodadas").textContent = rodadas;
-  document.getElementById("saldoSaque").textContent = pontos;
+document.getElementById("pontos").innerText=pontos;
+document.getElementById("saldo").innerText=pontos;
 
-  document.getElementById("resultadoDados").textContent =
-    "🎉 Você ganhou " + pontosRodada + " pontos!";
+document.getElementById("ganhou").innerText=
+"🎉 Você ganhou "+ganho+" pontos!";
 
-  mostrarPergunta();
+pergunta();
+
 }
 
-function mostrarPergunta() {
+function pergunta(){
 
-  perguntaAtual =
-    perguntas[Math.floor(Math.random() * perguntas.length)];
+let i=Math.floor(Math.random()*perguntas.length);
 
-  document.getElementById("pergunta").textContent =
-    perguntaAtual.pergunta;
+perguntaAtual=perguntas[i];
 
-  const container = document.getElementById("respostas");
+document.getElementById("pergunta").innerText=
+perguntaAtual.p;
 
-  container.innerHTML = "";
+document.getElementById("resultado").innerText="";
 
-  perguntaAtual.respostas.forEach((resposta, indice) => {
+let caixa=document.getElementById("respostas");
 
-    const botao = document.createElement("button");
+caixa.innerHTML="";
 
-    botao.className = "resposta";
-    botao.textContent = resposta;
+perguntaAtual.r.forEach(function(resp,i){
 
-    botao.onclick = function() {
-      responder(indice, botao);
-    };
+let botao=document.createElement("button");
 
-    container.appendChild(botao);
-  });
+botao.innerText=resp;
+botao.className="resposta";
 
-  document.getElementById("resultado").textContent = "";
+botao.onclick=function(){
+responder(i,botao);
+};
+
+caixa.appendChild(botao);
+
+});
+
 }
 
-function responder(indice, botao) {
+function responder(i,botao){
 
-  const botoes = document.querySelectorAll(".resposta");
+let botoes=document.querySelectorAll(".resposta");
 
-  botoes.forEach(b => b.disabled = true);
+botoes.forEach(function(b){
+b.disabled=true;
+});
 
-  if (indice === perguntaAtual.correta) {
+if(i===perguntaAtual.c){
 
-    botao.classList.add("certa");
+botao.classList.add("verde");
 
-    pontos += 10;
+pontos+=10;
 
-    document.getElementById("pontos").textContent = pontos;
-    document.getElementById("saldoSaque").textContent = pontos;
+document.getElementById("pontos").innerText=pontos;
+document.getElementById("saldo").innerText=pontos;
 
-    document.getElementById("resultado").textContent =
-      "🎉 Acertou! +10 pontos";
+document.getElementById("resultado").innerText=
+"🎉 Acertou! +10 pontos";
 
-  } else {
+}else{
 
-    botao.classList.add("errada");
+botao.classList.add("vermelho");
 
-    botoes[perguntaAtual.correta].classList.add("certa");
+botoes[perguntaAtual.c].classList.add("verde");
 
-    document.getElementById("resultado").textContent =
-      "❌ Resposta errada!";
-  }
+document.getElementById("resultado").innerText=
+"❌ Errou!";
+
 }
 
-function cadastrar() {
-
-  const email = document.getElementById("email").value;
-
-  if (!email) {
-    document.getElementById("contaMensagem").textContent =
-      "Digite seu e-mail.";
-    return;
-  }
-
-  document.getElementById("contaMensagem").textContent =
-    "✅ Cadastro demonstrativo criado!";
 }
 
-function entrar() {
+function login(){
 
-  document.getElementById("contaMensagem").textContent =
-    "✅ Login demonstrativo realizado!";
+let email=document.getElementById("email").value;
+let senha=document.getElementById("senha").value;
+
+if(email===""||senha===""){
+
+document.getElementById("loginMsg").innerText=
+"Digite e-mail e senha.";
+
+return;
+
 }
 
-function solicitarSaque() {
+document.getElementById("loginMsg").innerText=
+"✅ Conta criada nesta versão de teste!";
 
-  if (saquesHoje >= 2) {
-
-    document.getElementById("saqueMensagem").textContent =
-      "⚠️ Limite de 2 solicitações por dia atingido.";
-
-    return;
-  }
-
-  if (pontos < 1000) {
-
-    document.getElementById("saqueMensagem").textContent =
-      "Você precisa de pelo menos 1.000 pontos.";
-
-    return;
-  }
-
-  saquesHoje++;
-
-  document.getElementById("saqueMensagem").textContent =
-    "✅ Solicitação registrada nesta demonstração.";
 }
 
-function enviarSAC() {
+function saque(){
 
-  const mensagem =
-    document.getElementById("mensagemSac").value;
+if(saques>=2){
 
-  if (!mensagem) {
+document.getElementById("saqueMsg").innerText=
+"⚠️ Você já fez 2 solicitações hoje.";
 
-    document.getElementById("sacMensagem").textContent =
-      "Digite sua mensagem.";
+return;
 
-    return;
-  }
+}
 
-  document.getElementById("sacMensagem").textContent =
-    "✅ Mensagem registrada. Obrigado!";
+if(pontos<1000){
+
+document.getElementById("saqueMsg").innerText=
+"Você precisa de 1.000 pontos.";
+
+return;
+
+}
+
+saques++;
+
+document.getElementById("saqueMsg").innerText=
+"✅ Solicitação registrada nesta versão de teste.";
+
+}
+
+function sac(){
+
+let mensagem=document.getElementById("mensagem").value;
+
+if(mensagem===""){
+
+document.getElementById("sacMsg").innerText=
+"Digite sua mensagem.";
+
+return;
+
+}
+
+document.getElementById("sacMsg").innerText=
+"✅ Mensagem enviada!";
+
 }
 
 </script></body>
