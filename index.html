@@ -1,9 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QuizUp</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#16002f,#62158f,#e91e63);
+color:white;
+min-height:100vh;
+}
+
+.app{
+max-width:430px;
+margin:auto;
+padding:20px;
+}
+
+h1{
+font-size:40px;
+margin:5px 0;
+}
+
+.card{
+background:#ffffff20;
+border-radius:20px;
+padding:20px;
+margin:15px 0;
+}
+
+input{
+width:100%;
+padding:14px;
+margin:7px 0;
+border:0;
+border-radius:12px;
+font-size:16px;
+}
+
+button{
+cursor:pointer;
+}
+
+.principal{
+width:100%;
+padding:15px;
+border:0;
+border-radius:13px;
+margin-top:8px;
+font-weight:bold;
+font-size:17px;
+background:#ffd166;
+color:#351052;
+}
+
+.secundario{
+width:100%;
+padding:13px;
+border:0;
+border-radius:13px;
+margin-top:8px;
+font-weight:bold;
+background:#06d6a0;
+color:#102a24;
+}
+
+.escondido{
+display:none !important;
+visibility:hidden !important;
+}
+
+.login{
+text-align:center;
+padding-top:35px;
+}
+
+.logo{
+font-size:65px;
+}
+
+.menu{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:7px;
+margin-bottom:15px;
+}
+
+.menu button{
+padding:12px 5px;
+border:0;
+border-radius:12px;
+background:#ffffff22;
+color:white;
+font-weight:bold;
+}
+
+.placar{
+display:flex;
+gap:10px;
+}
+
+.placar div{
+flex:1;
+text-align:center;
+background:#ffffff15;
+padding:12px;
+border-radius:15px;
+}
+
+.numero{
+display:block;
+font-size:27px;
+font-weight:bold;
+margin-top:5px;
+}
+
+.dado-area{
+text-align:center;
+padding:10px;
+}
+
+.dado{
+width:120px;
+height:120px;
+margin:20px auto;
+background:white;
+color:#541477;
+border-radius:25px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:58px;
+font-weight:bold;
+box-shadow:0 10px 25px #0005;
+}
+
+.timer{
+font-size:35px;
+font-weight:bold;
+margin:10px;
+}
+
+.pergunta{
+font-size:21px;
+line-height:1.35;
+text-align:center;
+margin:15px 0;
+}
+
+.resposta{
+width:100%;
+padding:14px;
+margin:6px 0;
+border:2px solid #ffffff40;
+border-radius:12px;
+background:#ffffff15;
+color:white;
+font-size:16px;
+font-weight:bold;
+text-align:left;
+}
+
+.resposta:disabled{
+opacity:1;
+}
+
+.verde{
+background:#06d6a0!important;
+color:#092b22;
+}
+
+.vermelho{
+background:#ef476f!important;
+}
+
+.anuncio{
+background:white;
+color:#333;
+padding:18px;
+border-radius:15px;
+text-align:center;
+margin-top:15px;
+}
+
+.saque{
+background:#ffffff12;
+border-radius:13px;
+padding:12px;
+margin:8px 0;
+}
+
+.mensagem{
+text-align:center;
+font-weight:bold;
+margin-top:12px;
+}
+
+footer{
+text-align:center;
+opacity:.6;
+font-size:12px;
+padding:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- INÍCIO -->
+
+<section id="inicio" class="login">
+
+<div class="logo">🎯</div>
+
+<h1>QuizUp</h1>
+
+<p>Gire. Responda. Pontue!</p>
+
+<div class="card">
+
+<h2>👋 Bem-vindo!</h2>
+
+<button type="button" class="principal" id="botaoCriar">
+🆕 CRIAR CONTA
+</button>
+
+<button type="button" class="secundario" id="botaoLogin">
+🔐 JÁ TENHO UMA CONTA
+</button>
+
+</div>
+
+</section>
+
+
+<!-- CADASTRO -->
+
+<section id="cadastro" class="login escondido">
+
+<div class="logo">📝</div>
+
+<h1>Criar conta</h1>
+
+<div class="card">
+
+<input id="nome" type="text" placeholder="Nome completo">
+
+<input id="cpf" type="text" inputmode="numeric" maxlength="14" placeholder="CPF">
+
+<input id="emailCadastro" type="email" placeholder="Seu e-mail">
+
+<input id="senhaCadastro" type="password" placeholder="Crie uma senha">
+
+<button type="button" class="principal" id="confirmarCadastro">
+🆕 CRIAR CONTA
+</button>
+
+<button type="button" class="secundario" id="voltarCadastro">
+⬅️ VOLTAR
+</button>
+
+<p id="cadastroMsg"></p>
+
+</div>
+
+</section>
+
+
+<!-- LOGIN -->
+
+<section id="login" class="login escondido">
+
+<div class="logo">🔐</div>
+
+<h1>Entrar</h1>
+
+<div class="card">
+
+<input id="emailLogin" type="email" placeholder="Seu e-mail">
+
+<input id="senhaLogin" type="password" placeholder="Sua senha">
+
+<button type="button" class="principal" id="confirmarLogin">
+🔐 ENTRAR
+</button>
+
+<button type="button" class="secundario" id="botaoEsqueci">
+🔑 ESQUECI MINHA SENHA
+</button>
+
+<button type="button" class="secundario" id="voltarLogin">
+⬅️ VOLTAR
+</button>
+
 <p id="loginMsg"></p>
 
 </div>
+
 </section>
 
-<!-- ESQUECI A SENHA -->
+
+<!-- RECUPERAÇÃO -->
 
 <section id="esqueci" class="login escondido">
 
@@ -13,7 +317,9 @@
 
 <div class="card">
 
-<p>Digite o e-mail cadastrado para receber um código de recuperação.</p>
+<p>
+Digite o e-mail cadastrado para receber um código.
+</p>
 
 <input
 id="emailRecuperacao"
@@ -49,13 +355,21 @@ placeholder="Seu e-mail">
 
 <div class="menu">
 
-<button onclick="mostrar('jogo')">🎮 Jogo</button>
+<button onclick="mostrar('jogo')">
+🎮 Jogo
+</button>
 
-<button onclick="mostrar('saque')">💰 Saque</button>
+<button onclick="mostrar('saque')">
+💰 Saque
+</button>
 
-<button onclick="mostrar('sac')">💬 SAC</button>
+<button onclick="mostrar('sac')">
+💬 SAC
+</button>
 
-<button onclick="sair()">🚪 Sair</button>
+<button onclick="sair()">
+🚪 Sair
+</button>
 
 </div>
 
@@ -79,7 +393,9 @@ Questão
 
 <h2>🎲 Seu dado</h2>
 
-<div class="dado" id="dado">1</div>
+<div class="dado" id="dado">
+1
+</div>
 
 <button class="principal" onclick="jogarDado()">
 🎲 JOGAR
@@ -93,12 +409,8 @@ Jogue o dado para começar.
 
 <div class="card">
 
-<div style="text-align:center">
-
 <div class="timer">
 ⏱️ <span id="tempo">5</span>
-</div>
-
 </div>
 
 <div class="pergunta" id="pergunta">
@@ -112,12 +424,10 @@ A pergunta aparecerá aqui.
 </div>
 
 <div class="anuncio">
-
 📢<br>
 <b>ANÚNCIO PATROCINADO</b>
 <br><br>
 Espaço reservado para publicidade.
-
 </div>
 
 </section>
@@ -150,14 +460,14 @@ Seus pontos:
 Máximo de 2 solicitações por dia.
 </p>
 
-<h3>Escolha onde receber:</h3>
+<h3>Forma de recebimento</h3>
 
 <p>💠 Pix</p>
 <p>🅿️ PayPal</p>
 
 <input
 id="chaveSaque"
-placeholder="Chave Pix ou e-mail PayPal">
+placeholder="Sua chave Pix ou e-mail PayPal">
 
 <button class="principal" onclick="solicitarSaque()">
 💰 SOLICITAR SAQUE
@@ -210,19 +520,21 @@ QuizUp © 2026
 
 <script>
 
-let pontos = 0;
-let rodada = 0;
-let saques = 0;
-let tempo = 5;
-let intervalo = null;
-let perguntaAtual = null;
-let jogadaLiberada = false;
-let pontosDaRodada = 0;
+/* DADOS */
+
+let pontos=0;
+let rodada=0;
+let saques=0;
+let tempo=5;
+let intervalo=null;
+let perguntaAtual=null;
+let jogadaLiberada=false;
+let pontosDaRodada=0;
 
 
 /* PERGUNTAS */
 
-const perguntas = [
+const perguntas=[
 
 {
 p:"Qual é a capital do Brasil?",
@@ -299,7 +611,7 @@ c:2
 ];
 
 
-/* NAVEGAÇÃO */
+/* MOSTRAR TELAS */
 
 function esconderTudo(){
 
@@ -313,7 +625,6 @@ document.getElementById("sac").classList.add("escondido");
 
 }
 
-
 function mostrar(tela){
 
 esconderTudo();
@@ -323,93 +634,60 @@ document.getElementById(tela).classList.remove("escondido");
 }
 
 
-/* BOTÕES INICIAIS */
+/* BOTÕES */
 
-document.getElementById("botaoCriar").onclick = function(){
-
+document.getElementById("botaoCriar").onclick=function(){
 mostrar("cadastro");
-
 };
 
-
-document.getElementById("botaoLogin").onclick = function(){
-
+document.getElementById("botaoLogin").onclick=function(){
 mostrar("login");
-
 };
 
-
-document.getElementById("voltarCadastro").onclick = function(){
-
+document.getElementById("voltarCadastro").onclick=function(){
 mostrar("inicio");
-
 };
 
-
-document.getElementById("voltarLogin").onclick = function(){
-
+document.getElementById("voltarLogin").onclick=function(){
 mostrar("inicio");
-
 };
 
-
-document.getElementById("botaoEsqueci").onclick = function(){
-
+document.getElementById("botaoEsqueci").onclick=function(){
 mostrar("esqueci");
-
 };
 
-
-document.getElementById("voltarRecuperacao").onclick = function(){
-
+document.getElementById("voltarRecuperacao").onclick=function(){
 mostrar("login");
-
 };
 
 
 /* CADASTRO */
 
-document.getElementById("confirmarCadastro").onclick = function(){
+document.getElementById("confirmarCadastro").onclick=function(){
 
-let nome =
-document.getElementById("nome").value.trim();
+let nome=document.getElementById("nome").value.trim();
+let cpf=document.getElementById("cpf").value.trim();
+let email=document.getElementById("emailCadastro").value.trim();
+let senha=document.getElementById("senhaCadastro").value;
 
-let cpf =
-document.getElementById("cpf").value.trim();
+if(nome===""||cpf===""||email===""||senha===""){
 
-let email =
-document.getElementById("emailCadastro").value.trim();
-
-let senha =
-document.getElementById("senhaCadastro").value;
-
-if(nome === "" || cpf === "" || email === "" || senha === ""){
-
-document.getElementById("cadastroMsg").innerText =
+document.getElementById("cadastroMsg").innerText=
 "⚠️ Preencha todos os campos.";
 
 return;
-
 }
-
-
-/*
-VERSÃO DE TESTE:
-salva os dados no navegador.
-*/
 
 localStorage.setItem("quizup_nome",nome);
 localStorage.setItem("quizup_cpf",cpf);
 localStorage.setItem("quizup_email",email);
 localStorage.setItem("quizup_senha",senha);
 
-document.getElementById("cadastroMsg").innerText =
+document.getElementById("cadastroMsg").innerText=
 "✅ Conta criada com sucesso!";
 
 setTimeout(function(){
-
 mostrar("login");
-
 },800);
 
 };
@@ -417,45 +695,35 @@ mostrar("login");
 
 /* LOGIN */
 
-document.getElementById("confirmarLogin").onclick = function(){
+document.getElementById("confirmarLogin").onclick=function(){
 
-let email =
-document.getElementById("emailLogin").value.trim();
+let email=document.getElementById("emailLogin").value.trim();
+let senha=document.getElementById("senhaLogin").value;
 
-let senha =
-document.getElementById("senhaLogin").value;
+let emailSalvo=localStorage.getItem("quizup_email");
+let senhaSalva=localStorage.getItem("quizup_senha");
 
-let emailSalvo =
-localStorage.getItem("quizup_email");
+if(email===""||senha===""){
 
-let senhaSalva =
-localStorage.getItem("quizup_senha");
-
-if(email === "" || senha === ""){
-
-document.getElementById("loginMsg").innerText =
+document.getElementById("loginMsg").innerText=
 "⚠️ Preencha e-mail e senha.";
 
 return;
-
 }
 
-if(email !== emailSalvo || senha !== senhaSalva){
+if(email!==emailSalvo||senha!==senhaSalva){
 
-document.getElementById("loginMsg").innerText =
+document.getElementById("loginMsg").innerText=
 "❌ E-mail ou senha incorretos.";
 
 return;
-
 }
 
-document.getElementById("loginMsg").innerText =
+document.getElementById("loginMsg").innerText=
 "✅ Login realizado!";
 
 setTimeout(function(){
-
 mostrar("jogo");
-
 },500);
 
 };
@@ -463,112 +731,79 @@ mostrar("jogo");
 
 /* RECUPERAÇÃO */
 
-document.getElementById("enviarCodigo").onclick = function(){
+document.getElementById("enviarCodigo").onclick=function(){
 
-let email =
-document.getElementById("emailRecuperacao").value.trim();
+let email=document.getElementById("emailRecuperacao").value.trim();
 
-let emailSalvo =
-localStorage.getItem("quizup_email");
+let emailSalvo=localStorage.getItem("quizup_email");
 
-if(email === ""){
+if(email===""){
 
-document.getElementById("recuperacaoMsg").innerText =
+document.getElementById("recuperacaoMsg").innerText=
 "⚠️ Digite seu e-mail.";
 
 return;
-
 }
 
-if(email !== emailSalvo){
+if(email!==emailSalvo){
 
-document.getElementById("recuperacaoMsg").innerText =
-"❌ Este e-mail não está cadastrado.";
+document.getElementById("recuperacaoMsg").innerText=
+"❌ E-mail não encontrado.";
 
 return;
-
 }
 
-
-/*
-Nesta versão o envio real de e-mail
-ainda depende do servidor/backend.
-*/
-
-let codigo =
-Math.floor(100000 + Math.random() * 900000);
+let codigo=Math.floor(100000+Math.random()*900000);
 
 localStorage.setItem("quizup_codigo",codigo);
 
-document.getElementById("recuperacaoMsg").innerText =
-"📧 Código gerado: " + codigo +
-". O envio por e-mail será ligado ao servidor depois.";
+document.getElementById("recuperacaoMsg").innerText=
+"📧 Código gerado. O envio real por e-mail será conectado ao servidor.";
 
 };
 
 
-/* DADO */
+/* DADO / ROLETA */
 
 function jogarDado(){
 
-if(jogadaLiberada) return;
+if(jogadaLiberada)return;
 
-let sorteio = Math.random();
+let sorteio=Math.random();
 
 let numero;
 
-if(sorteio < 0.18){
-
-numero = 1;
-
-}else if(sorteio < 0.36){
-
-numero = 2;
-
-}else if(sorteio < 0.54){
-
-numero = 3;
-
-}else if(sorteio < 0.70){
-
-numero = 4;
-
-}else if(sorteio < 0.78){
-
-numero = 5;
-
-}else if(sorteio < 0.84){
-
-numero = 6;
-
-}else if(sorteio < 0.89){
-
-numero = 7;
-
-}else if(sorteio < 0.94){
-
-numero = 8;
-
-}else if(sorteio < 0.98){
-
-numero = 9;
-
+if(sorteio<0.18){
+numero=1;
+}else if(sorteio<0.36){
+numero=2;
+}else if(sorteio<0.54){
+numero=3;
+}else if(sorteio<0.70){
+numero=4;
+}else if(sorteio<0.78){
+numero=5;
+}else if(sorteio<0.84){
+numero=6;
+}else if(sorteio<0.89){
+numero=7;
+}else if(sorteio<0.94){
+numero=8;
+}else if(sorteio<0.98){
+numero=9;
 }else{
-
-numero = 10;
-
+numero=10;
 }
 
-pontosDaRodada = numero;
+pontosDaRodada=numero;
 
-document.getElementById("dado").innerText = numero;
+document.getElementById("dado").innerText=numero;
 
-document.getElementById("resultadoDado").innerText =
-"🎉 A roleta sorteou " + numero +
-" ponto" + (numero === 1 ? "" : "s") +
+document.getElementById("resultadoDado").innerText=
+"🎉 Saiu "+numero+" ponto"+(numero===1?"":"s")+
 "! Acerte para ganhar.";
 
-jogadaLiberada = true;
+jogadaLiberada=true;
 
 mostrarPergunta();
 
@@ -579,38 +814,33 @@ mostrarPergunta();
 
 function mostrarPergunta(){
 
-let i =
-Math.floor(Math.random() * perguntas.length);
+let i=Math.floor(Math.random()*perguntas.length);
 
-perguntaAtual = perguntas[i];
+perguntaAtual=perguntas[i];
 
 rodada++;
 
-document.getElementById("rodada").innerText = rodada;
+document.getElementById("rodada").innerText=rodada;
 
-document.getElementById("pergunta").innerText =
+document.getElementById("pergunta").innerText=
 perguntaAtual.p;
 
-document.getElementById("resultado").innerText = "";
+document.getElementById("resultado").innerText="";
 
-let caixa =
-document.getElementById("respostas");
+let caixa=document.getElementById("respostas");
 
-caixa.innerHTML = "";
+caixa.innerHTML="";
 
 perguntaAtual.r.forEach(function(resp,i){
 
-let botao =
-document.createElement("button");
+let botao=document.createElement("button");
 
-botao.innerText = resp;
+botao.innerText=resp;
 
-botao.className = "resposta";
+botao.className="resposta";
 
-botao.onclick = function(){
-
+botao.onclick=function(){
 responder(i,botao);
-
 };
 
 caixa.appendChild(botao);
@@ -622,23 +852,23 @@ iniciarTempo();
 }
 
 
-/* TIMER */
+/* TEMPO */
 
 function iniciarTempo(){
 
 clearInterval(intervalo);
 
-tempo = 5;
+tempo=5;
 
-document.getElementById("tempo").innerText = tempo;
+document.getElementById("tempo").innerText=tempo;
 
-intervalo = setInterval(function(){
+intervalo=setInterval(function(){
 
 tempo--;
 
-document.getElementById("tempo").innerText = tempo;
+document.getElementById("tempo").innerText=tempo;
 
-if(tempo <= 0){
+if(tempo<=0){
 
 clearInterval(intervalo);
 
@@ -657,27 +887,27 @@ function responder(i,botao){
 
 clearInterval(intervalo);
 
-let botoes =
-document.querySelectorAll(".resposta");
+let botoes=document.querySelectorAll(".resposta");
 
 botoes.forEach(function(b){
-
-b.disabled = true;
-
+b.disabled=true;
 });
 
-if(i === perguntaAtual.c){
+if(i===perguntaAtual.c){
 
 botao.classList.add("verde");
 
-pontos += pontosDaRodada;
+pontos+=pontosDaRodada;
 
-document.getElementById("pontos").innerText = pontos;
+document.getElementById("pontos").innerText=pontos;
 
-document.getElementById("saldo").innerText = pontos;
+document.getElementById("saldo").innerText=pontos;
 
-document.getElementById("resultado").innerText =
-"🎉 ACERTOU! +" + pontosDaRodada + " pontos";
+document.getElementById("resultado").innerText=
+"🎉 ACERTOU! +"+pontosDaRodada+" pontos";
+
+document.getElementById("resultadoDado").innerText=
+"🎉 Você ganhou "+pontosDaRodada+" pontos!";
 
 }else{
 
@@ -685,43 +915,44 @@ botao.classList.add("vermelho");
 
 botoes[perguntaAtual.c].classList.add("verde");
 
-document.getElementById("resultado").innerText =
+document.getElementById("resultado").innerText=
 "❌ ERROU! Não ganhou os pontos.";
 
-}
-
-pontosDaRodada = 0;
-
-jogadaLiberada = false;
+document.getElementById("resultadoDado").innerText=
+"❌ Você não ganhou os "+pontosDaRodada+" pontos.";
 
 }
 
+pontosDaRodada=0;
 
-/* TEMPO */
+jogadaLiberada=false;
+
+}
+
+
+/* TEMPO ESGOTADO */
 
 function tempoEsgotado(){
 
-let botoes =
-document.querySelectorAll(".resposta");
+let botoes=document.querySelectorAll(".resposta");
 
 botoes.forEach(function(b){
-
-b.disabled = true;
-
+b.disabled=true;
 });
 
 if(perguntaAtual){
-
 botoes[perguntaAtual.c].classList.add("verde");
-
 }
 
-document.getElementById("resultado").innerText =
+document.getElementById("resultado").innerText=
 "⏰ TEMPO ESGOTADO! Não ganhou os pontos.";
 
-pontosDaRodada = 0;
+document.getElementById("resultadoDado").innerText=
+"⏰ Você não ganhou os pontos.";
 
-jogadaLiberada = false;
+pontosDaRodada=0;
+
+jogadaLiberada=false;
 
 }
 
@@ -730,39 +961,35 @@ jogadaLiberada = false;
 
 function solicitarSaque(){
 
-if(saques >= 2){
+if(saques>=2){
 
-document.getElementById("saqueMsg").innerText =
+document.getElementById("saqueMsg").innerText=
 "⚠️ Limite de 2 solicitações por dia atingido.";
 
 return;
-
 }
 
-if(pontos < 1000){
+if(pontos<1000){
 
-document.getElementById("saqueMsg").innerText =
+document.getElementById("saqueMsg").innerText=
 "⚠️ Você precisa de pelo menos 1.000 pontos.";
 
 return;
-
 }
 
-let chave =
-document.getElementById("chaveSaque").value.trim();
+let chave=document.getElementById("chaveSaque").value.trim();
 
-if(chave === ""){
+if(chave===""){
 
-document.getElementById("saqueMsg").innerText =
+document.getElementById("saqueMsg").innerText=
 "⚠️ Informe sua chave Pix ou e-mail PayPal.";
 
 return;
-
 }
 
 saques++;
 
-document.getElementById("saqueMsg").innerText =
+document.getElementById("saqueMsg").innerText=
 "✅ Solicitação registrada. O pagamento será processado pelo servidor.";
 
 }
@@ -772,19 +999,18 @@ document.getElementById("saqueMsg").innerText =
 
 function enviarSAC(){
 
-let mensagem =
+let mensagem=
 document.getElementById("mensagemSac").value.trim();
 
-if(mensagem === ""){
+if(mensagem===""){
 
-document.getElementById("sacMsg").innerText =
+document.getElementById("sacMsg").innerText=
 "⚠️ Digite sua mensagem.";
 
 return;
-
 }
 
-document.getElementById("sacMsg").innerText =
+document.getElementById("sacMsg").innerText=
 "✅ Mensagem registrada.";
 
 }
@@ -796,11 +1022,22 @@ function sair(){
 
 clearInterval(intervalo);
 
-jogadaLiberada = false;
+jogadaLiberada=false;
 
 mostrar("inicio");
 
 }
+
+
+/* GARANTIR QUE SÓ O INÍCIO APAREÇA */
+
+window.addEventListener("load",function(){
+
+esconderTudo();
+
+document.getElementById("inicio").classList.remove("escondido");
+
+});
 
 </script>
 
