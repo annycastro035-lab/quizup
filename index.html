@@ -1,299 +1,808 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>QuizUp</title>
-
-<style>
-*{box-sizing:border-box}
-
-body{
-margin:0;
-font-family:Arial,sans-serif;
-background:linear-gradient(135deg,#16002f,#62158f,#e91e63);
-color:white;
-min-height:100vh;
-}
-
-.app{
-max-width:430px;
-margin:auto;
-padding:20px;
-}
-
-h1{font-size:40px;margin:5px 0}
-
-.card{
-background:#ffffff20;
-border-radius:20px;
-padding:20px;
-margin:15px 0;
-}
-
-input{
-width:100%;
-padding:14px;
-margin:7px 0;
-border:0;
-border-radius:12px;
-font-size:16px;
-}
-
-button{cursor:pointer}
-
-.principal{
-width:100%;
-padding:15px;
-border:0;
-border-radius:13px;
-margin-top:8px;
-font-weight:bold;
-font-size:17px;
-background:#ffd166;
-color:#351052;
-}
-
-.secundario{
-width:100%;
-padding:13px;
-border:0;
-border-radius:13px;
-margin-top:8px;
-font-weight:bold;
-background:#06d6a0;
-color:#102a24;
-}
-
-.escondido{
-display:none!important;
-}
-
-.login{
-text-align:center;
-padding-top:35px;
-}
-
-.logo{
-font-size:65px;
-}
-
-.menu{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:7px;
-margin-bottom:15px;
-}
-
-.menu button{
-padding:12px 5px;
-border:0;
-border-radius:12px;
-background:#ffffff22;
-color:white;
-font-weight:bold;
-}
-
-.placar{
-display:flex;
-gap:10px;
-}
-
-.placar div{
-flex:1;
-text-align:center;
-background:#ffffff15;
-padding:12px;
-border-radius:15px;
-}
-
-.numero{
-display:block;
-font-size:27px;
-font-weight:bold;
-margin-top:5px;
-}
-
-.dado-area{
-text-align:center;
-padding:10px;
-}
-
-.dado{
-width:120px;
-height:120px;
-margin:20px auto;
-background:white;
-color:#541477;
-border-radius:25px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:58px;
-font-weight:bold;
-box-shadow:0 10px 25px #0005;
-}
-
-.timer{
-font-size:35px;
-font-weight:bold;
-margin:10px;
-}
-
-.pergunta{
-font-size:21px;
-line-height:1.35;
-text-align:center;
-margin:15px 0;
-}
-
-.resposta{
-width:100%;
-padding:14px;
-margin:6px 0;
-border:2px solid #ffffff40;
-border-radius:12px;
-background:#ffffff15;
-color:white;
-font-size:16px;
-font-weight:bold;
-text-align:left;
-}
-
-.resposta:disabled{
-opacity:1;
-}
-
-.verde{
-background:#06d6a0!important;
-color:#092b22;
-}
-
-.vermelho{
-background:#ef476f!important;
-}
-
-.anuncio{
-background:white;
-color:#333;
-padding:18px;
-border-radius:15px;
-text-align:center;
-margin-top:15px;
-}
-
-.saque{
-background:#ffffff12;
-border-radius:13px;
-padding:12px;
-margin:8px 0;
-}
-
-.mensagem{
-text-align:center;
-font-weight:bold;
-margin-top:12px;
-}
-
-footer{
-text-align:center;
-opacity:.6;
-font-size:12px;
-padding:20px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="app">
-
-<!-- INÍCIO -->
-
-<section id="inicio" class="login">
-
-<div class="logo">🎯</div>
-
-<h1>QuizUp</h1>
-
-<p>Gire. Responda. Pontue!</p>
-
-<div class="card">
-
-<h2>👋 Bem-vindo!</h2>
-
-<button type="button" class="principal" id="botaoCriar">
-🆕 CRIAR CONTA
-</button>
-
-<button type="button" class="secundario" id="botaoLogin">
-🔐 JÁ TENHO UMA CONTA
-</button>
-
-</div>
-
-</section>
-
-
-<!-- CADASTRO -->
-
-<section id="cadastro" class="login escondido">
-
-<div class="logo">📝</div>
-
-<h1>Criar conta</h1>
-
-<div class="card">
-
-<input id="nome" type="text" placeholder="Nome completo">
-
-<input id="cpf" type="text" inputmode="numeric" maxlength="14" placeholder="CPF">
-
-<input id="emailCadastro" type="email" placeholder="Seu e-mail">
-
-<input id="senhaCadastro" type="password" placeholder="Crie uma senha">
-
-<button type="button" class="principal" id="confirmarCadastro">
-🆕 CRIAR CONTA
-</button>
-
-<button type="button" class="secundario" id="voltarCadastro">
-⬅️ VOLTAR
-</button>
-
-<p id="cadastroMsg"></p>
-
-</div>
-
-</section>
-
-
-<!-- LOGIN -->
-
-<section id="login" class="login escondido">
-
-<div class="logo">🔐</div>
-
-<h1>Entrar</h1>
-
-<div class="card">
-
-<input id="emailLogin" type="email" placeholder="Seu e-mail">
-
-<input id="senhaLogin" type="password" placeholder="Sua senha">
-
-<button type="button" class="principal" id="confirmarLogin">
-🔐 ENTRAR
-</button>
-
-<button type="button" class="secundario" id="botaoEsqueci">
-🔑 ESQUECI MINHA SENHA
-</button>
-
-<button type="button" class="secundario" id="voltarLogin">
-⬅️ VOLTAR
-</button>
-
 <p id="loginMsg"></p>
 
-</
+</div>
+</section>
+
+<!-- ESQUECI A SENHA -->
+
+<section id="esqueci" class="login escondido">
+
+<div class="logo">🔑</div>
+
+<h1>Recuperar senha</h1>
+
+<div class="card">
+
+<p>Digite o e-mail cadastrado para receber um código de recuperação.</p>
+
+<input
+id="emailRecuperacao"
+type="email"
+placeholder="Seu e-mail">
+
+<button type="button" class="principal" id="enviarCodigo">
+📧 ENVIAR CÓDIGO
+</button>
+
+<p id="recuperacaoMsg"></p>
+
+<button type="button" class="secundario" id="voltarRecuperacao">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+
+<!-- JOGO -->
+
+<section id="jogo" class="escondido">
+
+<header style="text-align:center">
+
+<h1>🎯 QuizUp</h1>
+
+<p>Boa sorte!</p>
+
+</header>
+
+<div class="menu">
+
+<button onclick="mostrar('jogo')">🎮 Jogo</button>
+
+<button onclick="mostrar('saque')">💰 Saque</button>
+
+<button onclick="mostrar('sac')">💬 SAC</button>
+
+<button onclick="sair()">🚪 Sair</button>
+
+</div>
+
+<div class="card placar">
+
+<div>
+🏆
+<span class="numero" id="pontos">0</span>
+Pontos
+</div>
+
+<div>
+📚
+<span class="numero" id="rodada">0</span>
+Questão
+</div>
+
+</div>
+
+<div class="card dado-area">
+
+<h2>🎲 Seu dado</h2>
+
+<div class="dado" id="dado">1</div>
+
+<button class="principal" onclick="jogarDado()">
+🎲 JOGAR
+</button>
+
+<p id="resultadoDado">
+Jogue o dado para começar.
+</p>
+
+</div>
+
+<div class="card">
+
+<div style="text-align:center">
+
+<div class="timer">
+⏱️ <span id="tempo">5</span>
+</div>
+
+</div>
+
+<div class="pergunta" id="pergunta">
+A pergunta aparecerá aqui.
+</div>
+
+<div id="respostas"></div>
+
+<p class="mensagem" id="resultado"></p>
+
+</div>
+
+<div class="anuncio">
+
+📢<br>
+<b>ANÚNCIO PATROCINADO</b>
+<br><br>
+Espaço reservado para publicidade.
+
+</div>
+
+</section>
+
+
+<!-- SAQUE -->
+
+<section id="saque" class="card escondido">
+
+<h2>💰 Saque</h2>
+
+<p>
+Seus pontos:
+<b id="saldo">0</b>
+</p>
+
+<div class="saque">
+1.000 pontos → R$ 1,00
+</div>
+
+<div class="saque">
+5.000 pontos → R$ 5,00
+</div>
+
+<div class="saque">
+10.000 pontos → R$ 10,00
+</div>
+
+<p>
+Máximo de 2 solicitações por dia.
+</p>
+
+<h3>Escolha onde receber:</h3>
+
+<p>💠 Pix</p>
+<p>🅿️ PayPal</p>
+
+<input
+id="chaveSaque"
+placeholder="Chave Pix ou e-mail PayPal">
+
+<button class="principal" onclick="solicitarSaque()">
+💰 SOLICITAR SAQUE
+</button>
+
+<p id="saqueMsg"></p>
+
+<button class="secundario" onclick="mostrar('jogo')">
+⬅️ VOLTAR
+</button>
+
+</section>
+
+
+<!-- SAC -->
+
+<section id="sac" class="card escondido">
+
+<h2>💬 SAC</h2>
+
+<p>Como podemos ajudar?</p>
+
+<input
+id="assunto"
+placeholder="Assunto">
+
+<input
+id="mensagemSac"
+placeholder="Digite sua mensagem">
+
+<button class="principal" onclick="enviarSAC()">
+ENVIAR
+</button>
+
+<p id="sacMsg"></p>
+
+<button class="secundario" onclick="mostrar('jogo')">
+⬅️ VOLTAR
+</button>
+
+</section>
+
+
+<footer>
+QuizUp © 2026
+</footer>
+
+</div>
+
+
+<script>
+
+let pontos = 0;
+let rodada = 0;
+let saques = 0;
+let tempo = 5;
+let intervalo = null;
+let perguntaAtual = null;
+let jogadaLiberada = false;
+let pontosDaRodada = 0;
+
+
+/* PERGUNTAS */
+
+const perguntas = [
+
+{
+p:"Qual é a capital do Brasil?",
+r:["Brasília","São Paulo","Salvador","Recife"],
+c:0
+},
+
+{
+p:"Quanto é 2 + 2?",
+r:["3","4","5","6"],
+c:1
+},
+
+{
+p:"Qual planeta é conhecido como Planeta Vermelho?",
+r:["Terra","Marte","Júpiter","Vênus"],
+c:1
+},
+
+{
+p:"Qual é o maior planeta do Sistema Solar?",
+r:["Terra","Saturno","Júpiter","Marte"],
+c:2
+},
+
+{
+p:"Em qual continente fica o Egito?",
+r:["Ásia","África","Europa","América"],
+c:1
+},
+
+{
+p:"Quantos lados tem um hexágono?",
+r:["5","6","7","8"],
+c:1
+},
+
+{
+p:"Qual é o elemento químico representado pela letra O?",
+r:["Ouro","Oxigênio","Ósmio","Ozônio"],
+c:1
+},
+
+{
+p:"Quem escreveu Dom Casmurro?",
+r:["José de Alencar","Machado de Assis","Carlos Drummond","Monteiro Lobato"],
+c:1
+},
+
+{
+p:"Qual é a raiz quadrada de 144?",
+r:["10","11","12","14"],
+c:2
+},
+
+{
+p:"Qual é o maior oceano da Terra?",
+r:["Atlântico","Índico","Ártico","Pacífico"],
+c:3
+},
+
+{
+p:"Qual planeta possui o maior número de luas conhecido?",
+r:["Marte","Júpiter","Mercúrio","Vênus"],
+c:1
+},
+
+{
+p:"Qual é o símbolo químico do tungstênio?",
+r:["T","Tu","W","G"],
+c:2
+}
+
+];
+
+
+/* NAVEGAÇÃO */
+
+function esconderTudo(){
+
+document.getElementById("inicio").classList.add("escondido");
+document.getElementById("cadastro").classList.add("escondido");
+document.getElementById("login").classList.add("escondido");
+document.getElementById("esqueci").classList.add("escondido");
+document.getElementById("jogo").classList.add("escondido");
+document.getElementById("saque").classList.add("escondido");
+document.getElementById("sac").classList.add("escondido");
+
+}
+
+
+function mostrar(tela){
+
+esconderTudo();
+
+document.getElementById(tela).classList.remove("escondido");
+
+}
+
+
+/* BOTÕES INICIAIS */
+
+document.getElementById("botaoCriar").onclick = function(){
+
+mostrar("cadastro");
+
+};
+
+
+document.getElementById("botaoLogin").onclick = function(){
+
+mostrar("login");
+
+};
+
+
+document.getElementById("voltarCadastro").onclick = function(){
+
+mostrar("inicio");
+
+};
+
+
+document.getElementById("voltarLogin").onclick = function(){
+
+mostrar("inicio");
+
+};
+
+
+document.getElementById("botaoEsqueci").onclick = function(){
+
+mostrar("esqueci");
+
+};
+
+
+document.getElementById("voltarRecuperacao").onclick = function(){
+
+mostrar("login");
+
+};
+
+
+/* CADASTRO */
+
+document.getElementById("confirmarCadastro").onclick = function(){
+
+let nome =
+document.getElementById("nome").value.trim();
+
+let cpf =
+document.getElementById("cpf").value.trim();
+
+let email =
+document.getElementById("emailCadastro").value.trim();
+
+let senha =
+document.getElementById("senhaCadastro").value;
+
+if(nome === "" || cpf === "" || email === "" || senha === ""){
+
+document.getElementById("cadastroMsg").innerText =
+"⚠️ Preencha todos os campos.";
+
+return;
+
+}
+
+
+/*
+VERSÃO DE TESTE:
+salva os dados no navegador.
+*/
+
+localStorage.setItem("quizup_nome",nome);
+localStorage.setItem("quizup_cpf",cpf);
+localStorage.setItem("quizup_email",email);
+localStorage.setItem("quizup_senha",senha);
+
+document.getElementById("cadastroMsg").innerText =
+"✅ Conta criada com sucesso!";
+
+setTimeout(function(){
+
+mostrar("login");
+
+},800);
+
+};
+
+
+/* LOGIN */
+
+document.getElementById("confirmarLogin").onclick = function(){
+
+let email =
+document.getElementById("emailLogin").value.trim();
+
+let senha =
+document.getElementById("senhaLogin").value;
+
+let emailSalvo =
+localStorage.getItem("quizup_email");
+
+let senhaSalva =
+localStorage.getItem("quizup_senha");
+
+if(email === "" || senha === ""){
+
+document.getElementById("loginMsg").innerText =
+"⚠️ Preencha e-mail e senha.";
+
+return;
+
+}
+
+if(email !== emailSalvo || senha !== senhaSalva){
+
+document.getElementById("loginMsg").innerText =
+"❌ E-mail ou senha incorretos.";
+
+return;
+
+}
+
+document.getElementById("loginMsg").innerText =
+"✅ Login realizado!";
+
+setTimeout(function(){
+
+mostrar("jogo");
+
+},500);
+
+};
+
+
+/* RECUPERAÇÃO */
+
+document.getElementById("enviarCodigo").onclick = function(){
+
+let email =
+document.getElementById("emailRecuperacao").value.trim();
+
+let emailSalvo =
+localStorage.getItem("quizup_email");
+
+if(email === ""){
+
+document.getElementById("recuperacaoMsg").innerText =
+"⚠️ Digite seu e-mail.";
+
+return;
+
+}
+
+if(email !== emailSalvo){
+
+document.getElementById("recuperacaoMsg").innerText =
+"❌ Este e-mail não está cadastrado.";
+
+return;
+
+}
+
+
+/*
+Nesta versão o envio real de e-mail
+ainda depende do servidor/backend.
+*/
+
+let codigo =
+Math.floor(100000 + Math.random() * 900000);
+
+localStorage.setItem("quizup_codigo",codigo);
+
+document.getElementById("recuperacaoMsg").innerText =
+"📧 Código gerado: " + codigo +
+". O envio por e-mail será ligado ao servidor depois.";
+
+};
+
+
+/* DADO */
+
+function jogarDado(){
+
+if(jogadaLiberada) return;
+
+let sorteio = Math.random();
+
+let numero;
+
+if(sorteio < 0.18){
+
+numero = 1;
+
+}else if(sorteio < 0.36){
+
+numero = 2;
+
+}else if(sorteio < 0.54){
+
+numero = 3;
+
+}else if(sorteio < 0.70){
+
+numero = 4;
+
+}else if(sorteio < 0.78){
+
+numero = 5;
+
+}else if(sorteio < 0.84){
+
+numero = 6;
+
+}else if(sorteio < 0.89){
+
+numero = 7;
+
+}else if(sorteio < 0.94){
+
+numero = 8;
+
+}else if(sorteio < 0.98){
+
+numero = 9;
+
+}else{
+
+numero = 10;
+
+}
+
+pontosDaRodada = numero;
+
+document.getElementById("dado").innerText = numero;
+
+document.getElementById("resultadoDado").innerText =
+"🎉 A roleta sorteou " + numero +
+" ponto" + (numero === 1 ? "" : "s") +
+"! Acerte para ganhar.";
+
+jogadaLiberada = true;
+
+mostrarPergunta();
+
+}
+
+
+/* PERGUNTA */
+
+function mostrarPergunta(){
+
+let i =
+Math.floor(Math.random() * perguntas.length);
+
+perguntaAtual = perguntas[i];
+
+rodada++;
+
+document.getElementById("rodada").innerText = rodada;
+
+document.getElementById("pergunta").innerText =
+perguntaAtual.p;
+
+document.getElementById("resultado").innerText = "";
+
+let caixa =
+document.getElementById("respostas");
+
+caixa.innerHTML = "";
+
+perguntaAtual.r.forEach(function(resp,i){
+
+let botao =
+document.createElement("button");
+
+botao.innerText = resp;
+
+botao.className = "resposta";
+
+botao.onclick = function(){
+
+responder(i,botao);
+
+};
+
+caixa.appendChild(botao);
+
+});
+
+iniciarTempo();
+
+}
+
+
+/* TIMER */
+
+function iniciarTempo(){
+
+clearInterval(intervalo);
+
+tempo = 5;
+
+document.getElementById("tempo").innerText = tempo;
+
+intervalo = setInterval(function(){
+
+tempo--;
+
+document.getElementById("tempo").innerText = tempo;
+
+if(tempo <= 0){
+
+clearInterval(intervalo);
+
+tempoEsgotado();
+
+}
+
+},1000);
+
+}
+
+
+/* RESPOSTA */
+
+function responder(i,botao){
+
+clearInterval(intervalo);
+
+let botoes =
+document.querySelectorAll(".resposta");
+
+botoes.forEach(function(b){
+
+b.disabled = true;
+
+});
+
+if(i === perguntaAtual.c){
+
+botao.classList.add("verde");
+
+pontos += pontosDaRodada;
+
+document.getElementById("pontos").innerText = pontos;
+
+document.getElementById("saldo").innerText = pontos;
+
+document.getElementById("resultado").innerText =
+"🎉 ACERTOU! +" + pontosDaRodada + " pontos";
+
+}else{
+
+botao.classList.add("vermelho");
+
+botoes[perguntaAtual.c].classList.add("verde");
+
+document.getElementById("resultado").innerText =
+"❌ ERROU! Não ganhou os pontos.";
+
+}
+
+pontosDaRodada = 0;
+
+jogadaLiberada = false;
+
+}
+
+
+/* TEMPO */
+
+function tempoEsgotado(){
+
+let botoes =
+document.querySelectorAll(".resposta");
+
+botoes.forEach(function(b){
+
+b.disabled = true;
+
+});
+
+if(perguntaAtual){
+
+botoes[perguntaAtual.c].classList.add("verde");
+
+}
+
+document.getElementById("resultado").innerText =
+"⏰ TEMPO ESGOTADO! Não ganhou os pontos.";
+
+pontosDaRodada = 0;
+
+jogadaLiberada = false;
+
+}
+
+
+/* SAQUE */
+
+function solicitarSaque(){
+
+if(saques >= 2){
+
+document.getElementById("saqueMsg").innerText =
+"⚠️ Limite de 2 solicitações por dia atingido.";
+
+return;
+
+}
+
+if(pontos < 1000){
+
+document.getElementById("saqueMsg").innerText =
+"⚠️ Você precisa de pelo menos 1.000 pontos.";
+
+return;
+
+}
+
+let chave =
+document.getElementById("chaveSaque").value.trim();
+
+if(chave === ""){
+
+document.getElementById("saqueMsg").innerText =
+"⚠️ Informe sua chave Pix ou e-mail PayPal.";
+
+return;
+
+}
+
+saques++;
+
+document.getElementById("saqueMsg").innerText =
+"✅ Solicitação registrada. O pagamento será processado pelo servidor.";
+
+}
+
+
+/* SAC */
+
+function enviarSAC(){
+
+let mensagem =
+document.getElementById("mensagemSac").value.trim();
+
+if(mensagem === ""){
+
+document.getElementById("sacMsg").innerText =
+"⚠️ Digite sua mensagem.";
+
+return;
+
+}
+
+document.getElementById("sacMsg").innerText =
+"✅ Mensagem registrada.";
+
+}
+
+
+/* SAIR */
+
+function sair(){
+
+clearInterval(intervalo);
+
+jogadaLiberada = false;
+
+mostrar("inicio");
+
+}
+
+</script>
+
+</body>
+</html>
