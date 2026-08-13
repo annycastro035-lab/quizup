@@ -1,118 +1,197 @@
-const perguntas = [
-  {
-    pergunta: "Qual é a capital do Brasil?",
-    opcoes: ["São Paulo", "Brasília", "Rio de Janeiro", "Salvador"],
-    correta: "Brasília"
-  },
-  {
-    pergunta: "Quanto é 5 + 5?",
-    opcoes: ["8", "9", "10", "12"],
-    correta: "10"
-  },
-  {
-    pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
-    opcoes: ["Terra", "Marte", "Júpiter", "Saturno"],
-    correta: "Marte"
-  },
-  {
-    pergunta: "Qual é o maior oceano do mundo?",
-    opcoes: ["Atlântico", "Índico", "Pacífico", "Ártico"],
-    correta: "Pacífico"
-  },
-  {
-    pergunta: "Quantos dias tem uma semana?",
-    opcoes: ["5", "6", "7", "8"],
-    correta: "7"
-  }
-];
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
-let atual = 0;
-let pontos = 0;
-let respondeu = false;
+const PORTA = process.env.PORT || 3000;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
-const pergunta = document.getElementById("pergunta");
-const opcoes = document.getElementById("opcoes");
-const numero = document.getElementById("numero");
-const pontuacao = document.getElementById("pontuacao");
-const proxima = document.getElementById("proxima");
-const quiz = document.getElementById("quiz");
-const resultado = document.getElementById("resultado");
-const resultadoTexto = document.getElementById("resultadoTexto");
+const servidor = http.createServer(async (req, res) => {
 
-function carregarPergunta() {
-  respondeu = false;
-  proxima.disabled = true;
+  const url = new URL(req.url, `http://${req.headers.host}`);
 
-  const p = perguntas[atual];
+  // ENVIO DO CÓDIGO POR E-MAIL
+  if (url.pathname === '/enviar-codigo' && req.method === 'POST') {
 
-  numero.textContent = `Pergunta ${atual + 1} de ${perguntas.length}`;
-  pontuacao.textContent = `Pontos: ${pontos}`;
-  pergunta.textContent = p.pergunta;
+    let corpo = '';
 
-  opcoes.innerHTML = "";
-
-  p.opcoes.forEach(opcao => {
-    const botao = document.createElement("button");
-
-    botao.textContent = opcao;
-    botao.className = "opcao";
-
-    botao.onclick = () => responder(botao, opcao);
-
-    opcoes.appendChild(botao);
-  });
-}
-
-function responder(botao, resposta) {
-  if (respondeu) return;
-
-  respondeu = true;
-  proxima.disabled = false;
-
-  const correta = perguntas[atual].correta;
-
-  if (resposta === correta) {
-    botao.classList.add("correta");
-    pontos += 10;
-  } else {
-    botao.classList.add("errada");
-
-    document.querySelectorAll(".opcao").forEach(b => {
-      if (b.textContent === correta) {
-        b.classList.add("correta");
-      }
+    req.on('data', parte => {
+      corpo += parte;
     });
+
+    req.on('end', async () => {
+
+      try {
+
+        const dados = JSON.parse(corpo);
+        const email = dados.email;
+        const codigo = dados.codigo;
+
+        if (!email || !codigo) {
+          res.writeHead(400, {
+            'Content-Type': 'application/json; charset=utf-8'
+          });
+
+          res.end(JSON.stringify({
+            sucesso: false,
+            mensagem: 'E-mail ou código não informado.'
+          }));
+
+          return;
+        }
+
+        if (!RESEND_API_KEY) {
+          res.writeHead(500, {
+            'Content-Type': 'application/json; charset=utf-8'
+          });
+
+          res.end(JSON.stringify({
+            sucesso: false,
+            mensagem: 'RESEND_API_KEY não configurada no Render.'
+          }));
+
+          return;
+        }
+
+        const resposta = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${RESEND_API_KEY}`
+          },
+
+          body: JSON.stringify({
+
+            from: 'QuizUp <onboarding@resend.dev>',
+
+            to: [email],
+
+            subject: 'Código de recuperação - QuizUp',
+
+            html: `
+              <div style="font-family:Arial,sans-serif;padding:20px">
+
+                <h1>🎯 QuizUp</h1>
+
+                <p>Seu código para recuperar a senha é:</p>
+
+                <h2 style="font-size:32px;letter-spacing:6px">
+                  ${codigo}
+                </h2>
+
+                <p>
+                  Digite este código no QuizUp para continuar.
+                </p>
+
+                <p>
+                  Se você não solicitou este código,
+                  ignore este e-mail.
+                </p>
+
+              </div>
+            `
+
+          })
+
+        });
+
+        const resultado = await resposta.json();
+
+        console.log('Resposta Resend:', resultado);
+
+        if (!resposta.ok) {
+
+          res.writeHead(500, {
+            'Content-Type': 'application/json; charset=utf-8'
+          });
+
+          res.end(JSON.stringify({
+            sucesso: false,
+            mensagem: 'Não foi possível enviar o e-mail.',
+            erro: resultado
+          }));
+
+          return;
+        }
+
+        res.writeHead(200, {
+          'Content-Type': 'application/json; charset=utf-8'
+        });
+
+        res.end(JSON.stringify({
+          sucesso: true,
+          mensagem: 'Código enviado para o e-mail.'
+        }));
+
+      } catch (erro) {
+
+        console.log('Erro:', erro);
+
+        res.writeHead(500, {
+          'Content-Type': 'application/json; charset=utf-8'
+        });
+
+        res.end(JSON.stringify({
+          sucesso: false,
+          mensagem: 'Erro no servidor.'
+        }));
+
+      }
+
+    });
+
+    return;
   }
 
-  pontuacao.textContent = `Pontos: ${pontos}`;
-}
 
-function proximaPergunta() {
-  atual++;
+  // SITE
 
-  if (atual < perguntas.length) {
-    carregarPergunta();
-  } else {
-    finalizarQuiz();
+  let arquivo = url.pathname;
+
+  if (arquivo === '/') {
+    arquivo = '/index.html';
   }
-}
 
-function finalizarQuiz() {
-  quiz.classList.add("escondido");
-  resultado.classList.remove("escondido");
+  const caminho = path.join(__dirname, arquivo);
 
-  resultadoTexto.textContent =
-    `Você fez ${pontos} pontos de ${perguntas.length * 10}!`;
-}
+  fs.readFile(caminho, (erro, conteudo) => {
 
-function reiniciarQuiz() {
-  atual = 0;
-  pontos = 0;
+    if (erro) {
 
-  resultado.classList.add("escondido");
-  quiz.classList.remove("escondido");
+      console.log('Arquivo não encontrado:', caminho);
 
-  carregarPergunta();
-}
+      res.writeHead(404, {
+        'Content-Type': 'text/plain; charset=utf-8'
+      });
 
-carregarPergunta();
+      res.end('Arquivo não encontrado.');
+
+      return;
+    }
+
+    let tipo = 'text/html; charset=utf-8';
+
+    if (arquivo.endsWith('.css')) {
+      tipo = 'text/css; charset=utf-8';
+    }
+
+    else if (arquivo.endsWith('.js')) {
+      tipo = 'application/javascript; charset=utf-8';
+    }
+
+    res.writeHead(200, {
+      'Content-Type': tipo
+    });
+
+    res.end(conteudo);
+
+  });
+
+});
+
+
+servidor.listen(PORTA, '0.0.0.0', () => {
+
+  console.log(`QuizUp funcionando na porta ${PORTA}`);
+
+});
