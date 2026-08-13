@@ -5,12 +5,14 @@ const path = require('path');
 const PORTA = process.env.PORT || 3000;
 
 const servidor = http.createServer((req, res) => {
-  let arquivo = req.url === '/' ? 'index.html' : req.url.substring(1);
+  let arquivo = req.url === '/' ? '/index.html' : req.url;
 
   const caminho = path.join(__dirname, arquivo);
 
   fs.readFile(caminho, (erro, conteudo) => {
     if (erro) {
+      console.log('Arquivo não encontrado:', caminho);
+
       res.writeHead(404, {
         'Content-Type': 'text/plain; charset=utf-8'
       });
@@ -19,14 +21,12 @@ const servidor = http.createServer((req, res) => {
       return;
     }
 
-    let tipo = 'text/html';
+    let tipo = 'text/html; charset=utf-8';
 
     if (arquivo.endsWith('.css')) {
-      tipo = 'text/css';
-    }
-
-    if (arquivo.endsWith('.js')) {
-      tipo = 'application/javascript';
+      tipo = 'text/css; charset=utf-8';
+    } else if (arquivo.endsWith('.js')) {
+      tipo = 'application/javascript; charset=utf-8';
     }
 
     res.writeHead(200, {
@@ -37,6 +37,6 @@ const servidor = http.createServer((req, res) => {
   });
 });
 
-servidor.listen(PORTA, () => {
+servidor.listen(PORTA, '0.0.0.0', () => {
   console.log(`QuizUp funcionando na porta ${PORTA}`);
 });
