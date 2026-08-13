@@ -214,8 +214,6 @@ padding:20px;
 
 <div class="app">
 
-<!-- INÍCIO -->
-
 <section id="inicio" class="login">
 
 <div class="logo">🎯</div>
@@ -239,9 +237,6 @@ padding:20px;
 </div>
 
 </section>
-
-
-<!-- CADASTRO -->
 
 <section id="cadastro" class="login escondido">
 
@@ -273,9 +268,6 @@ padding:20px;
 
 </section>
 
-
-<!-- LOGIN -->
-
 <section id="login" class="login escondido">
 
 <div class="logo">🔐</div>
@@ -305,9 +297,6 @@ padding:20px;
 </div>
 
 </section>
-
-
-<!-- RECUPERAÇÃO -->
 
 <section id="esqueci" class="login escondido">
 
@@ -339,9 +328,6 @@ placeholder="Seu e-mail">
 </div>
 
 </section>
-
-
-<!-- JOGO -->
 
 <section id="jogo" class="escondido">
 
@@ -432,9 +418,6 @@ Espaço reservado para publicidade.
 
 </section>
 
-
-<!-- SAQUE -->
-
 <section id="saque" class="card escondido">
 
 <h2>💰 Saque</h2>
@@ -481,9 +464,6 @@ placeholder="Sua chave Pix ou e-mail PayPal">
 
 </section>
 
-
-<!-- SAC -->
-
 <section id="sac" class="card escondido">
 
 <h2>💬 SAC</h2>
@@ -510,17 +490,13 @@ ENVIAR
 
 </section>
 
-
 <footer>
 QuizUp © 2026
 </footer>
 
 </div>
 
-
 <script>
-
-/* DADOS */
 
 let pontos=0;
 let rodada=0;
@@ -530,9 +506,6 @@ let intervalo=null;
 let perguntaAtual=null;
 let jogadaLiberada=false;
 let pontosDaRodada=0;
-
-
-/* PERGUNTAS */
 
 const perguntas=[
 
@@ -610,9 +583,6 @@ c:2
 
 ];
 
-
-/* MOSTRAR TELAS */
-
 function esconderTudo(){
 
 document.getElementById("inicio").classList.add("escondido");
@@ -632,9 +602,6 @@ esconderTudo();
 document.getElementById(tela).classList.remove("escondido");
 
 }
-
-
-/* BOTÕES */
 
 document.getElementById("botaoCriar").onclick=function(){
 mostrar("cadastro");
@@ -659,9 +626,6 @@ mostrar("esqueci");
 document.getElementById("voltarRecuperacao").onclick=function(){
 mostrar("login");
 };
-
-
-/* CADASTRO */
 
 document.getElementById("confirmarCadastro").onclick=function(){
 
@@ -691,9 +655,6 @@ mostrar("login");
 },800);
 
 };
-
-
-/* LOGIN */
 
 document.getElementById("confirmarLogin").onclick=function(){
 
@@ -729,17 +690,19 @@ mostrar("jogo");
 };
 
 
-/* RECUPERAÇÃO */
+/* RECUPERAÇÃO DE SENHA */
 
-document.getElementById("enviarCodigo").onclick=function(){
+document.getElementById("enviarCodigo").onclick=async function(){
 
 let email=document.getElementById("emailRecuperacao").value.trim();
 
 let emailSalvo=localStorage.getItem("quizup_email");
 
+let mensagem=document.getElementById("recuperacaoMsg");
+
 if(email===""){
 
-document.getElementById("recuperacaoMsg").innerText=
+mensagem.innerText=
 "⚠️ Digite seu e-mail.";
 
 return;
@@ -747,7 +710,7 @@ return;
 
 if(email!==emailSalvo){
 
-document.getElementById("recuperacaoMsg").innerText=
+mensagem.innerText=
 "❌ E-mail não encontrado.";
 
 return;
@@ -757,13 +720,53 @@ let codigo=Math.floor(100000+Math.random()*900000);
 
 localStorage.setItem("quizup_codigo",codigo);
 
-document.getElementById("recuperacaoMsg").innerText=
-"📧 Código gerado. O envio real por e-mail será conectado ao servidor.";
+mensagem.innerText=
+"📧 Enviando código...";
+
+try{
+
+let resposta=await fetch("/enviar-codigo",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+email:email,
+codigo:codigo
+})
+
+});
+
+let resultado=await resposta.json();
+
+if(resultado.sucesso){
+
+mensagem.innerText=
+"✅ Código enviado para seu e-mail!";
+
+}else{
+
+mensagem.innerText=
+"❌ "+resultado.mensagem;
+
+}
+
+}catch(erro){
+
+console.error(erro);
+
+mensagem.innerText=
+"❌ Não foi possível enviar o código.";
+
+}
 
 };
 
 
-/* DADO / ROLETA */
+/* DADO */
 
 function jogarDado(){
 
@@ -809,9 +812,6 @@ mostrarPergunta();
 
 }
 
-
-/* PERGUNTA */
-
 function mostrarPergunta(){
 
 let i=Math.floor(Math.random()*perguntas.length);
@@ -851,9 +851,6 @@ iniciarTempo();
 
 }
 
-
-/* TEMPO */
-
 function iniciarTempo(){
 
 clearInterval(intervalo);
@@ -879,9 +876,6 @@ tempoEsgotado();
 },1000);
 
 }
-
-
-/* RESPOSTA */
 
 function responder(i,botao){
 
@@ -929,9 +923,6 @@ jogadaLiberada=false;
 
 }
 
-
-/* TEMPO ESGOTADO */
-
 function tempoEsgotado(){
 
 let botoes=document.querySelectorAll(".resposta");
@@ -955,9 +946,6 @@ pontosDaRodada=0;
 jogadaLiberada=false;
 
 }
-
-
-/* SAQUE */
 
 function solicitarSaque(){
 
@@ -994,9 +982,6 @@ document.getElementById("saqueMsg").innerText=
 
 }
 
-
-/* SAC */
-
 function enviarSAC(){
 
 let mensagem=
@@ -1015,9 +1000,6 @@ document.getElementById("sacMsg").innerText=
 
 }
 
-
-/* SAIR */
-
 function sair(){
 
 clearInterval(intervalo);
@@ -1027,9 +1009,6 @@ jogadaLiberada=false;
 mostrar("inicio");
 
 }
-
-
-/* GARANTIR QUE SÓ O INÍCIO APAREÇA */
 
 window.addEventListener("load",function(){
 
