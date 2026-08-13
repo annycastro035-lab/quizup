@@ -5,7 +5,12 @@ const path = require('path');
 const PORTA = process.env.PORT || 3000;
 
 const servidor = http.createServer((req, res) => {
-  let arquivo = req.url === '/' ? '/index.html' : req.url;
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  let arquivo = url.pathname;
+
+  if (arquivo === '/') {
+    arquivo = '/index.html';
+  }
 
   const caminho = path.join(__dirname, arquivo);
 
