@@ -2,7 +2,12 @@
 <html lang="pt-BR">
 <head>
 
-<script>(function(s){s.dataset.zone='11575378',s.src='https://nap5k.com/tag.min.js'})([document.documentElement,document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+<script>
+(function(s){
+s.dataset.zone='11577150';
+s.src='https://nap5k.com/tag.min.js'
+})([document.documentElement,document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
+</script>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -54,6 +59,10 @@ font-size:16px;
 font-weight:bold;
 background:white;
 color:#57117d;
+}
+
+button:disabled{
+opacity:.6;
 }
 
 .hidden{display:none!important}
@@ -200,6 +209,7 @@ font-family:Arial;
 
 </section>
 
+
 <section id="cadastro" class="hidden">
 
 <div class="logo">📝</div>
@@ -230,6 +240,7 @@ font-family:Arial;
 
 </section>
 
+
 <section id="login" class="hidden">
 
 <div class="logo">🔐</div>
@@ -256,6 +267,7 @@ font-family:Arial;
 
 </section>
 
+
 <section id="jogo" class="hidden">
 
 <div class="top">
@@ -272,11 +284,13 @@ Rodada
 
 </div>
 
+
 <div class="card center">
 
 <h2>🎲 QuizUp</h2>
 
-<p>Pontos da rodada:
+<p>
+Pontos da rodada:
 <strong id="pontosRodada">0</strong>
 </p>
 
@@ -287,6 +301,7 @@ Rodada
 </button>
 
 </div>
+
 
 <div id="areaPergunta" class="card hidden">
 
@@ -306,10 +321,12 @@ PRÓXIMA RODADA
 
 </div>
 
+
 <div class="ad">
 📢<br>
 <b>ANÚNCIO PATROCINADO</b>
 </div>
+
 
 <div class="card">
 
@@ -329,6 +346,7 @@ PRÓXIMA RODADA
 
 </section>
 
+
 <section id="saque" class="hidden">
 
 <div class="card">
@@ -337,11 +355,14 @@ PRÓXIMA RODADA
 
 <p>Seu saldo:</p>
 
-<h2><span id="saldoSaque">0</span> pontos</h2>
+<h2>
+<span id="saldoSaque">0</span> pontos
+</h2>
 
 <p>1.000 pontos = R$ 1,00</p>
 <p>5.000 pontos = R$ 5,00</p>
 <p>10.000 pontos = R$ 10,00</p>
+
 
 <div class="saque-item">
 
@@ -353,6 +374,7 @@ SACAR 1.000 PONTOS
 
 </div>
 
+
 <div class="saque-item">
 
 <b>R$ 5,00</b>
@@ -362,6 +384,7 @@ SACAR 5.000 PONTOS
 </button>
 
 </div>
+
 
 <div class="saque-item">
 
@@ -373,6 +396,7 @@ SACAR 10.000 PONTOS
 
 </div>
 
+
 <div id="saqueMsg" class="msg"></div>
 
 <button onclick="voltarJogo()">
@@ -382,6 +406,7 @@ SACAR 10.000 PONTOS
 </div>
 
 </section>
+
 
 <section id="sac" class="hidden">
 
@@ -393,7 +418,10 @@ SACAR 10.000 PONTOS
 
 <input id="sacEmail" type="email" placeholder="Seu e-mail">
 
-<textarea id="sacMensagem" placeholder="Digite sua mensagem"></textarea>
+<textarea
+id="sacMensagem"
+placeholder="Digite sua mensagem">
+</textarea>
 
 <button onclick="enviarSAC()">
 ENVIAR MENSAGEM
@@ -411,16 +439,28 @@ ENVIAR MENSAGEM
 
 </div>
 
+
 <script>
 
-let pontos=Number(localStorage.getItem("quizup_pontos"))||0;
-let rodada=Number(localStorage.getItem("quizup_rodada"))||1;
+let pontos =
+Number(localStorage.getItem("quizup_pontos")) || 0;
+
+let rodada =
+Number(localStorage.getItem("quizup_rodada")) || 1;
+
 let pontosDaRodada=0;
+
 let perguntaAtual=null;
+
 let tempo=5;
+
 let intervalo=null;
+
 let respondida=false;
-let saquesHoje=Number(localStorage.getItem("quizup_saques"))||0;
+
+let saquesHoje =
+Number(localStorage.getItem("quizup_saques")) || 0;
+
 
 const perguntas=[
 
@@ -468,7 +508,12 @@ c:1
 
 {
 p:"Quem escreveu Dom Casmurro?",
-r:["Machado de Assis","José de Alencar","Monteiro Lobato","Carlos Drummond"],
+r:[
+"Machado de Assis",
+"José de Alencar",
+"Monteiro Lobato",
+"Carlos Drummond"
+],
 c:0
 },
 
@@ -516,11 +561,17 @@ c:1
 
 {
 p:"Qual cientista formulou as três leis do movimento?",
-r:["Albert Einstein","Galileu Galilei","Isaac Newton","Marie Curie"],
+r:[
+"Albert Einstein",
+"Galileu Galilei",
+"Isaac Newton",
+"Marie Curie"
+],
 c:2
 }
 
 ];
+
 
 function esconderTudo(){
 
@@ -528,6 +579,7 @@ document.querySelectorAll("section")
 .forEach(s=>s.classList.add("hidden"));
 
 }
+
 
 function mostrar(id){
 
@@ -538,56 +590,84 @@ document.getElementById(id)
 
 }
 
+
 function atualizar(){
 
-document.getElementById("pontos").textContent=
+document.getElementById("pontos").textContent =
 pontos.toLocaleString("pt-BR");
 
-document.getElementById("rodada").textContent=rodada;
+document.getElementById("rodada").textContent =
+rodada;
 
-document.getElementById("pontosRodada").textContent=
+document.getElementById("pontosRodada").textContent =
 pontosDaRodada;
 
-document.getElementById("saldoSaque").textContent=
+document.getElementById("saldoSaque").textContent =
 pontos.toLocaleString("pt-BR");
 
-localStorage.setItem("quizup_pontos",pontos);
+localStorage.setItem(
+"quizup_pontos",
+pontos
+);
 
-localStorage.setItem("quizup_rodada",rodada);
+localStorage.setItem(
+"quizup_rodada",
+rodada
+);
 
 }
 
+
 function criarConta(){
 
-let nome=document.getElementById("nome").value.trim();
+let nome =
+document.getElementById("nome").value.trim();
 
-let cpf=document.getElementById("cpf").value.trim();
+let cpf =
+document.getElementById("cpf").value.trim();
 
-let email=document.getElementById("emailCadastro").value.trim();
+let email =
+document.getElementById("emailCadastro").value.trim();
 
-let senha=document.getElementById("senhaCadastro").value;
+let senha =
+document.getElementById("senhaCadastro").value;
 
-let msg=document.getElementById("cadastroMsg");
+let msg =
+document.getElementById("cadastroMsg");
 
 msg.style.display="block";
 
-if(!nome||!cpf||!email||!senha){
+if(!nome || !cpf || !email || !senha){
 
-msg.textContent="⚠️ Preencha todos os campos.";
+msg.textContent =
+"⚠️ Preencha todos os campos.";
 
 return;
 
 }
 
-localStorage.setItem("quizup_nome",nome);
+localStorage.setItem(
+"quizup_nome",
+nome
+);
 
-localStorage.setItem("quizup_cpf",cpf);
+localStorage.setItem(
+"quizup_cpf",
+cpf
+);
 
-localStorage.setItem("quizup_email",email);
+localStorage.setItem(
+"quizup_email",
+email
+);
 
-localStorage.setItem("quizup_senha",senha);
+localStorage.setItem(
+"quizup_senha",
+senha
+);
 
-msg.textContent="✅ Conta criada com sucesso!";
+msg.textContent =
+"✅ Conta criada com sucesso!";
 
 setTimeout(()=>{
 
@@ -597,23 +677,30 @@ mostrar("login");
 
 }
 
+
 function entrar(){
 
-let email=document.getElementById("emailLogin").value.trim();
+let email =
+document.getElementById("emailLogin").value.trim();
 
-let senha=document.getElementById("senhaLogin").value;
+let senha =
+document.getElementById("senhaLogin").value;
 
-let emailSalvo=localStorage.getItem("quizup_email");
+let emailSalvo =
+localStorage.getItem("quizup_email");
 
-let senhaSalva=localStorage.getItem("quizup_senha");
+let senhaSalva =
+localStorage.getItem("quizup_senha");
 
-let msg=document.getElementById("loginMsg");
+let msg =
+document.getElementById("loginMsg");
 
 msg.style.display="block";
 
-if(!email||!senha){
+if(!email || !senha){
 
-msg.textContent="⚠️ Preencha e-mail e senha.";
+msg.textContent =
+"⚠️ Preencha e-mail e senha.";
 
 return;
 
@@ -621,21 +708,24 @@ return;
 
 if(emailSalvo===null){
 
-msg.textContent="⚠️ Primeiro crie sua conta.";
+msg.textContent =
+"⚠️ Primeiro crie sua conta.";
 
 return;
 
 }
 
-if(email!==emailSalvo||senha!==senhaSalva){
+if(email!==emailSalvo || senha!==senhaSalva){
 
-msg.textContent="❌ E-mail ou senha incorretos.";
+msg.textContent =
+"❌ E-mail ou senha incorretos.";
 
 return;
 
 }
 
-msg.textContent="✅ Login realizado!";
+msg.textContent =
+"✅ Login realizado!";
 
 setTimeout(()=>{
 
@@ -646,6 +736,7 @@ atualizar();
 },500);
 
 }
+
 
 function gerarDado(){
 
@@ -673,23 +764,30 @@ return 10;
 
 }
 
+
 function girarDado(){
 
-if(!document.getElementById("areaPergunta")
-.classList.contains("hidden"))return;
+if(
+!document
+.getElementById("areaPergunta")
+.classList
+.contains("hidden")
+)return;
 
 pontosDaRodada=gerarDado();
 
-document.getElementById("dado").textContent=
+document.getElementById("dado").textContent =
 pontosDaRodada;
 
-document.getElementById("botaoGirar").disabled=true;
+document.getElementById("botaoGirar").disabled =
+true;
 
 mostrarPergunta();
 
 atualizar();
 
 }
+
 
 function mostrarPergunta(){
 
@@ -698,30 +796,40 @@ respondida=false;
 document.getElementById("areaPergunta")
 .classList.remove("hidden");
 
-document.getElementById("resultado").textContent="";
+document.getElementById("resultado")
+.textContent="";
 
 document.getElementById("proxima")
 .classList.add("hidden");
 
-perguntaAtual=
-perguntas[Math.floor(Math.random()*perguntas.length)];
+perguntaAtual =
+perguntas[
+Math.floor(
+Math.random()*perguntas.length
+)
+];
 
-document.getElementById("pergunta").textContent=
+document.getElementById("pergunta")
+.textContent =
 perguntaAtual.p;
 
-let opcoes=document.getElementById("opcoes");
+let opcoes =
+document.getElementById("opcoes");
 
 opcoes.innerHTML="";
 
 perguntaAtual.r.forEach((texto,i)=>{
 
-let b=document.createElement("button");
+let b =
+document.createElement("button");
 
 b.className="opcao";
 
 b.textContent=texto;
 
-b.onclick=()=>responder(i);
+b.onclick=()=>{
+responder(i);
+};
 
 opcoes.appendChild(b);
 
@@ -731,19 +839,22 @@ iniciarTimer();
 
 }
 
+
 function iniciarTimer(){
 
 pararTimer();
 
 tempo=5;
 
-document.getElementById("tempo").textContent=tempo;
+document.getElementById("tempo")
+.textContent=tempo;
 
 intervalo=setInterval(()=>{
 
 tempo--;
 
-document.getElementById("tempo").textContent=tempo;
+document.getElementById("tempo")
+.textContent=tempo;
 
 if(tempo<=0){
 
@@ -757,6 +868,7 @@ tempoEsgotado();
 
 }
 
+
 function pararTimer(){
 
 if(intervalo){
@@ -769,6 +881,7 @@ intervalo=null;
 
 }
 
+
 function responder(i){
 
 if(respondida)return;
@@ -777,9 +890,13 @@ respondida=true;
 
 pararTimer();
 
-let botoes=document.querySelectorAll(".opcao");
+let botoes =
+document.querySelectorAll(".opcao");
 
-botoes.forEach(b=>b.disabled=true);
+botoes.forEach(b=>{
+b.disabled=true;
+});
+
 
 if(i===perguntaAtual.c){
 
@@ -787,19 +904,26 @@ botoes[i].classList.add("certa");
 
 pontos+=pontosDaRodada;
 
-document.getElementById("resultado").textContent=
-"🎉 ACERTOU! +"+pontosDaRodada+" pontos";
+document.getElementById("resultado")
+.textContent =
+"🎉 ACERTOU! +"+
+pontosDaRodada+
+" pontos";
 
 }else{
 
 botoes[i].classList.add("errada");
 
-botoes[perguntaAtual.c].classList.add("certa");
+botoes[
+perguntaAtual.c
+].classList.add("certa");
 
-document.getElementById("resultado").textContent=
+document.getElementById("resultado")
+.textContent =
 "❌ ERROU! Não ganhou os pontos.";
 
 }
+
 
 document.getElementById("proxima")
 .classList.remove("hidden");
@@ -807,6 +931,7 @@ document.getElementById("proxima")
 atualizar();
 
 }
+
 
 function tempoEsgotado(){
 
@@ -814,13 +939,19 @@ if(respondida)return;
 
 respondida=true;
 
-let botoes=document.querySelectorAll(".opcao");
+let botoes =
+document.querySelectorAll(".opcao");
 
-botoes.forEach(b=>b.disabled=true);
+botoes.forEach(b=>{
+b.disabled=true;
+});
 
-botoes[perguntaAtual.c].classList.add("certa");
+botoes[
+perguntaAtual.c
+].classList.add("certa");
 
-document.getElementById("resultado").textContent=
+document.getElementById("resultado")
+.textContent =
 "⏰ TEMPO ESGOTADO! Não ganhou os pontos.";
 
 document.getElementById("proxima")
@@ -828,22 +959,26 @@ document.getElementById("proxima")
 
 }
 
+
 function proximaRodada(){
 
 rodada++;
 
 pontosDaRodada=0;
 
-document.getElementById("dado").textContent="?";
+document.getElementById("dado")
+.textContent="?";
 
 document.getElementById("areaPergunta")
 .classList.add("hidden");
 
-document.getElementById("botaoGirar").disabled=false;
+document.getElementById("botaoGirar")
+.disabled=false;
 
 atualizar();
 
 }
+
 
 function abrirSaque(){
 
@@ -853,11 +988,13 @@ atualizar();
 
 }
 
+
 function abrirSAC(){
 
 mostrar("sac");
 
 }
+
 
 function voltarJogo(){
 
@@ -867,15 +1004,17 @@ atualizar();
 
 }
 
+
 function solicitarSaque(valor){
 
-let msg=document.getElementById("saqueMsg");
+let msg =
+document.getElementById("saqueMsg");
 
 msg.style.display="block";
 
 if(saquesHoje>=2){
 
-msg.textContent=
+msg.textContent =
 "⚠️ Limite de 2 solicitações por dia.";
 
 return;
@@ -884,7 +1023,7 @@ return;
 
 if(pontos<valor){
 
-msg.textContent=
+msg.textContent =
 "⚠️ Você não possui pontos suficientes.";
 
 return;
@@ -893,37 +1032,50 @@ return;
 
 saquesHoje++;
 
-localStorage.setItem("quizup_saques",saquesHoje);
+localStorage.setItem(
+"quizup_saques",
+saquesHoje
+);
 
-msg.textContent=
+msg.textContent =
 "✅ Solicitação de saque registrada.";
 
 }
 
+
 function enviarSAC(){
 
-let nome=document.getElementById("sacNome").value.trim();
+let nome =
+document.getElementById("sacNome")
+.value.trim();
 
-let email=document.getElementById("sacEmail").value.trim();
+let email =
+document.getElementById("sacEmail")
+.value.trim();
 
-let mensagem=document.getElementById("sacMensagem").value.trim();
+let mensagem =
+document.getElementById("sacMensagem")
+.value.trim();
 
-let msg=document.getElementById("sacMsg");
+let msg =
+document.getElementById("sacMsg");
 
 msg.style.display="block";
 
-if(!nome||!email||!mensagem){
+if(!nome || !email || !mensagem){
 
-msg.textContent="⚠️ Preencha todos os campos.";
+msg.textContent =
+"⚠️ Preencha todos os campos.";
 
 return;
 
 }
 
-msg.textContent=
+msg.textContent =
 "✅ Mensagem enviada com sucesso!";
 
 }
+
 
 function sair(){
 
@@ -931,9 +1083,11 @@ pararTimer();
 
 mostrar("inicio");
 
-document.getElementById("botaoGirar").disabled=false;
+document.getElementById("botaoGirar")
+.disabled=false;
 
 }
+
 
 atualizar();
 
