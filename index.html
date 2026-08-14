@@ -184,4 +184,762 @@ font-family:Arial;
 
 <div class="card center">
 
-<h1>
+<h1>QuizUp</h1>
+
+<p>Gire. Responda. Pontue!</p>
+
+<button onclick="mostrar('cadastro')">
+🆕 CRIAR CONTA
+</button>
+
+<button onclick="mostrar('login')">
+🔐 JÁ TENHO UMA CONTA
+</button>
+
+</div>
+
+</section>
+
+<section id="cadastro" class="hidden">
+
+<div class="logo">📝</div>
+
+<div class="card">
+
+<h2>Criar conta</h2>
+
+<input id="nome" placeholder="Nome completo">
+
+<input id="cpf" inputmode="numeric" placeholder="CPF">
+
+<input id="emailCadastro" type="email" placeholder="Seu e-mail">
+
+<input id="senhaCadastro" type="password" placeholder="Crie uma senha">
+
+<button onclick="criarConta()">
+🆕 CRIAR CONTA
+</button>
+
+<div id="cadastroMsg" class="msg"></div>
+
+<button onclick="mostrar('inicio')">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+<section id="login" class="hidden">
+
+<div class="logo">🔐</div>
+
+<div class="card">
+
+<h2>Entrar</h2>
+
+<input id="emailLogin" type="email" placeholder="Seu e-mail">
+
+<input id="senhaLogin" type="password" placeholder="Sua senha">
+
+<button onclick="entrar()">
+🔐 ENTRAR
+</button>
+
+<div id="loginMsg" class="msg"></div>
+
+<button onclick="mostrar('inicio')">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+<section id="jogo" class="hidden">
+
+<div class="top">
+
+<div class="stat">
+Pontos
+<strong id="pontos">0</strong>
+</div>
+
+<div class="stat">
+Rodada
+<strong id="rodada">1</strong>
+</div>
+
+</div>
+
+<div class="card center">
+
+<h2>🎲 QuizUp</h2>
+
+<p>Pontos da rodada:
+<strong id="pontosRodada">0</strong>
+</p>
+
+<div class="dado" id="dado">?</div>
+
+<button id="botaoGirar" onclick="girarDado()">
+🎲 GIRAR
+</button>
+
+</div>
+
+<div id="areaPergunta" class="card hidden">
+
+<div class="timer">
+⏱️ <span id="tempo">5</span>
+</div>
+
+<div id="pergunta" class="pergunta"></div>
+
+<div id="opcoes"></div>
+
+<div id="resultado" class="resultado"></div>
+
+<button id="proxima" class="hidden" onclick="proximaRodada()">
+PRÓXIMA RODADA
+</button>
+
+</div>
+
+<div class="ad">
+📢<br>
+<b>ANÚNCIO PATROCINADO</b>
+</div>
+
+<div class="card">
+
+<button onclick="abrirSaque()">
+💰 SAQUE
+</button>
+
+<button onclick="abrirSAC()">
+📞 SAC
+</button>
+
+<button onclick="sair()">
+🚪 SAIR
+</button>
+
+</div>
+
+</section>
+
+<section id="saque" class="hidden">
+
+<div class="card">
+
+<h2>💰 Saque</h2>
+
+<p>Seu saldo:</p>
+
+<h2><span id="saldoSaque">0</span> pontos</h2>
+
+<p>1.000 pontos = R$ 1,00</p>
+<p>5.000 pontos = R$ 5,00</p>
+<p>10.000 pontos = R$ 10,00</p>
+
+<div class="saque-item">
+
+<b>R$ 1,00</b>
+
+<button onclick="solicitarSaque(1000)">
+SACAR 1.000 PONTOS
+</button>
+
+</div>
+
+<div class="saque-item">
+
+<b>R$ 5,00</b>
+
+<button onclick="solicitarSaque(5000)">
+SACAR 5.000 PONTOS
+</button>
+
+</div>
+
+<div class="saque-item">
+
+<b>R$ 10,00</b>
+
+<button onclick="solicitarSaque(10000)">
+SACAR 10.000 PONTOS
+</button>
+
+</div>
+
+<div id="saqueMsg" class="msg"></div>
+
+<button onclick="voltarJogo()">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+<section id="sac" class="hidden">
+
+<div class="card">
+
+<h2>📞 SAC</h2>
+
+<input id="sacNome" placeholder="Seu nome">
+
+<input id="sacEmail" type="email" placeholder="Seu e-mail">
+
+<textarea id="sacMensagem" placeholder="Digite sua mensagem"></textarea>
+
+<button onclick="enviarSAC()">
+ENVIAR MENSAGEM
+</button>
+
+<div id="sacMsg" class="msg"></div>
+
+<button onclick="voltarJogo()">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+</div>
+
+<script>
+
+let pontos=Number(localStorage.getItem("quizup_pontos"))||0;
+let rodada=Number(localStorage.getItem("quizup_rodada"))||1;
+let pontosDaRodada=0;
+let perguntaAtual=null;
+let tempo=5;
+let intervalo=null;
+let respondida=false;
+let saquesHoje=Number(localStorage.getItem("quizup_saques"))||0;
+
+const perguntas=[
+
+{
+p:"Qual é a capital do Brasil?",
+r:["São Paulo","Brasília","Rio de Janeiro","Salvador"],
+c:1
+},
+
+{
+p:"Quanto é 2 + 2?",
+r:["3","4","5","6"],
+c:1
+},
+
+{
+p:"Qual planeta é conhecido como Planeta Vermelho?",
+r:["Terra","Vênus","Marte","Júpiter"],
+c:2
+},
+
+{
+p:"Quantos dias tem uma semana?",
+r:["5","6","7","8"],
+c:2
+},
+
+{
+p:"Qual é o maior oceano da Terra?",
+r:["Atlântico","Índico","Ártico","Pacífico"],
+c:3
+},
+
+{
+p:"Qual é o resultado de 9 × 8?",
+r:["64","72","81","88"],
+c:1
+},
+
+{
+p:"Qual é o símbolo químico do ouro?",
+r:["Ag","Au","Fe","O"],
+c:1
+},
+
+{
+p:"Quem escreveu Dom Casmurro?",
+r:["Machado de Assis","José de Alencar","Monteiro Lobato","Carlos Drummond"],
+c:0
+},
+
+{
+p:"Qual é o maior planeta do Sistema Solar?",
+r:["Saturno","Terra","Júpiter","Netuno"],
+c:2
+},
+
+{
+p:"Em que ano o homem chegou à Lua pela primeira vez?",
+r:["1959","1965","1969","1972"],
+c:2
+},
+
+{
+p:"Qual é a raiz quadrada de 144?",
+r:["10","11","12","14"],
+c:2
+},
+
+{
+p:"Qual país possui a maior extensão territorial do mundo?",
+r:["China","Estados Unidos","Canadá","Rússia"],
+c:3
+},
+
+{
+p:"Qual é o elemento químico de número atômico 79?",
+r:["Prata","Ouro","Platina","Cobre"],
+c:1
+},
+
+{
+p:"Qual é a capital da Mongólia?",
+r:["Astana","Ulan Bator","Tashkent","Bishkek"],
+c:1
+},
+
+{
+p:"Qual é o maior deserto quente do mundo?",
+r:["Atacama","Saara","Gobi","Kalahari"],
+c:1
+},
+
+{
+p:"Qual cientista formulou as três leis do movimento?",
+r:["Albert Einstein","Galileu Galilei","Isaac Newton","Marie Curie"],
+c:2
+}
+
+];
+
+function esconderTudo(){
+
+document.querySelectorAll("section")
+.forEach(s=>s.classList.add("hidden"));
+
+}
+
+function mostrar(id){
+
+esconderTudo();
+
+document.getElementById(id)
+.classList.remove("hidden");
+
+}
+
+function atualizar(){
+
+document.getElementById("pontos").textContent=
+pontos.toLocaleString("pt-BR");
+
+document.getElementById("rodada").textContent=rodada;
+
+document.getElementById("pontosRodada").textContent=
+pontosDaRodada;
+
+document.getElementById("saldoSaque").textContent=
+pontos.toLocaleString("pt-BR");
+
+localStorage.setItem("quizup_pontos",pontos);
+
+localStorage.setItem("quizup_rodada",rodada);
+
+}
+
+function criarConta(){
+
+let nome=document.getElementById("nome").value.trim();
+
+let cpf=document.getElementById("cpf").value.trim();
+
+let email=document.getElementById("emailCadastro").value.trim();
+
+let senha=document.getElementById("senhaCadastro").value;
+
+let msg=document.getElementById("cadastroMsg");
+
+msg.style.display="block";
+
+if(!nome||!cpf||!email||!senha){
+
+msg.textContent="⚠️ Preencha todos os campos.";
+
+return;
+
+}
+
+localStorage.setItem("quizup_nome",nome);
+
+localStorage.setItem("quizup_cpf",cpf);
+
+localStorage.setItem("quizup_email",email);
+
+localStorage.setItem("quizup_senha",senha);
+
+msg.textContent="✅ Conta criada com sucesso!";
+
+setTimeout(()=>{
+
+mostrar("login");
+
+},800);
+
+}
+
+function entrar(){
+
+let email=document.getElementById("emailLogin").value.trim();
+
+let senha=document.getElementById("senhaLogin").value;
+
+let emailSalvo=localStorage.getItem("quizup_email");
+
+let senhaSalva=localStorage.getItem("quizup_senha");
+
+let msg=document.getElementById("loginMsg");
+
+msg.style.display="block";
+
+if(!email||!senha){
+
+msg.textContent="⚠️ Preencha e-mail e senha.";
+
+return;
+
+}
+
+if(emailSalvo===null){
+
+msg.textContent="⚠️ Primeiro crie sua conta.";
+
+return;
+
+}
+
+if(email!==emailSalvo||senha!==senhaSalva){
+
+msg.textContent="❌ E-mail ou senha incorretos.";
+
+return;
+
+}
+
+msg.textContent="✅ Login realizado!";
+
+setTimeout(()=>{
+
+mostrar("jogo");
+
+atualizar();
+
+},500);
+
+}
+
+function gerarDado(){
+
+let r=Math.random();
+
+if(r<0.18)return 1;
+
+if(r<0.36)return 2;
+
+if(r<0.54)return 3;
+
+if(r<0.70)return 4;
+
+if(r<0.78)return 5;
+
+if(r<0.84)return 6;
+
+if(r<0.89)return 7;
+
+if(r<0.94)return 8;
+
+if(r<0.98)return 9;
+
+return 10;
+
+}
+
+function girarDado(){
+
+if(!document.getElementById("areaPergunta")
+.classList.contains("hidden"))return;
+
+pontosDaRodada=gerarDado();
+
+document.getElementById("dado").textContent=
+pontosDaRodada;
+
+document.getElementById("botaoGirar").disabled=true;
+
+mostrarPergunta();
+
+atualizar();
+
+}
+
+function mostrarPergunta(){
+
+respondida=false;
+
+document.getElementById("areaPergunta")
+.classList.remove("hidden");
+
+document.getElementById("resultado").textContent="";
+
+document.getElementById("proxima")
+.classList.add("hidden");
+
+perguntaAtual=
+perguntas[Math.floor(Math.random()*perguntas.length)];
+
+document.getElementById("pergunta").textContent=
+perguntaAtual.p;
+
+let opcoes=document.getElementById("opcoes");
+
+opcoes.innerHTML="";
+
+perguntaAtual.r.forEach((texto,i)=>{
+
+let b=document.createElement("button");
+
+b.className="opcao";
+
+b.textContent=texto;
+
+b.onclick=()=>responder(i);
+
+opcoes.appendChild(b);
+
+});
+
+iniciarTimer();
+
+}
+
+function iniciarTimer(){
+
+pararTimer();
+
+tempo=5;
+
+document.getElementById("tempo").textContent=tempo;
+
+intervalo=setInterval(()=>{
+
+tempo--;
+
+document.getElementById("tempo").textContent=tempo;
+
+if(tempo<=0){
+
+pararTimer();
+
+tempoEsgotado();
+
+}
+
+},1000);
+
+}
+
+function pararTimer(){
+
+if(intervalo){
+
+clearInterval(intervalo);
+
+intervalo=null;
+
+}
+
+}
+
+function responder(i){
+
+if(respondida)return;
+
+respondida=true;
+
+pararTimer();
+
+let botoes=document.querySelectorAll(".opcao");
+
+botoes.forEach(b=>b.disabled=true);
+
+if(i===perguntaAtual.c){
+
+botoes[i].classList.add("certa");
+
+pontos+=pontosDaRodada;
+
+document.getElementById("resultado").textContent=
+"🎉 ACERTOU! +"+pontosDaRodada+" pontos";
+
+}else{
+
+botoes[i].classList.add("errada");
+
+botoes[perguntaAtual.c].classList.add("certa");
+
+document.getElementById("resultado").textContent=
+"❌ ERROU! Não ganhou os pontos.";
+
+}
+
+document.getElementById("proxima")
+.classList.remove("hidden");
+
+atualizar();
+
+}
+
+function tempoEsgotado(){
+
+if(respondida)return;
+
+respondida=true;
+
+let botoes=document.querySelectorAll(".opcao");
+
+botoes.forEach(b=>b.disabled=true);
+
+botoes[perguntaAtual.c].classList.add("certa");
+
+document.getElementById("resultado").textContent=
+"⏰ TEMPO ESGOTADO! Não ganhou os pontos.";
+
+document.getElementById("proxima")
+.classList.remove("hidden");
+
+}
+
+function proximaRodada(){
+
+rodada++;
+
+pontosDaRodada=0;
+
+document.getElementById("dado").textContent="?";
+
+document.getElementById("areaPergunta")
+.classList.add("hidden");
+
+document.getElementById("botaoGirar").disabled=false;
+
+atualizar();
+
+}
+
+function abrirSaque(){
+
+mostrar("saque");
+
+atualizar();
+
+}
+
+function abrirSAC(){
+
+mostrar("sac");
+
+}
+
+function voltarJogo(){
+
+mostrar("jogo");
+
+atualizar();
+
+}
+
+function solicitarSaque(valor){
+
+let msg=document.getElementById("saqueMsg");
+
+msg.style.display="block";
+
+if(saquesHoje>=2){
+
+msg.textContent=
+"⚠️ Limite de 2 solicitações por dia.";
+
+return;
+
+}
+
+if(pontos<valor){
+
+msg.textContent=
+"⚠️ Você não possui pontos suficientes.";
+
+return;
+
+}
+
+saquesHoje++;
+
+localStorage.setItem("quizup_saques",saquesHoje);
+
+msg.textContent=
+"✅ Solicitação de saque registrada.";
+
+}
+
+function enviarSAC(){
+
+let nome=document.getElementById("sacNome").value.trim();
+
+let email=document.getElementById("sacEmail").value.trim();
+
+let mensagem=document.getElementById("sacMensagem").value.trim();
+
+let msg=document.getElementById("sacMsg");
+
+msg.style.display="block";
+
+if(!nome||!email||!mensagem){
+
+msg.textContent="⚠️ Preencha todos os campos.";
+
+return;
+
+}
+
+msg.textContent=
+"✅ Mensagem enviada com sucesso!";
+
+}
+
+function sair(){
+
+pararTimer();
+
+mostrar("inicio");
+
+document.getElementById("botaoGirar").disabled=false;
+
+}
+
+atualizar();
+
+mostrar("inicio");
+
+</script>
+
+</body>
+</html>
