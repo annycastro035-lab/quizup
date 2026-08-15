@@ -1,135 +1,1375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<!-- MONETAG 11577150 -->
+<script>
+(function(s){
+  s.dataset.zone='11577150';
+  s.src='https://nap5k.com/tag.min.js'
+})([document.documentElement,document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
+</script>
+
+<!-- MONETAG 11575378 -->
+<script>
+(function(s){
+  s.dataset.zone='11575378';
+  s.src='https://nap5k.com/tag.min.js'
+})([document.documentElement,document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QuizUp</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:linear-gradient(135deg,#16002f,#62158f,#e91e63);
+  color:white;
+  min-height:100vh;
+}
+
+.app{
+  max-width:430px;
+  margin:auto;
+  padding:20px;
+}
+
+h1{
+  font-size:40px;
+  margin:5px 0;
+}
+
+.card{
+  background:#ffffff20;
+  border-radius:20px;
+  padding:20px;
+  margin:15px 0;
+  box-shadow:0 8px 25px #0003;
+}
+
+input,
+select{
+  width:100%;
+  padding:15px;
+  border:0;
+  border-radius:12px;
+  margin:8px 0;
+  font-size:16px;
+}
+
+button{
+  width:100%;
+  padding:15px;
+  border:0;
+  border-radius:12px;
+  margin-top:10px;
+  font-size:16px;
+  font-weight:bold;
+  background:white;
+  color:#57117d;
+}
+
+button:disabled{
+  opacity:.6;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.logo{
+  font-size:70px;
+  text-align:center;
+  margin-top:20px;
+}
+
+.center{
+  text-align:center;
+}
+
+.top{
+  display:flex;
+  gap:10px;
+}
+
+.stat{
+  flex:1;
+  background:#ffffff18;
+  border-radius:15px;
+  padding:12px;
+  text-align:center;
+}
+
+.stat strong{
+  display:block;
+  font-size:22px;
+  margin-top:5px;
+}
+
+.dado{
+  width:115px;
+  height:115px;
+  margin:20px auto;
+  background:white;
+  color:#57117d;
+  border-radius:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:58px;
+  font-weight:bold;
+}
+
+.pergunta{
+  font-size:21px;
+  font-weight:bold;
+  line-height:1.3;
+  margin:15px 0;
+}
+
+.opcao{
+  background:#ffffff15;
+  color:white;
+  border:2px solid #ffffff30;
+  text-align:left;
+}
+
+.certa{
+  background:#20c978!important;
+  color:white!important;
+}
+
+.errada{
+  background:#e53935!important;
+  color:white!important;
+}
+
+.timer{
+  font-size:34px;
+  font-weight:bold;
+  text-align:center;
+  margin:10px;
+}
+
+.resultado{
+  text-align:center;
+  font-size:18px;
+  font-weight:bold;
+  min-height:28px;
+}
+
+.saque-item{
+  background:#ffffff15;
+  padding:15px;
+  border-radius:15px;
+  margin:10px 0;
+}
+
+.msg{
+  padding:12px;
+  border-radius:12px;
+  background:#ffffff18;
+  margin-top:10px;
+  display:none;
+}
+
+textarea{
+  width:100%;
+  height:130px;
+  padding:15px;
+  border:0;
+  border-radius:12px;
+  font-size:16px;
+  resize:none;
+  font-family:Arial;
+}
+
+.premium-box{
+  border:2px solid #ffd700;
+  background:#ffffff18;
+  border-radius:20px;
+  padding:20px;
+  margin-top:15px;
+}
+
+.premium-price{
+  font-size:38px;
+  font-weight:bold;
+  margin:10px 0;
+}
+
+.premium-item{
+  background:#ffffff15;
+  padding:14px;
+  border-radius:12px;
+  margin:8px 0;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+<section id="inicio">
+
+<div class="logo">🎯</div>
+
+<div class="card center">
+
+<h1>QuizUp</h1>
+
+<p>Gire. Responda. Pontue!</p>
+
+<button onclick="mostrar('cadastro')">
+🆕 CRIAR CONTA
+</button>
+
+<button onclick="mostrar('login')">
+🔐 JÁ TENHO UMA CONTA
+</button>
+
+</div>
+
+</section>
+
+
+<section id="cadastro" class="hidden">
+
+<div class="logo">📝</div>
+
+<div class="card">
+
+<h2>Criar conta</h2>
+
+<input id="nome" placeholder="Nome completo">
+
+<input id="cpf" inputmode="numeric" placeholder="CPF">
+
+<input id="emailCadastro" type="email" placeholder="Seu e-mail">
+
+<input id="senhaCadastro" type="password" placeholder="Crie uma senha">
+
+<button onclick="criarConta()">
+🆕 CRIAR CONTA
+</button>
+
+<div id="cadastroMsg" class="msg"></div>
+
+<button onclick="mostrar('inicio')">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+
+<section id="login" class="hidden">
+
+<div class="logo">🔐</div>
+
+<div class="card">
+
+<h2>Entrar</h2>
+
+<input id="emailLogin" type="email" placeholder="Seu e-mail">
+
+<input id="senhaLogin" type="password" placeholder="Sua senha">
+
+<button onclick="entrar()">
+🔐 ENTRAR
+</button>
+
+<div id="loginMsg" class="msg"></div>
+
+<button onclick="mostrar('inicio')">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+
+<section id="jogo" class="hidden">
+
+<div class="top">
+
+<div class="stat">
+Pontos
+<strong id="pontos">0</strong>
+</div>
+
+<div class="stat">
+Rodada
+<strong id="rodada">1</strong>
+</div>
+
+</div>
+
+
+<div class="card center">
+
+<h2>🎲 QuizUp</h2>
+
+<p>
+Pontos da rodada:
+<strong id="pontosRodada">0</strong>
+</p>
+
+<div class="dado" id="dado">?</div>
+
+<button id="botaoGirar" onclick="girarDado()">
+🎲 GIRAR
+</button>
+
+</div>
+
+
+<div id="areaPergunta" class="card hidden">
+
+<div class="timer">
+⏱️ <span id="tempo">10</span>
+</div>
+
+<div id="pergunta" class="pergunta"></div>
+
+<div id="opcoes"></div>
+
+<div id="resultado" class="resultado"></div>
+
+</div>
+
+
+<div class="card">
+
+<button onclick="abrirSaque()">
+💰 SAQUE
+</button>
+
+<button onclick="abrirPremium()">
+💎 PREMIUM
+</button>
+
+<button onclick="abrirSAC()">
+📞 SAC
+</button>
+
+<button onclick="sair()">
+🚪 SAIR
+</button>
+
+</div>
+
+</section>
+
+
+<section id="premium" class="hidden">
+
+<div class="card center">
+
+<h2>💎 QuizUp Premium</h2>
+
+<p>
+Tenha uma experiência ainda melhor no QuizUp.
+</p>
+
+<div class="premium-box">
+
+<div class="premium-price">
+R$ 9,90
+</div>
+
+<p>por mês</p>
+
+<div class="premium-item">
+🚫 Sem anúncios
+</div>
+
+<div class="premium-item">
+⭐ Perfil Premium
+</div>
+
+<div class="premium-item">
+🏆 Destaque no ranking
+</div>
+
+<div class="premium-item">
+🎯 Recursos exclusivos
+</div>
+
+<button onclick="assinarPremium()">
+💎 ASSINAR POR R$ 9,90/MÊS
+</button>
+
+<div id="premiumMsg" class="msg"></div>
+
+</div>
+
+<button onclick="voltarJogo()">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+
+<section id="saque" class="hidden">
+
+<div class="card">
+
+<h2>💰 Saque</h2>
+
+<p>Seu saldo:</p>
+
+<h2>
+<span id="saldoSaque">0</span> pontos
+</h2>
+
+<p>1.000 pontos = R$ 1,00</p>
+<p>5.000 pontos = R$ 5,00</p>
+<p>10.000 pontos = R$ 10,00</p>
+
+<div class="saque-item">
+
+<b>Forma de pagamento</b>
+
+<select id="metodoSaque">
+
+<option value="">
+Escolha o método
+</option>
+
+<option value="Pix">
+Pix
+</option>
+
+<option value="PayPal">
+PayPal
+</option>
+
+</select>
+
+<input
+id="chaveSaque"
+placeholder="Chave Pix ou e-mail do PayPal"
+>
+
+</div>
+
+
+<div class="saque-item">
+
+<b>R$ 1,00</b>
+
+<button onclick="solicitarSaque(1000)">
+SACAR 1.000 PONTOS
+</button>
+
+</div>
+
+
+<div class="saque-item">
+
+<b>R$ 5,00</b>
+
+<button onclick="solicitarSaque(5000)">
+SACAR 5.000 PONTOS
+</button>
+
+</div>
+
+
+<div class="saque-item">
+
+<b>R$ 10,00</b>
+
+<button onclick="solicitarSaque(10000)">
+SACAR 10.000 PONTOS
+</button>
+
+</div>
+
+
+<div id="saqueMsg" class="msg"></div>
+
+
+<button onclick="voltarJogo()">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+
+<section id="sac" class="hidden">
+
+<div class="card">
+
+<h2>📞 SAC</h2>
+
+<input id="sacNome" placeholder="Seu nome">
+
+<input id="sacEmail" type="email" placeholder="Seu e-mail">
+
+<textarea
+id="sacMensagem"
+placeholder="Digite sua mensagem">
+</textarea>
+
+<button onclick="enviarSAC()">
+ENVIAR MENSAGEM
+</button>
+
+<div id="sacMsg" class="msg"></div>
+
+<button onclick="voltarJogo()">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+</div>
+
+
+<script>
+
+let pontos =
+Number(localStorage.getItem("quizup_pontos")) || 0;
+
+let rodada =
+Number(localStorage.getItem("quizup_rodada")) || 1;
+
+let pontosDaRodada = 0;
+
+let perguntaAtual = null;
+
+let tempo = 10;
+
+let intervalo = null;
+
+let respondida = false;
+
+let saquesHoje =
+Number(localStorage.getItem("quizup_saques")) || 0;
+
+
+const perguntas = [
+
+{
+p:"Qual é a capital do Brasil?",
+r:["São Paulo","Brasília","Rio de Janeiro","Salvador"],
+c:1
+},
+
+{
+p:"Quanto é 2 + 2?",
+r:["3","4","5","6"],
+c:1
+},
+
+{
+p:"Qual planeta é conhecido como Planeta Vermelho?",
+r:["Terra","Vênus","Marte","Júpiter"],
+c:2
+},
+
+{
+p:"Quantos dias tem uma semana?",
+r:["5","6","7","8"],
+c:2
+},
+
+{
+p:"Qual é o maior oceano da Terra?",
+r:["Atlântico","Índico","Ártico","Pacífico"],
+c:3
+},
+
+{
+p:"Qual é o resultado de 9 × 8?",
+r:["64","72","81","88"],
+c:1
+},
+
+{
+p:"Qual é o símbolo químico do ouro?",
+r:["Ag","Au","Fe","O"],
+c:1
+},
+
+{
+p:"Quem escreveu Dom Casmurro?",
+r:[
+"Machado de Assis",
+"José de Alencar",
+"Monteiro Lobato",
+"Carlos Drummond"
+],
+c:0
+},
+
+{
+p:"Qual é o maior planeta do Sistema Solar?",
+r:["Saturno","Terra","Júpiter","Netuno"],
+c:2
+},
+
+{
+p:"Em que ano o homem chegou à Lua pela primeira vez?",
+r:["1959","1965","1969","1972"],
+c:2
+},
+
+{
+p:"Qual é a raiz quadrada de 144?",
+r:["10","11","12","14"],
+c:2
+},
+
+{
+p:"Qual país possui a maior extensão territorial do mundo?",
+r:["China","Estados Unidos","Canadá","Rússia"],
+c:3
+},
+
+{
+p:"Qual é o elemento químico de número atômico 79?",
+r:["Prata","Ouro","Platina","Cobre"],
+c:1
+},
+
+{
+p:"Qual é a capital da Mongólia?",
+r:["Astana","Ulan Bator","Tashkent","Bishkek"],
+c:1
+},
+
+{
+p:"Qual é o maior deserto quente do mundo?",
+r:["Atacama","Saara","Gobi","Kalahari"],
+c:1
+},
+
+{
+p:"Qual cientista formulou as três leis do movimento?",
+r:[
+"Albert Einstein",
+"Galileu Galilei",
+"Isaac Newton",
+"Marie Curie"
+],
+c:2
+}
+
+];
+
+
+function esconderTudo(){
+
+document
+.querySelectorAll("section")
+.forEach(s =>
+s.classList.add("hidden"));
+
+}
+
+
+function mostrar(id){
+
+esconderTudo();
+
+document
+.getElementById(id)
+.classList
+.remove("hidden");
+
+}
+
+
+function atualizar(){
+
+document.getElementById("pontos").textContent =
+pontos.toLocaleString("pt-BR");
+
+document.getElementById("rodada").textContent =
+rodada;
+
+document.getElementById("pontosRodada").textContent =
+pontosDaRodada;
+
+document.getElementById("saldoSaque").textContent =
+pontos.toLocaleString("pt-BR");
+
+localStorage.setItem(
+"quizup_pontos",
+pontos
+);
+
+localStorage.setItem(
+"quizup_rodada",
+rodada
+);
+
+}
+
+
+function criarConta(){
+
+let nome =
+document.getElementById("nome").value.trim();
+
+let cpf =
+document.getElementById("cpf").value.trim();
+
+let email =
+document.getElementById("emailCadastro").value.trim();
+
+let senha =
+document.getElementById("senhaCadastro").value;
+
+let msg =
+document.getElementById("cadastroMsg");
+
+msg.style.display="block";
+
+if(!nome || !cpf || !email || !senha){
+
+msg.textContent =
+"⚠️ Preencha todos os campos.";
+
+return;
+
+}
+
+localStorage.setItem(
+"quizup_nome",
+nome
+);
+
+localStorage.setItem(
+"quizup_cpf",
+cpf
+);
+
+localStorage.setItem(
+"quizup_email",
+email
+);
+
+localStorage.setItem(
+"quizup_senha",
+senha
+);
+
+msg.textContent =
+"✅ Conta criada com sucesso!";
+
+setTimeout(()=>{
+
+mostrar("login");
+
+},800);
+
+}
+
+
+function entrar(){
+
+let email =
+document.getElementById("emailLogin").value.trim();
+
+let senha =
+document.getElementById("senhaLogin").value;
+
+let emailSalvo =
+localStorage.getItem("quizup_email");
+
+let senhaSalva =
+localStorage.getItem("quizup_senha");
+
+let msg =
+document.getElementById("loginMsg");
+
+msg.style.display="block";
+
+if(!email || !senha){
+
+msg.textContent =
+"⚠️ Preencha e-mail e senha.";
+
+return;
+
+}
+
+if(emailSalvo===null){
+
+msg.textContent =
+"⚠️ Primeiro crie sua conta.";
+
+return;
+
+}
+
+if(
+email!==emailSalvo ||
+senha!==senhaSalva
+){
+
+msg.textContent =
+"❌ E-mail ou senha incorretos.";
+
+return;
+
+}
+
+msg.textContent =
+"✅ Login realizado!";
+
+setTimeout(()=>{
+
+mostrar("jogo");
+
+atualizar();
+
+},500);
+
+}
+
+
+function gerarDado(){
+
+let r=Math.random();
+
+if(r<0.18)return 1;
+if(r<0.36)return 2;
+if(r<0.54)return 3;
+if(r<0.70)return 4;
+if(r<0.78)return 5;
+if(r<0.84)return 6;
+if(r<0.89)return 7;
+if(r<0.94)return 8;
+if(r<0.98)return 9;
+
+return 10;
+
+}
+
+
+function girarDado(){
+
+if(
+!document
+.getElementById("areaPergunta")
+.classList
+.contains("hidden")
+)return;
+
+pontosDaRodada=gerarDado();
+
+document.getElementById("dado").textContent =
+pontosDaRodada;
+
+document.getElementById("botaoGirar").disabled =
+true;
+
+mostrarPergunta();
+
+atualizar();
+
+}
+
+
+function mostrarPergunta(){
+
+respondida=false;
+
+document
+.getElementById("areaPergunta")
+.classList
+.remove("hidden");
+
+document
+.getElementById("resultado")
+.textContent="";
+
+perguntaAtual =
+perguntas[
+Math.floor(
+Math.random()*perguntas.length
+)
+];
+
+document
+.getElementById("pergunta")
+.textContent =
+perguntaAtual.p;
+
+let opcoes =
+document.getElementById("opcoes");
+
+opcoes.innerHTML="";
+
+perguntaAtual.r.forEach((texto,i)=>{
+
+let b =
+document.createElement("button");
+
+b.className="opcao";
+
+b.textContent=texto;
+
+b.onclick=()=>{
+responder(i);
+};
+
+opcoes.appendChild(b);
+
+});
+
+iniciarTimer();
+
+}
+
+
+function iniciarTimer(){
+
+pararTimer();
+
+tempo=10;
+
+document.getElementById("tempo").textContent =
+tempo;
+
+intervalo=setInterval(()=>{
+
+tempo--;
+
+document.getElementById("tempo").textContent =
+tempo;
+
+if(tempo<=0){
+
+pararTimer();
+
+tempoEsgotado();
+
+}
+
+},1000);
+
+}
+
+
+function pararTimer(){
+
+if(intervalo){
+
+clearInterval(intervalo);
+
+intervalo=null;
+
+}
+
+}
+
+
+function responder(i){
+
+if(respondida)return;
+
+respondida=true;
+
+pararTimer();
+
+let botoes =
+document.querySelectorAll(".opcao");
+
+botoes.forEach(b=>{
+b.disabled=true;
+});
+
+
+if(i===perguntaAtual.c){
+
+botoes[i].classList.add("certa");
+
+pontos+=pontosDaRodada;
+
+document
+.getElementById("resultado")
+.textContent =
+"🎉 ACERTOU! +"+
+pontosDaRodada+
+" pontos";
+
+}else{
+
+botoes[i].classList.add("errada");
+
+botoes[
+perguntaAtual.c
+].classList.add("certa");
+
+document
+.getElementById("resultado")
+.textContent =
+"❌ ERROU! Não ganhou os pontos.";
+
+}
+
+atualizar();
+
+setTimeout(()=>{
+
+proximaRodada();
+
+},1500);
+
+}
+
+
+function tempoEsgotado(){
+
+if(respondida)return;
+
+respondida=true;
+
+let botoes =
+document.querySelectorAll(".opcao");
+
+botoes.forEach(b=>{
+b.disabled=true;
+});
+
+botoes[
+perguntaAtual.c
+].classList.add("certa");
+
+document
+.getElementById("resultado")
+.textContent =
+"⏰ TEMPO ESGOTADO! Não ganhou os pontos.";
+
+setTimeout(()=>{
+
+proximaRodada();
+
+},1500);
+
+}
+
+
+function proximaRodada(){
+
+rodada++;
+
+pontosDaRodada=0;
+
+document
+.getElementById("dado")
+.textContent="?";
+
+document
+.getElementById("areaPergunta")
+.classList
+.add("hidden");
+
+document
+.getElementById("botaoGirar")
+.disabled=false;
+
+atualizar();
+
+}
+
+
+function abrirSaque(){
+
+mostrar("saque");
+
+atualizar();
+
+}
+
+
+function abrirPremium(){
+
+mostrar("premium");
+
+}
+
+
+function assinarPremium(){
+
+let msg =
+document.getElementById("premiumMsg");
+
+msg.style.display="block";
+
+msg.textContent =
+"💳 Abrindo pagamento seguro da Hotmart...";
+
+setTimeout(()=>{
+
+window.location.href =
+"https://pay.hotmart.com/Q107171429I";
+
+},700);
+
+}
+
+
+function abrirSAC(){
+
+mostrar("sac");
+
+}
+
+
+function voltarJogo(){
+
+mostrar("jogo");
+
+atualizar();
+
+}
+
+
 async function solicitarSaque(valor){
 
-  const msg = document.getElementById("saqueMsg");
+const msg =
+document.getElementById("saqueMsg");
 
-  msg.style.display = "block";
+msg.style.display="block";
 
-  if(saquesHoje >= 2){
 
-    msg.textContent =
-      "⚠️ Limite de 2 solicitações por dia.";
+if(saquesHoje>=2){
 
-    return;
-  }
+msg.textContent =
+"⚠️ Limite de 2 solicitações por dia.";
 
-  if(pontos < valor){
+return;
 
-    msg.textContent =
-      "⚠️ Você não possui pontos suficientes.";
-
-    return;
-  }
-
-  const metodo =
-    document.getElementById("metodoSaque").value;
-
-  const chave =
-    document.getElementById("chaveSaque").value.trim();
-
-  const email =
-    localStorage.getItem("quizup_email");
-
-  if(!metodo){
-
-    msg.textContent =
-      "⚠️ Escolha Pix ou PayPal.";
-
-    return;
-  }
-
-  if(!chave){
-
-    msg.textContent =
-      "⚠️ Informe sua chave Pix ou e-mail do PayPal.";
-
-    return;
-  }
-
-  if(!email){
-
-    msg.textContent =
-      "⚠️ Faça login novamente.";
-
-    return;
-  }
-
-  msg.textContent =
-    "⏳ Enviando solicitação de saque...";
-
-  try{
-
-    const resposta = await fetch(
-      "/solicitar-saque",
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json"
-        },
-
-        body: JSON.stringify({
-
-          email: email,
-
-          pontos: valor,
-
-          valor: (valor / 1000)
-            .toFixed(2)
-            .replace(".", ","),
-
-          metodo: metodo,
-
-          chave: chave
-
-        })
-      }
-    );
-
-    const resultado =
-      await resposta.json();
-
-    if(!resposta.ok || !resultado.sucesso){
-
-      msg.textContent =
-        "❌ " +
-        (resultado.mensagem ||
-        "Não foi possível solicitar o saque.");
-
-      return;
-    }
-
-    // Só desconta os pontos depois
-    // que o servidor confirmar o pedido.
-
-    pontos -= valor;
-
-    saquesHoje++;
-
-    localStorage.setItem(
-      "quizup_saques",
-      saquesHoje
-    );
-
-    atualizar();
-
-    msg.textContent =
-      "✅ Saque solicitado com sucesso! " +
-      "Seu pedido está pendente de pagamento.";
-
-    document.getElementById(
-      "metodoSaque"
-    ).value = "";
-
-    document.getElementById(
-      "chaveSaque"
-    ).value = "";
-
-  }catch(erro){
-
-    console.error(erro);
-
-    msg.textContent =
-      "❌ Erro de conexão. Tente novamente.";
-  }
 }
+
+
+if(pontos<valor){
+
+msg.textContent =
+"⚠️ Você não possui pontos suficientes.";
+
+return;
+
+}
+
+
+const metodo =
+document.getElementById("metodoSaque").value;
+
+
+const chave =
+document.getElementById("chaveSaque").value.trim();
+
+
+const email =
+localStorage.getItem("quizup_email");
+
+
+if(!metodo){
+
+msg.textContent =
+"⚠️ Escolha Pix ou PayPal.";
+
+return;
+
+}
+
+
+if(!chave){
+
+msg.textContent =
+"⚠️ Informe sua chave Pix ou e-mail do PayPal.";
+
+return;
+
+}
+
+
+if(!email){
+
+msg.textContent =
+"⚠️ Faça login novamente.";
+
+return;
+
+}
+
+
+msg.textContent =
+"⏳ Enviando solicitação de saque...";
+
+
+try{
+
+const resposta =
+await fetch(
+"/solicitar-saque",
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":
+"application/json"
+},
+
+body:JSON.stringify({
+
+email:email,
+
+pontos:valor,
+
+valor:(valor/1000)
+.toFixed(2)
+.replace(".",","),
+
+metodo:metodo,
+
+chave:chave
+
+})
+
+});
+
+
+const resultado =
+await resposta.json();
+
+
+if(
+!resposta.ok ||
+!resultado.sucesso
+){
+
+msg.textContent =
+"❌ "+
+(
+resultado.mensagem ||
+"Não foi possível solicitar o saque."
+);
+
+return;
+
+}
+
+
+// Só desconta depois
+// da confirmação do servidor.
+
+pontos-=valor;
+
+saquesHoje++;
+
+localStorage.setItem(
+"quizup_saques",
+saquesHoje
+);
+
+atualizar();
+
+
+msg.textContent =
+"✅ Saque solicitado com sucesso! Seu pedido está pendente de pagamento.";
+
+
+document.getElementById(
+"metodoSaque"
+).value="";
+
+
+document.getElementById(
+"chaveSaque"
+).value="";
+
+
+}catch(erro){
+
+console.error(erro);
+
+msg.textContent =
+"❌ Erro de conexão. Tente novamente.";
+
+}
+
+}
+
+
+function enviarSAC(){
+
+let nome =
+document.getElementById("sacNome")
+.value.trim();
+
+let email =
+document.getElementById("sacEmail")
+.value.trim();
+
+let mensagem =
+document.getElementById("sacMensagem")
+.value.trim();
+
+let msg =
+document.getElementById("sacMsg");
+
+msg.style.display="block";
+
+
+if(!nome || !email || !mensagem){
+
+msg.textContent =
+"⚠️ Preencha todos os campos.";
+
+return;
+
+}
+
+
+msg.textContent =
+"✅ Mensagem enviada com sucesso!";
+
+}
+
+
+function sair(){
+
+pararTimer();
+
+mostrar("inicio");
+
+document
+.getElementById("botaoGirar")
+.disabled=false;
+
+}
+
+
+atualizar();
+
+mostrar("inicio");
+
+</script>
+
+</body>
+</html>
