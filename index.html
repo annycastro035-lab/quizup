@@ -2,24 +2,9 @@
 <html lang="pt-BR">
 <head>
 
-<!-- MONETAG 11577150 -->
-<script>
-(function(s){
-  s.dataset.zone='11577150';
-  s.src='https://nap5k.com/tag.min.js'
-})([document.documentElement,document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
-</script>
-
-<!-- MONETAG 11575378 -->
-<script>
-(function(s){
-  s.dataset.zone='11575378';
-  s.src='https://nap5k.com/tag.min.js'
-})([document.documentElement,document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
-</script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>QuizUp</title>
 
 <style>
@@ -52,8 +37,7 @@ h1{
   box-shadow:0 8px 25px #0003;
 }
 
-input,
-select{
+input,select{
   width:100%;
   padding:15px;
   border:0;
@@ -163,7 +147,8 @@ button:disabled{
   min-height:28px;
 }
 
-.saque-item{
+.saque-item,
+.convite-item{
   background:#ffffff15;
   padding:15px;
   border-radius:15px;
@@ -209,6 +194,32 @@ textarea{
   border-radius:12px;
   margin:8px 0;
 }
+
+.codigo{
+  font-size:30px;
+  font-weight:bold;
+  letter-spacing:4px;
+  background:white;
+  color:#57117d;
+  padding:15px;
+  border-radius:15px;
+  margin:15px 0;
+  text-align:center;
+}
+
+.progresso{
+  height:12px;
+  background:#ffffff30;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.progresso div{
+  height:100%;
+  background:#20c978;
+  width:0%;
+}
 </style>
 
 </head>
@@ -216,6 +227,8 @@ textarea{
 <body>
 
 <div class="app">
+
+<!-- INÍCIO -->
 
 <section id="inicio">
 
@@ -240,6 +253,8 @@ textarea{
 </section>
 
 
+<!-- CADASTRO -->
+
 <section id="cadastro" class="hidden">
 
 <div class="logo">📝</div>
@@ -248,13 +263,34 @@ textarea{
 
 <h2>Criar conta</h2>
 
-<input id="nome" placeholder="Nome completo">
+<input
+id="nome"
+placeholder="Nome completo"
+>
 
-<input id="cpf" inputmode="numeric" placeholder="CPF">
+<input
+id="cpf"
+inputmode="numeric"
+placeholder="CPF"
+>
 
-<input id="emailCadastro" type="email" placeholder="Seu e-mail">
+<input
+id="emailCadastro"
+type="email"
+placeholder="Seu e-mail"
+>
 
-<input id="senhaCadastro" type="password" placeholder="Crie uma senha">
+<input
+id="senhaCadastro"
+type="password"
+placeholder="Crie uma senha"
+>
+
+<input
+id="codigoConviteCadastro"
+maxlength="8"
+placeholder="Código do convite (opcional)"
+>
 
 <button onclick="criarConta()">
 🆕 CRIAR CONTA
@@ -271,6 +307,8 @@ textarea{
 </section>
 
 
+<!-- LOGIN -->
+
 <section id="login" class="hidden">
 
 <div class="logo">🔐</div>
@@ -279,9 +317,17 @@ textarea{
 
 <h2>Entrar</h2>
 
-<input id="emailLogin" type="email" placeholder="Seu e-mail">
+<input
+id="emailLogin"
+type="email"
+placeholder="Seu e-mail"
+>
 
-<input id="senhaLogin" type="password" placeholder="Sua senha">
+<input
+id="senhaLogin"
+type="password"
+placeholder="Sua senha"
+>
 
 <button onclick="entrar()">
 🔐 ENTRAR
@@ -297,6 +343,8 @@ textarea{
 
 </section>
 
+
+<!-- JOGO -->
 
 <section id="jogo" class="hidden">
 
@@ -314,7 +362,6 @@ Rodada
 
 </div>
 
-
 <div class="card center">
 
 <h2>🎲 QuizUp</h2>
@@ -326,7 +373,10 @@ Pontos da rodada:
 
 <div class="dado" id="dado">?</div>
 
-<button id="botaoGirar" onclick="girarDado()">
+<button
+id="botaoGirar"
+onclick="girarDado()"
+>
 🎲 GIRAR
 </button>
 
@@ -336,7 +386,7 @@ Pontos da rodada:
 <div id="areaPergunta" class="card hidden">
 
 <div class="timer">
-⏱️ <span id="tempo">10</span>
+⏱️ <span id="tempo">5</span>
 </div>
 
 <div id="pergunta" class="pergunta"></div>
@@ -349,6 +399,10 @@ Pontos da rodada:
 
 
 <div class="card">
+
+<button onclick="abrirConvites()">
+🎁 MEUS CONVITES
+</button>
 
 <button onclick="abrirSaque()">
 💰 SAQUE
@@ -371,56 +425,78 @@ Pontos da rodada:
 </section>
 
 
-<section id="premium" class="hidden">
+<!-- CONVITES -->
+
+<section id="convites" class="hidden">
 
 <div class="card center">
 
-<h2>💎 QuizUp Premium</h2>
+<h2>🎁 Meus Convites</h2>
 
 <p>
-Tenha uma experiência ainda melhor no QuizUp.
+Seu código de convite:
 </p>
 
-<div class="premium-box">
-
-<div class="premium-price">
-R$ 9,90
+<div
+id="meuCodigoConvite"
+class="codigo"
+>
+--------
 </div>
 
-<p>por mês</p>
-
-<div class="premium-item">
-🚫 Sem anúncios
-</div>
-
-<div class="premium-item">
-⭐ Perfil Premium
-</div>
-
-<div class="premium-item">
-🏆 Destaque no ranking
-</div>
-
-<div class="premium-item">
-🎯 Recursos exclusivos
-</div>
-
-<button onclick="assinarPremium()">
-💎 ASSINAR POR R$ 9,90/MÊS
-</button>
-
-<div id="premiumMsg" class="msg"></div>
+<p>
+Compartilhe esse código com seus amigos.
+</p>
 
 </div>
+
+
+<div class="card">
+
+<h3>👥 Pessoas que você convidou</h3>
+
+<div id="listaConvites">
+
+<p>
+Você ainda não convidou ninguém.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>🎯 Como funciona</h3>
+
+<p>
+Quando seu convidado se cadastrar usando seu código, ele começa a aparecer aqui.
+</p>
+
+<p>
+🎮 O convidado ganha <strong>5 pontos</strong>.
+</p>
+
+<p>
+🏆 Quando o convidado chegar a <strong>300 pontos</strong>, você ganha <strong>50 pontos</strong>.
+</p>
+
+<p>
+📊 Você poderá acompanhar o progresso até os 300 pontos.
+</p>
+
+</div>
+
 
 <button onclick="voltarJogo()">
 ⬅️ VOLTAR
 </button>
 
-</div>
-
 </section>
 
+
+<!-- SAQUE -->
 
 <section id="saque" class="hidden">
 
@@ -501,6 +577,58 @@ SACAR 10.000 PONTOS
 
 <div id="saqueMsg" class="msg"></div>
 
+<button onclick="voltarJogo()">
+⬅️ VOLTAR
+</button>
+
+</div>
+
+</section>
+
+
+<!-- PREMIUM -->
+
+<section id="premium" class="hidden">
+
+<div class="card center">
+
+<h2>💎 QuizUp Premium</h2>
+
+<p>
+Tenha uma experiência ainda melhor no QuizUp.
+</p>
+
+<div class="premium-box">
+
+<div class="premium-price">
+R$ 9,90
+</div>
+
+<p>por mês</p>
+
+<div class="premium-item">
+🚫 Sem anúncios
+</div>
+
+<div class="premium-item">
+⭐ Perfil Premium
+</div>
+
+<div class="premium-item">
+🏆 Destaque no ranking
+</div>
+
+<div class="premium-item">
+🎯 Recursos exclusivos
+</div>
+
+<button onclick="assinarPremium()">
+💎 ASSINAR POR R$ 9,90/MÊS
+</button>
+
+<div id="premiumMsg" class="msg"></div>
+
+</div>
 
 <button onclick="voltarJogo()">
 ⬅️ VOLTAR
@@ -511,20 +639,29 @@ SACAR 10.000 PONTOS
 </section>
 
 
+<!-- SAC -->
+
 <section id="sac" class="hidden">
 
 <div class="card">
 
 <h2>📞 SAC</h2>
 
-<input id="sacNome" placeholder="Seu nome">
+<input
+id="sacNome"
+placeholder="Seu nome"
+>
 
-<input id="sacEmail" type="email" placeholder="Seu e-mail">
+<input
+id="sacEmail"
+type="email"
+placeholder="Seu e-mail"
+>
 
 <textarea
 id="sacMensagem"
-placeholder="Digite sua mensagem">
-</textarea>
+placeholder="Digite sua mensagem"
+></textarea>
 
 <button onclick="enviarSAC()">
 ENVIAR MENSAGEM
@@ -555,7 +692,7 @@ let pontosDaRodada = 0;
 
 let perguntaAtual = null;
 
-let tempo = 10;
+let tempo = 5;
 
 let intervalo = null;
 
@@ -564,6 +701,10 @@ let respondida = false;
 let saquesHoje =
 Number(localStorage.getItem("quizup_saques")) || 0;
 
+
+/* =========================
+   PERGUNTAS
+========================= */
 
 const perguntas = [
 
@@ -676,6 +817,10 @@ c:2
 ];
 
 
+/* =========================
+   NAVEGAÇÃO
+========================= */
+
 function esconderTudo(){
 
 document
@@ -697,6 +842,61 @@ document
 
 }
 
+
+/* =========================
+   CÓDIGO DE CONVITE
+========================= */
+
+function gerarCodigoConvite(nome,email){
+
+nome =
+nome.replace(/[^a-zA-Z]/g,"");
+
+email =
+email.split("@")[0]
+.replace(/[^a-zA-Z0-9]/g,"");
+
+let nomeParte =
+nome.substring(0,2);
+
+let numeros =
+(email.match(/\d+/g)||["00"])
+.join("");
+
+let numerosParte =
+numeros.slice(-2);
+
+while(numerosParte.length<2){
+numerosParte="0"+numerosParte;
+}
+
+let emailParte =
+email
+.replace(/\d/g,"")
+.substring(0,4);
+
+while(emailParte.length<4){
+emailParte+="x";
+}
+
+let codigo =
+(nomeParte+
+numerosParte+
+emailParte)
+.substring(0,8);
+
+while(codigo.length<8){
+codigo+="x";
+}
+
+return codigo.toLowerCase();
+
+}
+
+
+/* =========================
+   ATUALIZAR
+========================= */
 
 function atualizar(){
 
@@ -725,6 +925,10 @@ rodada
 }
 
 
+/* =========================
+   CADASTRO
+========================= */
+
 function criarConta(){
 
 let nome =
@@ -739,19 +943,67 @@ document.getElementById("emailCadastro").value.trim();
 let senha =
 document.getElementById("senhaCadastro").value;
 
+let codigoInformado =
+document
+.getElementById("codigoConviteCadastro")
+.value
+.trim()
+.toLowerCase();
+
 let msg =
 document.getElementById("cadastroMsg");
 
 msg.style.display="block";
 
+
 if(!nome || !cpf || !email || !senha){
 
 msg.textContent =
-"⚠️ Preencha todos os campos.";
+"⚠️ Preencha nome, CPF, e-mail e senha.";
 
 return;
 
 }
+
+
+if(cpf.replace(/\D/g,"").length!==11){
+
+msg.textContent =
+"⚠️ Informe um CPF válido.";
+
+return;
+
+}
+
+
+if(!email.includes("@")){
+
+msg.textContent =
+"⚠️ Informe um e-mail válido.";
+
+return;
+
+}
+
+
+if(senha.length<4){
+
+msg.textContent =
+"⚠️ A senha precisa ter pelo menos 4 caracteres.";
+
+return;
+
+}
+
+
+let codigo =
+gerarCodigoConvite(nome,email);
+
+
+/*
+O código possui exatamente
+8 caracteres.
+*/
 
 localStorage.setItem(
 "quizup_nome",
@@ -773,25 +1025,53 @@ localStorage.setItem(
 senha
 );
 
-msg.textContent =
-"✅ Conta criada com sucesso!";
+localStorage.setItem(
+"quizup_codigo_convite",
+codigo
+);
+
+localStorage.setItem(
+"quizup_convite_usado",
+codigoInformado
+);
+
+localStorage.setItem(
+"quizup_conta_criada",
+"1"
+);
+
+
+msg.innerHTML =
+"✅ Conta criada com sucesso!<br><br>"+
+"Seu código de convite é:<br>"+
+"<strong>"+codigo+"</strong>";
+
 
 setTimeout(()=>{
 
 mostrar("login");
 
-},800);
+},1800);
 
 }
 
 
+/* =========================
+   LOGIN
+========================= */
+
 function entrar(){
 
 let email =
-document.getElementById("emailLogin").value.trim();
+document
+.getElementById("emailLogin")
+.value
+.trim();
 
 let senha =
-document.getElementById("senhaLogin").value;
+document
+.getElementById("senhaLogin")
+.value;
 
 let emailSalvo =
 localStorage.getItem("quizup_email");
@@ -804,6 +1084,7 @@ document.getElementById("loginMsg");
 
 msg.style.display="block";
 
+
 if(!email || !senha){
 
 msg.textContent =
@@ -813,6 +1094,7 @@ return;
 
 }
 
+
 if(emailSalvo===null){
 
 msg.textContent =
@@ -821,6 +1103,7 @@ msg.textContent =
 return;
 
 }
+
 
 if(
 email!==emailSalvo ||
@@ -834,8 +1117,10 @@ return;
 
 }
 
+
 msg.textContent =
 "✅ Login realizado!";
+
 
 setTimeout(()=>{
 
@@ -847,6 +1132,10 @@ atualizar();
 
 }
 
+
+/* =========================
+   DADO
+========================= */
 
 function gerarDado(){
 
@@ -876,12 +1165,17 @@ if(
 .contains("hidden")
 )return;
 
-pontosDaRodada=gerarDado();
+pontosDaRodada =
+gerarDado();
 
-document.getElementById("dado").textContent =
+document
+.getElementById("dado")
+.textContent =
 pontosDaRodada;
 
-document.getElementById("botaoGirar").disabled =
+document
+.getElementById("botaoGirar")
+.disabled =
 true;
 
 mostrarPergunta();
@@ -890,6 +1184,10 @@ atualizar();
 
 }
 
+
+/* =========================
+   PERGUNTA
+========================= */
 
 function mostrarPergunta(){
 
@@ -921,6 +1219,7 @@ document.getElementById("opcoes");
 
 opcoes.innerHTML="";
 
+
 perguntaAtual.r.forEach((texto,i)=>{
 
 let b =
@@ -938,26 +1237,33 @@ opcoes.appendChild(b);
 
 });
 
+
 iniciarTimer();
 
 }
 
 
+/* =========================
+   TIMER
+========================= */
+
 function iniciarTimer(){
 
 pararTimer();
 
-tempo=10;
+tempo=5;
 
-document.getElementById("tempo").textContent =
-tempo;
+document
+.getElementById("tempo")
+.textContent=tempo;
 
 intervalo=setInterval(()=>{
 
 tempo--;
 
-document.getElementById("tempo").textContent =
-tempo;
+document
+.getElementById("tempo")
+.textContent=tempo;
 
 if(tempo<=0){
 
@@ -985,6 +1291,10 @@ intervalo=null;
 }
 
 
+/* =========================
+   RESPOSTA
+========================= */
+
 function responder(i){
 
 if(respondida)return;
@@ -1003,9 +1313,12 @@ b.disabled=true;
 
 if(i===perguntaAtual.c){
 
-botoes[i].classList.add("certa");
+botoes[i]
+.classList
+.add("certa");
 
-pontos+=pontosDaRodada;
+pontos +=
+pontosDaRodada;
 
 document
 .getElementById("resultado")
@@ -1016,11 +1329,15 @@ pontosDaRodada+
 
 }else{
 
-botoes[i].classList.add("errada");
+botoes[i]
+.classList
+.add("errada");
 
 botoes[
 perguntaAtual.c
-].classList.add("certa");
+]
+.classList
+.add("certa");
 
 document
 .getElementById("resultado")
@@ -1029,7 +1346,9 @@ document
 
 }
 
+
 atualizar();
+
 
 setTimeout(()=>{
 
@@ -1055,7 +1374,9 @@ b.disabled=true;
 
 botoes[
 perguntaAtual.c
-].classList.add("certa");
+]
+.classList
+.add("certa");
 
 document
 .getElementById("resultado")
@@ -1070,6 +1391,10 @@ proximaRodada();
 
 }
 
+
+/* =========================
+   PRÓXIMA RODADA
+========================= */
 
 function proximaRodada(){
 
@@ -1095,52 +1420,122 @@ atualizar();
 }
 
 
+/* =========================
+   CONVITES
+========================= */
+
+function abrirConvites(){
+
+mostrar("convites");
+
+let codigo =
+localStorage.getItem(
+"quizup_codigo_convite"
+);
+
+document
+.getElementById("meuCodigoConvite")
+.textContent =
+codigo || "--------";
+
+mostrarListaConvites();
+
+}
+
+
+function mostrarListaConvites(){
+
+let lista =
+document.getElementById(
+"listaConvites"
+);
+
+let convites =
+JSON.parse(
+localStorage.getItem(
+"quizup_lista_convites"
+)||"[]"
+);
+
+
+if(convites.length===0){
+
+lista.innerHTML =
+"<p>Você ainda não convidou ninguém.</p>";
+
+return;
+
+}
+
+
+lista.innerHTML="";
+
+
+convites.forEach(convite=>{
+
+let percentual =
+Math.min(
+100,
+(convite.pontos/300)*100
+);
+
+let faltam =
+Math.max(
+0,
+300-convite.pontos
+);
+
+
+let div =
+document.createElement("div");
+
+div.className="convite-item";
+
+div.innerHTML =
+
+"<strong>"+
+convite.nome+
+"</strong><br><br>"+
+
+"🎯 Pontos: "+
+convite.pontos+
+" / 300<br>"+
+
+"🎁 Recompensa: "+
+(convite.recompensa?"50 pontos recebidos":"Aguardando")+
+
+"<div class='progresso'>"+
+"<div style='width:"+
+percentual+
+"%'></div>"+
+"</div>"+
+
+"<br>"+
+
+(
+convite.recompensa
+?
+"✅ Meta concluída! Você ganhou 50 pontos."
+:
+"⏳ Faltam "+
+faltam+
+" pontos para liberar seus 50 pontos."
+);
+
+lista.appendChild(div);
+
+});
+
+}
+
+
+/* =========================
+   SAQUE
+========================= */
+
 function abrirSaque(){
 
 mostrar("saque");
-
-atualizar();
-
-}
-
-
-function abrirPremium(){
-
-mostrar("premium");
-
-}
-
-
-function assinarPremium(){
-
-let msg =
-document.getElementById("premiumMsg");
-
-msg.style.display="block";
-
-msg.textContent =
-"💳 Abrindo pagamento seguro da Hotmart...";
-
-setTimeout(()=>{
-
-window.location.href =
-"https://pay.hotmart.com/Q107171429I";
-
-},700);
-
-}
-
-
-function abrirSAC(){
-
-mostrar("sac");
-
-}
-
-
-function voltarJogo(){
-
-mostrar("jogo");
 
 atualizar();
 
@@ -1176,15 +1571,20 @@ return;
 
 
 const metodo =
-document.getElementById("metodoSaque").value;
-
+document
+.getElementById("metodoSaque")
+.value;
 
 const chave =
-document.getElementById("chaveSaque").value.trim();
-
+document
+.getElementById("chaveSaque")
+.value
+.trim();
 
 const email =
-localStorage.getItem("quizup_email");
+localStorage.getItem(
+"quizup_email"
+);
 
 
 if(!metodo){
@@ -1275,9 +1675,6 @@ return;
 }
 
 
-// Só desconta depois
-// da confirmação do servidor.
-
 pontos-=valor;
 
 saquesHoje++;
@@ -1294,14 +1691,13 @@ msg.textContent =
 "✅ Saque solicitado com sucesso! Seu pedido está pendente de pagamento.";
 
 
-document.getElementById(
-"metodoSaque"
-).value="";
+document
+.getElementById("metodoSaque")
+.value="";
 
-
-document.getElementById(
-"chaveSaque"
-).value="";
+document
+.getElementById("chaveSaque")
+.value="";
 
 
 }catch(erro){
@@ -1316,22 +1712,73 @@ msg.textContent =
 }
 
 
+/* =========================
+   PREMIUM
+========================= */
+
+function abrirPremium(){
+
+mostrar("premium");
+
+}
+
+
+function assinarPremium(){
+
+let msg =
+document
+.getElementById("premiumMsg");
+
+msg.style.display="block";
+
+msg.textContent =
+"💳 Abrindo pagamento seguro da Hotmart...";
+
+
+setTimeout(()=>{
+
+window.location.href =
+"https://pay.hotmart.com/Q107171429I";
+
+},700);
+
+}
+
+
+/* =========================
+   SAC
+========================= */
+
+function abrirSAC(){
+
+mostrar("sac");
+
+}
+
+
 function enviarSAC(){
 
 let nome =
-document.getElementById("sacNome")
-.value.trim();
+document
+.getElementById("sacNome")
+.value
+.trim();
 
 let email =
-document.getElementById("sacEmail")
-.value.trim();
+document
+.getElementById("sacEmail")
+.value
+.trim();
 
 let mensagem =
-document.getElementById("sacMensagem")
-.value.trim();
+document
+.getElementById("sacMensagem")
+.value
+.trim();
 
 let msg =
-document.getElementById("sacMsg");
+document
+.getElementById("sacMsg");
 
 msg.style.display="block";
 
@@ -1352,6 +1799,19 @@ msg.textContent =
 }
 
 
+/* =========================
+   SAIR
+========================= */
+
+function voltarJogo(){
+
+mostrar("jogo");
+
+atualizar();
+
+}
+
+
 function sair(){
 
 pararTimer();
@@ -1364,6 +1824,10 @@ document
 
 }
 
+
+/* =========================
+   INÍCIO
+========================= */
 
 atualizar();
 
