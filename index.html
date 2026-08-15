@@ -1,3 +1,5 @@
+index.html — QuizUp atualizado
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -217,6 +219,32 @@ textarea{
   height:100%;
   background:#20c978;
 }
+
+.publicidade{
+  background:#ffffff15;
+  border:1px dashed #ffffff55;
+  border-radius:15px;
+  padding:15px;
+  margin:15px 0;
+  text-align:center;
+}
+
+.publicidade small{
+  opacity:.8;
+}
+
+.taxa{
+  background:#ffffff15;
+  border-radius:15px;
+  padding:15px;
+  margin:10px 0;
+}
+
+.receber{
+  font-size:22px;
+  font-weight:bold;
+  margin-top:10px;
+}
 </style>
 </head>
 
@@ -242,6 +270,12 @@ textarea{
 🔐 JÁ TENHO UMA CONTA
 </button>
 
+</div>
+
+<div class="publicidade">
+<strong>📢 PUBLICIDADE / PATROCINADOR</strong>
+<br>
+<small>Espaço reservado para anúncios e patrocinadores.</small>
 </div>
 
 </section>
@@ -327,6 +361,12 @@ Rodada
 
 </div>
 
+<div class="publicidade">
+<strong>📢 PATROCINADOR</strong>
+<br>
+<small>Espaço para publicidade.</small>
+</div>
+
 <div class="card center">
 
 <h2>🎲 QuizUp</h2>
@@ -357,6 +397,13 @@ Pontos da rodada:
 
 <div id="resultado" class="resultado"></div>
 
+</div>
+
+
+<div class="publicidade">
+<strong>📢 PUBLICIDADE</strong>
+<br>
+<small>Anúncio / patrocinador</small>
 </div>
 
 
@@ -454,9 +501,25 @@ você recebe <strong>50 pontos</strong>.
 <span id="saldoSaque">0</span> pontos
 </h2>
 
+<div class="taxa">
+
+<p><strong>Conversão:</strong></p>
+
 <p>1.000 pontos = R$ 1,00</p>
+<p>2.000 pontos = R$ 2,00</p>
 <p>5.000 pontos = R$ 5,00</p>
+<p>6.000 pontos = R$ 6,00</p>
 <p>10.000 pontos = R$ 10,00</p>
+
+<hr>
+
+<p>💼 Taxa da plataforma: <strong>30%</strong></p>
+
+<p>
+O valor mostrado no pedido considera a taxa de 30% da plataforma.
+</p>
+
+</div>
 
 <div class="saque-item">
 
@@ -485,9 +548,12 @@ placeholder="Chave Pix ou e-mail do PayPal"
 
 </div>
 
+
 <div class="saque-item">
 
 <b>R$ 1,00</b>
+
+<p>Após 30%: <strong>R$ 0,70</strong></p>
 
 <button onclick="solicitarSaque(1000)">
 SACAR 1.000 PONTOS
@@ -495,9 +561,25 @@ SACAR 1.000 PONTOS
 
 </div>
 
+
+<div class="saque-item">
+
+<b>R$ 2,00</b>
+
+<p>Após 30%: <strong>R$ 1,40</strong></p>
+
+<button onclick="solicitarSaque(2000)">
+SACAR 2.000 PONTOS
+</button>
+
+</div>
+
+
 <div class="saque-item">
 
 <b>R$ 5,00</b>
+
+<p>Após 30%: <strong>R$ 3,50</strong></p>
 
 <button onclick="solicitarSaque(5000)">
 SACAR 5.000 PONTOS
@@ -505,9 +587,25 @@ SACAR 5.000 PONTOS
 
 </div>
 
+
+<div class="saque-item">
+
+<b>R$ 6,00</b>
+
+<p>Após 30%: <strong>R$ 4,20</strong></p>
+
+<button onclick="solicitarSaque(6000)">
+SACAR 6.000 PONTOS
+</button>
+
+</div>
+
+
 <div class="saque-item">
 
 <b>R$ 10,00</b>
+
+<p>Após 30%: <strong>R$ 7,00</strong></p>
 
 <button onclick="solicitarSaque(10000)">
 SACAR 10.000 PONTOS
@@ -612,22 +710,13 @@ ENVIAR MENSAGEM
 <script>
 
 let usuario = null;
-
 let pontos = 0;
-
 let rodada = 1;
-
 let pontosDaRodada = 0;
-
 let perguntaAtual = null;
-
 let tempo = 5;
-
 let intervalo = null;
-
 let respondida = false;
-
-let saquesHoje = 0;
 
 
 const perguntas = [
@@ -858,13 +947,11 @@ headers:{
 },
 
 body:JSON.stringify({
-
 nome:nome,
 cpf:cpf,
 email:email,
 senha:senha,
 codigoConvite:codigoConvite
-
 })
 
 });
@@ -958,10 +1045,8 @@ headers:{
 },
 
 body:JSON.stringify({
-
 email:email,
 senha:senha
-
 })
 
 });
@@ -1220,10 +1305,8 @@ headers:{
 },
 
 body:JSON.stringify({
-
 usuarioId:usuario.id,
 pontos:valor
-
 })
 
 });
@@ -1546,6 +1629,10 @@ return;
 
 }
 
+const valorBruto = valor / 1000;
+const taxa = valorBruto * 0.30;
+const valorLiquido = valorBruto - taxa;
+
 msg.textContent =
 "⏳ Enviando solicitação de saque...";
 
@@ -1565,15 +1652,12 @@ headers:{
 body:JSON.stringify({
 
 usuarioId:usuario.id,
-
 email:usuario.email,
-
 pontos:valor,
-
-valor:valor/1000,
-
+valor:valorBruto,
+taxa:taxa,
+valorLiquido:valorLiquido,
 metodo:metodo,
-
 chave:chave
 
 })
@@ -1602,8 +1686,17 @@ usuario.pontos=pontos;
 
 atualizar();
 
-msg.textContent =
-"✅ Saque solicitado com sucesso! Seu pedido está pendente de pagamento.";
+msg.innerHTML =
+"✅ Saque solicitado!<br><br>"+
+"Valor bruto: R$ "+
+valorBruto.toFixed(2).replace(".",",")+
+"<br>"+
+"Taxa da plataforma (30%): R$ "+
+taxa.toFixed(2).replace(".",",")+
+"<br>"+
+"<strong>Você receberá: R$ "+
+valorLiquido.toFixed(2).replace(".",",")+
+"</strong>";
 
 document
 .getElementById("metodoSaque")
@@ -1722,10 +1815,6 @@ pontosDaRodada=0;
 
 mostrar("inicio");
 
-document
-.getElementById("botaoGirar")
-.disabled=false;
-
 }
 
 
@@ -1736,4 +1825,4 @@ mostrar("inicio");
 </script>
 
 </body>
-  </html>
+</html>
