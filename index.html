@@ -1,11 +1,13 @@
-index.html — QuizUp atualizado
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>QuizUp</title>
+
+<!-- Verificação HilltopAds -->
+<meta name="179068d3f0de074ae365689ad42ea04f113d89a5" content="179068d3f0de074ae365689ad42ea04f113d89a5" />
 
 <style>
 *{box-sizing:border-box}
@@ -326,9 +328,17 @@ placeholder="Código do convite (opcional)"
 
 <h2>Entrar</h2>
 
-<input id="emailLogin" type="email" placeholder="Seu e-mail">
+<input
+id="emailLogin"
+type="email"
+placeholder="Seu e-mail"
+>
 
-<input id="senhaLogin" type="password" placeholder="Sua senha">
+<input
+id="senhaLogin"
+type="password"
+placeholder="Sua senha"
+>
 
 <button onclick="entrar()">
 🔐 ENTRAR
@@ -361,11 +371,13 @@ Rodada
 
 </div>
 
+
 <div class="publicidade">
 <strong>📢 PATROCINADOR</strong>
 <br>
 <small>Espaço para publicidade.</small>
 </div>
+
 
 <div class="card center">
 
@@ -378,7 +390,10 @@ Pontos da rodada:
 
 <div class="dado" id="dado">?</div>
 
-<button id="botaoGirar" onclick="girarDado()">
+<button
+id="botaoGirar"
+onclick="girarDado()"
+>
 🎲 GIRAR
 </button>
 
@@ -452,6 +467,7 @@ Compartilhe esse código com seus amigos.
 
 </div>
 
+
 <div class="card">
 
 <h3>👥 Pessoas que você convidou</h3>
@@ -462,17 +478,19 @@ Compartilhe esse código com seus amigos.
 
 </div>
 
+
 <div class="card">
 
 <h3>🎯 Como funciona</h3>
 
 <p>
-Quando seu convidado se cadastrar usando seu código, ele recebe
-<strong>5 pontos</strong>.
+Quando seu convidado se cadastrar usando seu código,
+ele recebe <strong>5 pontos</strong>.
 </p>
 
 <p>
-🏆 Quando o convidado chegar a <strong>300 pontos</strong>,
+🏆 Quando o convidado chegar a
+<strong>300 pontos</strong>,
 você recebe <strong>50 pontos</strong>.
 </p>
 
@@ -501,6 +519,7 @@ você recebe <strong>50 pontos</strong>.
 <span id="saldoSaque">0</span> pontos
 </h2>
 
+
 <div class="taxa">
 
 <p><strong>Conversão:</strong></p>
@@ -513,13 +532,17 @@ você recebe <strong>50 pontos</strong>.
 
 <hr>
 
-<p>💼 Taxa da plataforma: <strong>30%</strong></p>
+<p>
+💼 Taxa da plataforma:
+<strong>30%</strong>
+</p>
 
 <p>
 O valor mostrado no pedido considera a taxa de 30% da plataforma.
 </p>
 
 </div>
+
 
 <div class="saque-item">
 
@@ -553,7 +576,10 @@ placeholder="Chave Pix ou e-mail do PayPal"
 
 <b>R$ 1,00</b>
 
-<p>Após 30%: <strong>R$ 0,70</strong></p>
+<p>
+Após 30%:
+<strong>R$ 0,70</strong>
+</p>
 
 <button onclick="solicitarSaque(1000)">
 SACAR 1.000 PONTOS
@@ -566,7 +592,10 @@ SACAR 1.000 PONTOS
 
 <b>R$ 2,00</b>
 
-<p>Após 30%: <strong>R$ 1,40</strong></p>
+<p>
+Após 30%:
+<strong>R$ 1,40</strong>
+</p>
 
 <button onclick="solicitarSaque(2000)">
 SACAR 2.000 PONTOS
@@ -579,7 +608,10 @@ SACAR 2.000 PONTOS
 
 <b>R$ 5,00</b>
 
-<p>Após 30%: <strong>R$ 3,50</strong></p>
+<p>
+Após 30%:
+<strong>R$ 3,50</strong>
+</p>
 
 <button onclick="solicitarSaque(5000)">
 SACAR 5.000 PONTOS
@@ -592,7 +624,10 @@ SACAR 5.000 PONTOS
 
 <b>R$ 6,00</b>
 
-<p>Após 30%: <strong>R$ 4,20</strong></p>
+<p>
+Após 30%:
+<strong>R$ 4,20</strong>
+</p>
 
 <button onclick="solicitarSaque(6000)">
 SACAR 6.000 PONTOS
@@ -605,13 +640,17 @@ SACAR 6.000 PONTOS
 
 <b>R$ 10,00</b>
 
-<p>Após 30%: <strong>R$ 7,00</strong></p>
+<p>
+Após 30%:
+<strong>R$ 7,00</strong>
+</p>
 
 <button onclick="solicitarSaque(10000)">
 SACAR 10.000 PONTOS
 </button>
 
 </div>
+
 
 <div id="saqueMsg" class="msg"></div>
 
@@ -681,9 +720,16 @@ R$ 9,90
 
 <h2>📞 SAC</h2>
 
-<input id="sacNome" placeholder="Seu nome">
+<input
+id="sacNome"
+placeholder="Seu nome"
+>
 
-<input id="sacEmail" type="email" placeholder="Seu e-mail">
+<input
+id="sacEmail"
+type="email"
+placeholder="Seu e-mail"
+>
 
 <textarea
 id="sacMensagem"
@@ -896,6 +942,7 @@ document.getElementById("cadastroMsg");
 
 msg.style.display="block";
 
+
 if(!nome || !cpf || !email || !senha){
 
 msg.textContent =
@@ -904,6 +951,7 @@ msg.textContent =
 return;
 
 }
+
 
 if(cpf.replace(/\D/g,"").length!==11){
 
@@ -914,6 +962,7 @@ return;
 
 }
 
+
 if(!email.includes("@")){
 
 msg.textContent =
@@ -922,6 +971,7 @@ msg.textContent =
 return;
 
 }
+
 
 if(senha.length<4){
 
@@ -932,8 +982,10 @@ return;
 
 }
 
+
 msg.textContent =
 "⏳ Criando sua conta...";
+
 
 try{
 
@@ -956,21 +1008,22 @@ codigoConvite:codigoConvite
 
 });
 
+
 const resultado =
 await resposta.json();
+
 
 if(!resposta.ok || !resultado.sucesso){
 
 msg.textContent =
 "❌ "+
-(
-resultado.mensagem ||
-"Não foi possível criar a conta."
-);
+(resultado.mensagem ||
+"Não foi possível criar a conta.");
 
 return;
 
 }
+
 
 msg.innerHTML =
 "✅ Conta criada com sucesso!<br><br>"+
@@ -978,6 +1031,7 @@ msg.innerHTML =
 "<strong>"+
 resultado.usuario.codigo_convite+
 "</strong>";
+
 
 setTimeout(()=>{
 
@@ -990,6 +1044,7 @@ senha;
 mostrar("login");
 
 },1800);
+
 
 }catch(erro){
 
@@ -1021,6 +1076,7 @@ document.getElementById("loginMsg");
 
 msg.style.display="block";
 
+
 if(!email || !senha){
 
 msg.textContent =
@@ -1030,8 +1086,10 @@ return;
 
 }
 
+
 msg.textContent =
 "⏳ Entrando...";
+
 
 try{
 
@@ -1051,21 +1109,22 @@ senha:senha
 
 });
 
+
 const resultado =
 await resposta.json();
+
 
 if(!resposta.ok || !resultado.sucesso){
 
 msg.textContent =
 "❌ "+
-(
-resultado.mensagem ||
-"E-mail ou senha incorretos."
-);
+(resultado.mensagem ||
+"E-mail ou senha incorretos.");
 
 return;
 
 }
+
 
 usuario =
 resultado.usuario;
@@ -1078,6 +1137,7 @@ rodada=1;
 msg.textContent =
 "✅ Login realizado!";
 
+
 setTimeout(()=>{
 
 mostrar("jogo");
@@ -1085,6 +1145,7 @@ mostrar("jogo");
 atualizar();
 
 },500);
+
 
 }catch(erro){
 
@@ -1126,17 +1187,21 @@ if(
 .contains("hidden")
 )return;
 
+
 pontosDaRodada =
 gerarDado();
+
 
 document
 .getElementById("dado")
 .textContent =
 pontosDaRodada;
 
+
 document
 .getElementById("botaoGirar")
 .disabled=true;
+
 
 mostrarPergunta();
 
@@ -1149,14 +1214,17 @@ function mostrarPergunta(){
 
 respondida=false;
 
+
 document
 .getElementById("areaPergunta")
 .classList
 .remove("hidden");
 
+
 document
 .getElementById("resultado")
 .textContent="";
+
 
 perguntaAtual =
 perguntas[
@@ -1165,15 +1233,18 @@ Math.random()*perguntas.length
 )
 ];
 
+
 document
 .getElementById("pergunta")
 .textContent =
 perguntaAtual.p;
 
+
 const opcoes =
 document.getElementById("opcoes");
 
 opcoes.innerHTML="";
+
 
 perguntaAtual.r.forEach((texto,i)=>{
 
@@ -1192,6 +1263,7 @@ opcoes.appendChild(b);
 
 });
 
+
 iniciarTimer();
 
 }
@@ -1207,6 +1279,7 @@ document
 .getElementById("tempo")
 .textContent=tempo;
 
+
 intervalo=setInterval(()=>{
 
 tempo--;
@@ -1214,6 +1287,7 @@ tempo--;
 document
 .getElementById("tempo")
 .textContent=tempo;
+
 
 if(tempo<=0){
 
@@ -1249,25 +1323,31 @@ respondida=true;
 
 pararTimer();
 
+
 const botoes =
 document.querySelectorAll(".opcao");
+
 
 botoes.forEach(b=>{
 b.disabled=true;
 });
 
+
 if(i===perguntaAtual.c){
 
 botoes[i].classList.add("certa");
+
 
 document
 .getElementById("resultado")
 .textContent =
 "⏳ Registrando pontos...";
 
+
 await adicionarPontosServidor(
 pontosDaRodada
 );
+
 
 }else{
 
@@ -1277,10 +1357,12 @@ botoes[
 perguntaAtual.c
 ].classList.add("certa");
 
+
 document
 .getElementById("resultado")
 .textContent =
 "❌ ERROU! Não ganhou os pontos.";
+
 
 setTimeout(()=>{
 proximaRodada();
@@ -1311,8 +1393,10 @@ pontos:valor
 
 });
 
+
 const resultado =
 await resposta.json();
+
 
 if(!resposta.ok || !resultado.sucesso){
 
@@ -1320,6 +1404,7 @@ document
 .getElementById("resultado")
 .textContent =
 "❌ Não foi possível registrar os pontos.";
+
 
 setTimeout(()=>{
 proximaRodada();
@@ -1329,11 +1414,13 @@ return;
 
 }
 
+
 usuario =
 resultado.usuario;
 
 pontos =
 Number(usuario.pontos)||0;
+
 
 document
 .getElementById("resultado")
@@ -1342,22 +1429,25 @@ document
 valor+
 " pontos";
 
+
 atualizar();
 
+
 setTimeout(()=>{
-
 proximaRodada();
-
 },1500);
+
 
 }catch(erro){
 
 console.error(erro);
 
+
 document
 .getElementById("resultado")
 .textContent =
 "❌ Erro de conexão.";
+
 
 setTimeout(()=>{
 proximaRodada();
@@ -1374,26 +1464,29 @@ if(respondida)return;
 
 respondida=true;
 
+
 const botoes =
 document.querySelectorAll(".opcao");
+
 
 botoes.forEach(b=>{
 b.disabled=true;
 });
 
+
 botoes[
 perguntaAtual.c
 ].classList.add("certa");
+
 
 document
 .getElementById("resultado")
 .textContent =
 "⏰ TEMPO ESGOTADO! Não ganhou os pontos.";
 
+
 setTimeout(()=>{
-
 proximaRodada();
-
 },1500);
 
 }
@@ -1405,18 +1498,22 @@ rodada++;
 
 pontosDaRodada=0;
 
+
 document
 .getElementById("dado")
 .textContent="?";
+
 
 document
 .getElementById("areaPergunta")
 .classList
 .add("hidden");
 
+
 document
 .getElementById("botaoGirar")
 .disabled=false;
+
 
 atualizar();
 
@@ -1427,19 +1524,23 @@ async function abrirConvites(){
 
 mostrar("convites");
 
+
 if(!usuario){
 
-document.getElementById("meuCodigoConvite").textContent =
-"--------";
+document
+.getElementById("meuCodigoConvite")
+.textContent="--------";
 
 return;
 
 }
 
+
 document
 .getElementById("meuCodigoConvite")
 .textContent =
 usuario.codigo_convite;
+
 
 await mostrarListaConvites();
 
@@ -1454,6 +1555,7 @@ document.getElementById("listaConvites");
 lista.innerHTML =
 "<p>⏳ Carregando...</p>";
 
+
 try{
 
 const resposta =
@@ -1462,8 +1564,10 @@ await fetch(
 encodeURIComponent(usuario.id)
 );
 
+
 const resultado =
 await resposta.json();
+
 
 if(!resposta.ok || !resultado.sucesso){
 
@@ -1474,8 +1578,10 @@ return;
 
 }
 
+
 const convites =
 resultado.convites || [];
+
 
 if(convites.length===0){
 
@@ -1486,7 +1592,9 @@ return;
 
 }
 
+
 lista.innerHTML="";
+
 
 convites.forEach(convite=>{
 
@@ -1496,18 +1604,21 @@ Math.min(
 (Number(convite.pontos)/300)*100
 );
 
+
 const faltam =
 Math.max(
 0,
 300-Number(convite.pontos)
 );
 
+
 const div =
 document.createElement("div");
 
 div.className="convite-item";
 
-div.innerHTML=
+
+div.innerHTML =
 "<strong>"+
 escapeHTML(convite.nome)+
 "</strong><br><br>"+
@@ -1537,6 +1648,7 @@ faltam+
 " pontos para liberar seus 50 pontos."
 );
 
+
 lista.appendChild(div);
 
 });
@@ -1558,8 +1670,7 @@ function escapeHTML(texto){
 const div =
 document.createElement("div");
 
-div.textContent =
-texto;
+div.textContent=texto;
 
 return div.innerHTML;
 
@@ -1582,6 +1693,7 @@ document.getElementById("saqueMsg");
 
 msg.style.display="block";
 
+
 if(!usuario){
 
 msg.textContent =
@@ -1590,6 +1702,7 @@ msg.textContent =
 return;
 
 }
+
 
 if(pontos<valor){
 
@@ -1600,16 +1713,19 @@ return;
 
 }
 
+
 const metodo =
 document
 .getElementById("metodoSaque")
 .value;
+
 
 const chave =
 document
 .getElementById("chaveSaque")
 .value
 .trim();
+
 
 if(!metodo){
 
@@ -1620,6 +1736,7 @@ return;
 
 }
 
+
 if(!chave){
 
 msg.textContent =
@@ -1629,12 +1746,20 @@ return;
 
 }
 
-const valorBruto = valor / 1000;
-const taxa = valorBruto * 0.30;
-const valorLiquido = valorBruto - taxa;
+
+const valorBruto =
+valor/1000;
+
+const taxa =
+valorBruto*0.30;
+
+const valorLiquido =
+valorBruto-taxa;
+
 
 msg.textContent =
 "⏳ Enviando solicitação de saque...";
+
 
 try{
 
@@ -1652,20 +1777,29 @@ headers:{
 body:JSON.stringify({
 
 usuarioId:usuario.id,
+
 email:usuario.email,
+
 pontos:valor,
+
 valor:valorBruto,
+
 taxa:taxa,
+
 valorLiquido:valorLiquido,
+
 metodo:metodo,
+
 chave:chave
 
 })
 
 });
 
+
 const resultado =
 await resposta.json();
+
 
 if(!resposta.ok || !resultado.sucesso){
 
@@ -1680,31 +1814,42 @@ return;
 
 }
 
+
 pontos-=valor;
 
 usuario.pontos=pontos;
 
 atualizar();
 
+
 msg.innerHTML =
 "✅ Saque solicitado!<br><br>"+
 "Valor bruto: R$ "+
-valorBruto.toFixed(2).replace(".",",")+
+valorBruto
+.toFixed(2)
+.replace(".",",")+
 "<br>"+
 "Taxa da plataforma (30%): R$ "+
-taxa.toFixed(2).replace(".",",")+
+taxa
+.toFixed(2)
+.replace(".",",")+
 "<br>"+
 "<strong>Você receberá: R$ "+
-valorLiquido.toFixed(2).replace(".",",")+
+valorLiquido
+.toFixed(2)
+.replace(".",",")+
 "</strong>";
+
 
 document
 .getElementById("metodoSaque")
 .value="";
 
+
 document
 .getElementById("chaveSaque")
 .value="";
+
 
 }catch(erro){
 
@@ -1735,6 +1880,7 @@ msg.style.display="block";
 msg.textContent =
 "💳 Abrindo pagamento seguro da Hotmart...";
 
+
 setTimeout(()=>{
 
 window.location.href =
@@ -1760,11 +1906,13 @@ document
 .value
 .trim();
 
+
 const email =
 document
 .getElementById("sacEmail")
 .value
 .trim();
+
 
 const mensagem =
 document
@@ -1772,10 +1920,12 @@ document
 .value
 .trim();
 
+
 const msg =
 document.getElementById("sacMsg");
 
 msg.style.display="block";
+
 
 if(!nome || !email || !mensagem){
 
@@ -1785,6 +1935,7 @@ msg.textContent =
 return;
 
 }
+
 
 msg.textContent =
 "✅ Mensagem enviada com sucesso!";
