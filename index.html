@@ -228,8 +228,6 @@ textarea{
 
 <div class="app">
 
-<!-- INÍCIO -->
-
 <section id="inicio">
 
 <div class="logo">🎯</div>
@@ -253,8 +251,6 @@ textarea{
 </section>
 
 
-<!-- CADASTRO -->
-
 <section id="cadastro" class="hidden">
 
 <div class="logo">📝</div>
@@ -263,28 +259,13 @@ textarea{
 
 <h2>Criar conta</h2>
 
-<input
-id="nome"
-placeholder="Nome completo"
->
+<input id="nome" placeholder="Nome completo">
 
-<input
-id="cpf"
-inputmode="numeric"
-placeholder="CPF"
->
+<input id="cpf" inputmode="numeric" placeholder="CPF">
 
-<input
-id="emailCadastro"
-type="email"
-placeholder="Seu e-mail"
->
+<input id="emailCadastro" type="email" placeholder="Seu e-mail">
 
-<input
-id="senhaCadastro"
-type="password"
-placeholder="Crie uma senha"
->
+<input id="senhaCadastro" type="password" placeholder="Crie uma senha">
 
 <input
 id="codigoConviteCadastro"
@@ -292,7 +273,7 @@ maxlength="8"
 placeholder="Código do convite (opcional)"
 >
 
-<button onclick="criarConta()">
+<button id="botaoCadastro" onclick="criarConta()">
 🆕 CRIAR CONTA
 </button>
 
@@ -307,8 +288,6 @@ placeholder="Código do convite (opcional)"
 </section>
 
 
-<!-- LOGIN -->
-
 <section id="login" class="hidden">
 
 <div class="logo">🔐</div>
@@ -317,19 +296,11 @@ placeholder="Código do convite (opcional)"
 
 <h2>Entrar</h2>
 
-<input
-id="emailLogin"
-type="email"
-placeholder="Seu e-mail"
->
+<input id="emailLogin" type="email" placeholder="Seu e-mail">
 
-<input
-id="senhaLogin"
-type="password"
-placeholder="Sua senha"
->
+<input id="senhaLogin" type="password" placeholder="Sua senha">
 
-<button onclick="entrar()">
+<button id="botaoLogin" onclick="entrar()">
 🔐 ENTRAR
 </button>
 
@@ -343,8 +314,6 @@ placeholder="Sua senha"
 
 </section>
 
-
-<!-- JOGO -->
 
 <section id="jogo" class="hidden">
 
@@ -362,6 +331,7 @@ Rodada
 
 </div>
 
+
 <div class="card center">
 
 <h2>🎲 QuizUp</h2>
@@ -373,10 +343,7 @@ Pontos da rodada:
 
 <div class="dado" id="dado">?</div>
 
-<button
-id="botaoGirar"
-onclick="girarDado()"
->
+<button id="botaoGirar" onclick="girarDado()">
 🎲 GIRAR
 </button>
 
@@ -425,28 +392,25 @@ onclick="girarDado()"
 </section>
 
 
-<!-- CONVITES -->
-
 <section id="convites" class="hidden">
 
 <div class="card center">
 
 <h2>🎁 Meus Convites</h2>
 
-<p>
-Seu código de convite:
-</p>
+<p>Seu código de convite:</p>
 
-<div
-id="meuCodigoConvite"
-class="codigo"
->
+<div id="meuCodigoConvite" class="codigo">
 --------
 </div>
 
 <p>
 Compartilhe esse código com seus amigos.
 </p>
+
+<button onclick="compartilharCodigo()">
+📤 COMPARTILHAR CÓDIGO
+</button>
 
 </div>
 
@@ -457,9 +421,7 @@ Compartilhe esse código com seus amigos.
 
 <div id="listaConvites">
 
-<p>
-Você ainda não convidou ninguém.
-</p>
+<p>Carregando...</p>
 
 </div>
 
@@ -471,19 +433,13 @@ Você ainda não convidou ninguém.
 <h3>🎯 Como funciona</h3>
 
 <p>
-Quando seu convidado se cadastrar usando seu código, ele começa a aparecer aqui.
+Quando alguém se cadastrar usando seu código, o convidado recebe
+<strong>5 pontos</strong>.
 </p>
 
 <p>
-🎮 O convidado ganha <strong>5 pontos</strong>.
-</p>
-
-<p>
-🏆 Quando o convidado chegar a <strong>300 pontos</strong>, você ganha <strong>50 pontos</strong>.
-</p>
-
-<p>
-📊 Você poderá acompanhar o progresso até os 300 pontos.
+Quando o convidado chegar a <strong>300 pontos</strong>,
+você recebe <strong>50 pontos</strong>.
 </p>
 
 </div>
@@ -495,8 +451,6 @@ Quando seu convidado se cadastrar usando seu código, ele começa a aparecer aqu
 
 </section>
 
-
-<!-- SAQUE -->
 
 <section id="saque" class="hidden">
 
@@ -577,6 +531,7 @@ SACAR 10.000 PONTOS
 
 <div id="saqueMsg" class="msg"></div>
 
+
 <button onclick="voltarJogo()">
 ⬅️ VOLTAR
 </button>
@@ -585,8 +540,6 @@ SACAR 10.000 PONTOS
 
 </section>
 
-
-<!-- PREMIUM -->
 
 <section id="premium" class="hidden">
 
@@ -639,24 +592,15 @@ R$ 9,90
 </section>
 
 
-<!-- SAC -->
-
 <section id="sac" class="hidden">
 
 <div class="card">
 
 <h2>📞 SAC</h2>
 
-<input
-id="sacNome"
-placeholder="Seu nome"
->
+<input id="sacNome" placeholder="Seu nome">
 
-<input
-id="sacEmail"
-type="email"
-placeholder="Seu e-mail"
->
+<input id="sacEmail" type="email" placeholder="Seu e-mail">
 
 <textarea
 id="sacMensagem"
@@ -682,8 +626,18 @@ ENVIAR MENSAGEM
 
 <script>
 
+/* =========================
+   ESTADO
+========================= */
+
+let usuario = JSON.parse(
+localStorage.getItem("quizup_usuario") || "null"
+);
+
 let pontos =
-Number(localStorage.getItem("quizup_pontos")) || 0;
+usuario
+? Number(usuario.pontos) || 0
+: 0;
 
 let rodada =
 Number(localStorage.getItem("quizup_rodada")) || 1;
@@ -830,7 +784,6 @@ s.classList.add("hidden"));
 
 }
 
-
 function mostrar(id){
 
 esconderTudo();
@@ -844,59 +797,22 @@ document
 
 
 /* =========================
-   CÓDIGO DE CONVITE
+   ATUALIZAR USUÁRIO
 ========================= */
 
-function gerarCodigoConvite(nome,email){
+function salvarUsuario(dados){
 
-nome =
-nome.replace(/[^a-zA-Z]/g,"");
+usuario = dados;
 
-email =
-email.split("@")[0]
-.replace(/[^a-zA-Z0-9]/g,"");
+pontos =
+Number(dados.pontos) || 0;
 
-let nomeParte =
-nome.substring(0,2);
-
-let numeros =
-(email.match(/\d+/g)||["00"])
-.join("");
-
-let numerosParte =
-numeros.slice(-2);
-
-while(numerosParte.length<2){
-numerosParte="0"+numerosParte;
-}
-
-let emailParte =
-email
-.replace(/\d/g,"")
-.substring(0,4);
-
-while(emailParte.length<4){
-emailParte+="x";
-}
-
-let codigo =
-(nomeParte+
-numerosParte+
-emailParte)
-.substring(0,8);
-
-while(codigo.length<8){
-codigo+="x";
-}
-
-return codigo.toLowerCase();
+localStorage.setItem(
+"quizup_usuario",
+JSON.stringify(dados)
+);
 
 }
-
-
-/* =========================
-   ATUALIZAR
-========================= */
 
 function atualizar(){
 
@@ -913,11 +829,6 @@ document.getElementById("saldoSaque").textContent =
 pontos.toLocaleString("pt-BR");
 
 localStorage.setItem(
-"quizup_pontos",
-pontos
-);
-
-localStorage.setItem(
 "quizup_rodada",
 rodada
 );
@@ -929,29 +840,32 @@ rodada
    CADASTRO
 ========================= */
 
-function criarConta(){
+async function criarConta(){
 
-let nome =
+const nome =
 document.getElementById("nome").value.trim();
 
-let cpf =
+const cpf =
 document.getElementById("cpf").value.trim();
 
-let email =
+const email =
 document.getElementById("emailCadastro").value.trim();
 
-let senha =
+const senha =
 document.getElementById("senhaCadastro").value;
 
-let codigoInformado =
+const codigoConvite =
 document
 .getElementById("codigoConviteCadastro")
 .value
 .trim()
-.toLowerCase();
+.toUpperCase();
 
-let msg =
+const msg =
 document.getElementById("cadastroMsg");
+
+const botao =
+document.getElementById("botaoCadastro");
 
 msg.style.display="block";
 
@@ -959,12 +873,11 @@ msg.style.display="block";
 if(!nome || !cpf || !email || !senha){
 
 msg.textContent =
-"⚠️ Preencha nome, CPF, e-mail e senha.";
+"⚠️ Preencha todos os campos obrigatórios.";
 
 return;
 
 }
-
 
 if(cpf.replace(/\D/g,"").length!==11){
 
@@ -975,7 +888,6 @@ return;
 
 }
 
-
 if(!email.includes("@")){
 
 msg.textContent =
@@ -984,7 +896,6 @@ msg.textContent =
 return;
 
 }
-
 
 if(senha.length<4){
 
@@ -995,63 +906,80 @@ return;
 
 }
 
+botao.disabled=true;
 
-let codigo =
-gerarCodigoConvite(nome,email);
+msg.textContent =
+"⏳ Criando sua conta...";
 
+try{
 
-/*
-O código possui exatamente
-8 caracteres.
-*/
-
-localStorage.setItem(
-"quizup_nome",
-nome
+const resposta =
+await fetch(
+"/api/criar-conta",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+nome,
+cpf,
+email,
+senha,
+codigoConvite
+})
+}
 );
 
-localStorage.setItem(
-"quizup_cpf",
-cpf
+const resultado =
+await resposta.json();
+
+if(!resposta.ok || !resultado.sucesso){
+
+msg.textContent =
+"❌ "+
+(
+resultado.mensagem ||
+"Não foi possível criar a conta."
 );
 
-localStorage.setItem(
-"quizup_email",
-email
-);
+botao.disabled=false;
 
-localStorage.setItem(
-"quizup_senha",
-senha
-);
+return;
 
-localStorage.setItem(
-"quizup_codigo_convite",
-codigo
-);
+}
 
-localStorage.setItem(
-"quizup_convite_usado",
-codigoInformado
+salvarUsuario(
+resultado.usuario
 );
-
-localStorage.setItem(
-"quizup_conta_criada",
-"1"
-);
-
 
 msg.innerHTML =
 "✅ Conta criada com sucesso!<br><br>"+
 "Seu código de convite é:<br>"+
-"<strong>"+codigo+"</strong>";
-
+"<strong>"+
+resultado.usuario.codigo_convite+
+"</strong>";
 
 setTimeout(()=>{
 
-mostrar("login");
+botao.disabled=false;
+
+mostrar("jogo");
+
+atualizar();
 
 },1800);
+
+}catch(erro){
+
+console.error(erro);
+
+msg.textContent =
+"❌ Erro de conexão com o servidor.";
+
+botao.disabled=false;
+
+}
 
 }
 
@@ -1060,27 +988,24 @@ mostrar("login");
    LOGIN
 ========================= */
 
-function entrar(){
+async function entrar(){
 
-let email =
+const email =
 document
 .getElementById("emailLogin")
 .value
 .trim();
 
-let senha =
+const senha =
 document
 .getElementById("senhaLogin")
 .value;
 
-let emailSalvo =
-localStorage.getItem("quizup_email");
-
-let senhaSalva =
-localStorage.getItem("quizup_senha");
-
-let msg =
+const msg =
 document.getElementById("loginMsg");
+
+const botao =
+document.getElementById("botaoLogin");
 
 msg.style.display="block";
 
@@ -1094,41 +1019,73 @@ return;
 
 }
 
-
-if(emailSalvo===null){
+botao.disabled=true;
 
 msg.textContent =
-"⚠️ Primeiro crie sua conta.";
+"⏳ Entrando...";
+
+try{
+
+const resposta =
+await fetch(
+"/api/login",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+email,
+senha
+})
+}
+);
+
+const resultado =
+await resposta.json();
+
+if(!resposta.ok || !resultado.sucesso){
+
+msg.textContent =
+"❌ "+
+(
+resultado.mensagem ||
+"E-mail ou senha incorretos."
+);
+
+botao.disabled=false;
 
 return;
 
 }
 
-
-if(
-email!==emailSalvo ||
-senha!==senhaSalva
-){
-
-msg.textContent =
-"❌ E-mail ou senha incorretos.";
-
-return;
-
-}
-
+salvarUsuario(
+resultado.usuario
+);
 
 msg.textContent =
 "✅ Login realizado!";
 
-
 setTimeout(()=>{
+
+botao.disabled=false;
 
 mostrar("jogo");
 
 atualizar();
 
 },500);
+
+}catch(erro){
+
+console.error(erro);
+
+msg.textContent =
+"❌ Erro de conexão com o servidor.";
+
+botao.disabled=false;
+
+}
 
 }
 
@@ -1158,6 +1115,14 @@ return 10;
 
 function girarDado(){
 
+if(!usuario){
+
+mostrar("login");
+
+return;
+
+}
+
 if(
 !document
 .getElementById("areaPergunta")
@@ -1175,8 +1140,7 @@ pontosDaRodada;
 
 document
 .getElementById("botaoGirar")
-.disabled =
-true;
+.disabled=true;
 
 mostrarPergunta();
 
@@ -1214,15 +1178,14 @@ document
 .textContent =
 perguntaAtual.p;
 
-let opcoes =
+const opcoes =
 document.getElementById("opcoes");
 
 opcoes.innerHTML="";
 
-
 perguntaAtual.r.forEach((texto,i)=>{
 
-let b =
+const b =
 document.createElement("button");
 
 b.className="opcao";
@@ -1236,7 +1199,6 @@ responder(i);
 opcoes.appendChild(b);
 
 });
-
 
 iniciarTimer();
 
@@ -1277,7 +1239,6 @@ tempoEsgotado();
 
 }
 
-
 function pararTimer(){
 
 if(intervalo){
@@ -1292,10 +1253,60 @@ intervalo=null;
 
 
 /* =========================
+   ADICIONAR PONTOS NO BANCO
+========================= */
+
+async function adicionarPontosServidor(valor){
+
+if(!usuario || !usuario.id){
+
+throw new Error(
+"Usuário não identificado."
+);
+
+}
+
+const resposta =
+await fetch(
+"/api/adicionar-pontos",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+usuarioId:usuario.id,
+pontos:valor
+})
+}
+);
+
+const resultado =
+await resposta.json();
+
+if(!resposta.ok || !resultado.sucesso){
+
+throw new Error(
+resultado.mensagem ||
+"Erro ao salvar pontos."
+);
+
+}
+
+salvarUsuario(
+resultado.usuario
+);
+
+return resultado;
+
+}
+
+
+/* =========================
    RESPOSTA
 ========================= */
 
-function responder(i){
+async function responder(i){
 
 if(respondida)return;
 
@@ -1303,7 +1314,7 @@ respondida=true;
 
 pararTimer();
 
-let botoes =
+const botoes =
 document.querySelectorAll(".opcao");
 
 botoes.forEach(b=>{
@@ -1313,12 +1324,18 @@ b.disabled=true;
 
 if(i===perguntaAtual.c){
 
-botoes[i]
-.classList
-.add("certa");
+botoes[i].classList.add("certa");
 
-pontos +=
-pontosDaRodada;
+document
+.getElementById("resultado")
+.textContent =
+"⏳ Salvando pontos...";
+
+try{
+
+await adicionarPontosServidor(
+pontosDaRodada
+);
 
 document
 .getElementById("resultado")
@@ -1327,17 +1344,26 @@ document
 pontosDaRodada+
 " pontos";
 
+atualizar();
+
+}catch(erro){
+
+console.error(erro);
+
+document
+.getElementById("resultado")
+.textContent =
+"❌ Não foi possível salvar os pontos.";
+
+}
+
 }else{
 
-botoes[i]
-.classList
-.add("errada");
+botoes[i].classList.add("errada");
 
 botoes[
 perguntaAtual.c
-]
-.classList
-.add("certa");
+].classList.add("certa");
 
 document
 .getElementById("resultado")
@@ -1345,10 +1371,6 @@ document
 "❌ ERROU! Não ganhou os pontos.";
 
 }
-
-
-atualizar();
-
 
 setTimeout(()=>{
 
@@ -1359,24 +1381,30 @@ proximaRodada();
 }
 
 
+/* =========================
+   TEMPO ESGOTADO
+========================= */
+
 function tempoEsgotado(){
 
 if(respondida)return;
 
 respondida=true;
 
-let botoes =
+const botoes =
 document.querySelectorAll(".opcao");
 
 botoes.forEach(b=>{
 b.disabled=true;
 });
 
+if(botoes[perguntaAtual.c]){
+
 botoes[
 perguntaAtual.c
-]
-.classList
-.add("certa");
+].classList.add("certa");
+
+}
 
 document
 .getElementById("resultado")
@@ -1424,39 +1452,61 @@ atualizar();
    CONVITES
 ========================= */
 
-function abrirConvites(){
+async function abrirConvites(){
 
 mostrar("convites");
 
-let codigo =
-localStorage.getItem(
-"quizup_codigo_convite"
-);
+if(!usuario){
+
+mostrar("login");
+
+return;
+
+}
 
 document
 .getElementById("meuCodigoConvite")
 .textContent =
-codigo || "--------";
+usuario.codigo_convite ||
+"--------";
 
-mostrarListaConvites();
+await mostrarListaConvites();
 
 }
 
 
-function mostrarListaConvites(){
+async function mostrarListaConvites(){
 
-let lista =
+const lista =
 document.getElementById(
 "listaConvites"
 );
 
-let convites =
-JSON.parse(
-localStorage.getItem(
-"quizup_lista_convites"
-)||"[]"
+lista.innerHTML =
+"<p>⏳ Carregando convites...</p>";
+
+try{
+
+const resposta =
+await fetch(
+"/api/convites?usuarioId="+
+encodeURIComponent(usuario.id)
 );
 
+const resultado =
+await resposta.json();
+
+if(!resposta.ok || !resultado.sucesso){
+
+lista.innerHTML =
+"<p>❌ Não foi possível carregar os convites.</p>";
+
+return;
+
+}
+
+const convites =
+resultado.convites || [];
 
 if(convites.length===0){
 
@@ -1467,50 +1517,54 @@ return;
 
 }
 
-
 lista.innerHTML="";
-
 
 convites.forEach(convite=>{
 
-let percentual =
+const pontosConvite =
+Number(convite.pontos) || 0;
+
+const percentual =
 Math.min(
 100,
-(convite.pontos/300)*100
+(pontosConvite/300)*100
 );
 
-let faltam =
+const faltam =
 Math.max(
 0,
-300-convite.pontos
+300-pontosConvite
 );
 
-
-let div =
+const div =
 document.createElement("div");
 
 div.className="convite-item";
 
-div.innerHTML =
+div.innerHTML=
 
 "<strong>"+
-convite.nome+
+escapeHTML(convite.nome)+
 "</strong><br><br>"+
 
 "🎯 Pontos: "+
-convite.pontos+
+pontosConvite+
 " / 300<br>"+
 
 "🎁 Recompensa: "+
-(convite.recompensa?"50 pontos recebidos":"Aguardando")+
+(
+convite.recompensa
+?
+"50 pontos recebidos"
+:
+"Aguardando"
+)+
 
 "<div class='progresso'>"+
 "<div style='width:"+
 percentual+
 "%'></div>"+
-"</div>"+
-
-"<br>"+
+"</div><br>"+
 
 (
 convite.recompensa
@@ -1525,6 +1579,74 @@ faltam+
 lista.appendChild(div);
 
 });
+
+}catch(erro){
+
+console.error(erro);
+
+lista.innerHTML =
+"<p>❌ Erro de conexão.</p>";
+
+}
+
+}
+
+
+function escapeHTML(texto){
+
+const div =
+document.createElement("div");
+
+div.textContent =
+texto;
+
+return div.innerHTML;
+
+}
+
+
+async function compartilharCodigo(){
+
+if(!usuario || !usuario.codigo_convite){
+
+return;
+
+}
+
+const texto =
+"🎁 Venha jogar QuizUp comigo!\n\n"+
+"Use meu código de convite: "+
+usuario.codigo_convite+
+"\n\nGire. Responda. Pontue! 🎯";
+
+if(navigator.share){
+
+try{
+
+await navigator.share({
+title:"QuizUp",
+text:texto
+});
+
+}catch(erro){}
+
+}else{
+
+try{
+
+await navigator.clipboard.writeText(texto);
+
+alert(
+"✅ Código copiado para compartilhar!"
+);
+
+}catch(erro){
+
+alert(texto);
+
+}
+
+}
 
 }
 
@@ -1581,11 +1703,6 @@ document
 .value
 .trim();
 
-const email =
-localStorage.getItem(
-"quizup_email"
-);
-
 
 if(!metodo){
 
@@ -1607,7 +1724,7 @@ return;
 }
 
 
-if(!email){
+if(!usuario){
 
 msg.textContent =
 "⚠️ Faça login novamente.";
@@ -1627,36 +1744,32 @@ const resposta =
 await fetch(
 "/solicitar-saque",
 {
-
 method:"POST",
-
 headers:{
-"Content-Type":
-"application/json"
+"Content-Type":"application/json"
 },
-
 body:JSON.stringify({
 
-email:email,
+usuarioId:usuario.id,
+
+email:usuario.email,
 
 pontos:valor,
 
-valor:(valor/1000)
-.toFixed(2)
-.replace(".",","),
+valor:Number(
+(valor/1000).toFixed(2)
+),
 
 metodo:metodo,
 
 chave:chave
 
 })
-
-});
-
+}
+);
 
 const resultado =
 await resposta.json();
-
 
 if(
 !resposta.ok ||
@@ -1674,8 +1787,14 @@ return;
 
 }
 
-
 pontos-=valor;
+
+usuario.pontos=pontos;
+
+localStorage.setItem(
+"quizup_usuario",
+JSON.stringify(usuario)
+);
 
 saquesHoje++;
 
@@ -1686,10 +1805,8 @@ saquesHoje
 
 atualizar();
 
-
 msg.textContent =
 "✅ Saque solicitado com sucesso! Seu pedido está pendente de pagamento.";
-
 
 document
 .getElementById("metodoSaque")
@@ -1698,7 +1815,6 @@ document
 document
 .getElementById("chaveSaque")
 .value="";
-
 
 }catch(erro){
 
@@ -1725,7 +1841,7 @@ mostrar("premium");
 
 function assinarPremium(){
 
-let msg =
+const msg =
 document
 .getElementById("premiumMsg");
 
@@ -1733,7 +1849,6 @@ msg.style.display="block";
 
 msg.textContent =
 "💳 Abrindo pagamento seguro da Hotmart...";
-
 
 setTimeout(()=>{
 
@@ -1758,25 +1873,25 @@ mostrar("sac");
 
 function enviarSAC(){
 
-let nome =
+const nome =
 document
 .getElementById("sacNome")
 .value
 .trim();
 
-let email =
+const email =
 document
 .getElementById("sacEmail")
 .value
 .trim();
 
-let mensagem =
+const mensagem =
 document
 .getElementById("sacMensagem")
 .value
 .trim();
 
-let msg =
+const msg =
 document
 .getElementById("sacMsg");
 
@@ -1791,7 +1906,6 @@ msg.textContent =
 return;
 
 }
-
 
 msg.textContent =
 "✅ Mensagem enviada com sucesso!";
@@ -1815,6 +1929,12 @@ atualizar();
 function sair(){
 
 pararTimer();
+
+usuario=null;
+
+localStorage.removeItem(
+"quizup_usuario"
+);
 
 mostrar("inicio");
 
