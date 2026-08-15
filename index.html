@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>QuizUp</title>
 
 <style>
@@ -218,10 +216,8 @@ textarea{
 .progresso div{
   height:100%;
   background:#20c978;
-  width:0%;
 }
 </style>
-
 </head>
 
 <body>
@@ -273,7 +269,7 @@ maxlength="8"
 placeholder="Código do convite (opcional)"
 >
 
-<button id="botaoCadastro" onclick="criarConta()">
+<button onclick="criarConta()">
 🆕 CRIAR CONTA
 </button>
 
@@ -300,7 +296,7 @@ placeholder="Código do convite (opcional)"
 
 <input id="senhaLogin" type="password" placeholder="Sua senha">
 
-<button id="botaoLogin" onclick="entrar()">
+<button onclick="entrar()">
 🔐 ENTRAR
 </button>
 
@@ -330,7 +326,6 @@ Rodada
 </div>
 
 </div>
-
 
 <div class="card center">
 
@@ -408,42 +403,37 @@ Pontos da rodada:
 Compartilhe esse código com seus amigos.
 </p>
 
-<button onclick="compartilharCodigo()">
-📤 COMPARTILHAR CÓDIGO
-</button>
-
 </div>
-
 
 <div class="card">
 
 <h3>👥 Pessoas que você convidou</h3>
 
 <div id="listaConvites">
-
 <p>Carregando...</p>
-
 </div>
 
 </div>
-
 
 <div class="card">
 
 <h3>🎯 Como funciona</h3>
 
 <p>
-Quando alguém se cadastrar usando seu código, o convidado recebe
+Quando seu convidado se cadastrar usando seu código, ele recebe
 <strong>5 pontos</strong>.
 </p>
 
 <p>
-Quando o convidado chegar a <strong>300 pontos</strong>,
+🏆 Quando o convidado chegar a <strong>300 pontos</strong>,
 você recebe <strong>50 pontos</strong>.
 </p>
 
-</div>
+<p>
+📊 Acompanhe o progresso dos seus convidados aqui.
+</p>
 
+</div>
 
 <button onclick="voltarJogo()">
 ⬅️ VOLTAR
@@ -495,7 +485,6 @@ placeholder="Chave Pix ou e-mail do PayPal"
 
 </div>
 
-
 <div class="saque-item">
 
 <b>R$ 1,00</b>
@@ -505,7 +494,6 @@ SACAR 1.000 PONTOS
 </button>
 
 </div>
-
 
 <div class="saque-item">
 
@@ -517,7 +505,6 @@ SACAR 5.000 PONTOS
 
 </div>
 
-
 <div class="saque-item">
 
 <b>R$ 10,00</b>
@@ -528,9 +515,7 @@ SACAR 10.000 PONTOS
 
 </div>
 
-
 <div id="saqueMsg" class="msg"></div>
-
 
 <button onclick="voltarJogo()">
 ⬅️ VOLTAR
@@ -626,21 +611,11 @@ ENVIAR MENSAGEM
 
 <script>
 
-/* =========================
-   ESTADO
-========================= */
+let usuario = null;
 
-let usuario = JSON.parse(
-localStorage.getItem("quizup_usuario") || "null"
-);
+let pontos = 0;
 
-let pontos =
-usuario
-? Number(usuario.pontos) || 0
-: 0;
-
-let rodada =
-Number(localStorage.getItem("quizup_rodada")) || 1;
+let rodada = 1;
 
 let pontosDaRodada = 0;
 
@@ -652,13 +627,8 @@ let intervalo = null;
 
 let respondida = false;
 
-let saquesHoje =
-Number(localStorage.getItem("quizup_saques")) || 0;
+let saquesHoje = 0;
 
-
-/* =========================
-   PERGUNTAS
-========================= */
 
 const perguntas = [
 
@@ -771,18 +741,16 @@ c:2
 ];
 
 
-/* =========================
-   NAVEGAÇÃO
-========================= */
-
 function esconderTudo(){
 
 document
 .querySelectorAll("section")
-.forEach(s =>
-s.classList.add("hidden"));
+.forEach(s=>{
+s.classList.add("hidden");
+});
 
 }
+
 
 function mostrar(id){
 
@@ -796,28 +764,10 @@ document
 }
 
 
-/* =========================
-   ATUALIZAR USUÁRIO
-========================= */
-
-function salvarUsuario(dados){
-
-usuario = dados;
-
-pontos =
-Number(dados.pontos) || 0;
-
-localStorage.setItem(
-"quizup_usuario",
-JSON.stringify(dados)
-);
-
-}
-
 function atualizar(){
 
 document.getElementById("pontos").textContent =
-pontos.toLocaleString("pt-BR");
+Number(pontos).toLocaleString("pt-BR");
 
 document.getElementById("rodada").textContent =
 rodada;
@@ -826,19 +776,10 @@ document.getElementById("pontosRodada").textContent =
 pontosDaRodada;
 
 document.getElementById("saldoSaque").textContent =
-pontos.toLocaleString("pt-BR");
-
-localStorage.setItem(
-"quizup_rodada",
-rodada
-);
+Number(pontos).toLocaleString("pt-BR");
 
 }
 
-
-/* =========================
-   CADASTRO
-========================= */
 
 async function criarConta(){
 
@@ -864,11 +805,7 @@ document
 const msg =
 document.getElementById("cadastroMsg");
 
-const botao =
-document.getElementById("botaoCadastro");
-
 msg.style.display="block";
-
 
 if(!nome || !cpf || !email || !senha){
 
@@ -906,30 +843,31 @@ return;
 
 }
 
-botao.disabled=true;
-
 msg.textContent =
 "⏳ Criando sua conta...";
 
 try{
 
 const resposta =
-await fetch(
-"/api/criar-conta",
-{
+await fetch("/api/criar-conta",{
+
 method:"POST",
+
 headers:{
 "Content-Type":"application/json"
 },
+
 body:JSON.stringify({
-nome,
-cpf,
-email,
-senha,
-codigoConvite
+
+nome:nome,
+cpf:cpf,
+email:email,
+senha:senha,
+codigoConvite:codigoConvite
+
 })
-}
-);
+
+});
 
 const resultado =
 await resposta.json();
@@ -943,15 +881,9 @@ resultado.mensagem ||
 "Não foi possível criar a conta."
 );
 
-botao.disabled=false;
-
 return;
 
 }
-
-salvarUsuario(
-resultado.usuario
-);
 
 msg.innerHTML =
 "✅ Conta criada com sucesso!<br><br>"+
@@ -962,11 +894,13 @@ resultado.usuario.codigo_convite+
 
 setTimeout(()=>{
 
-botao.disabled=false;
+document.getElementById("emailLogin").value =
+email;
 
-mostrar("jogo");
+document.getElementById("senhaLogin").value =
+senha;
 
-atualizar();
+mostrar("login");
 
 },1800);
 
@@ -977,16 +911,10 @@ console.error(erro);
 msg.textContent =
 "❌ Erro de conexão com o servidor.";
 
-botao.disabled=false;
-
 }
 
 }
 
-
-/* =========================
-   LOGIN
-========================= */
 
 async function entrar(){
 
@@ -1004,11 +932,7 @@ document
 const msg =
 document.getElementById("loginMsg");
 
-const botao =
-document.getElementById("botaoLogin");
-
 msg.style.display="block";
-
 
 if(!email || !senha){
 
@@ -1019,27 +943,28 @@ return;
 
 }
 
-botao.disabled=true;
-
 msg.textContent =
 "⏳ Entrando...";
 
 try{
 
 const resposta =
-await fetch(
-"/api/login",
-{
+await fetch("/api/login",{
+
 method:"POST",
+
 headers:{
 "Content-Type":"application/json"
 },
+
 body:JSON.stringify({
-email,
-senha
+
+email:email,
+senha:senha
+
 })
-}
-);
+
+});
 
 const resultado =
 await resposta.json();
@@ -1053,22 +978,22 @@ resultado.mensagem ||
 "E-mail ou senha incorretos."
 );
 
-botao.disabled=false;
-
 return;
 
 }
 
-salvarUsuario(
-resultado.usuario
-);
+usuario =
+resultado.usuario;
+
+pontos =
+Number(usuario.pontos)||0;
+
+rodada=1;
 
 msg.textContent =
 "✅ Login realizado!";
 
 setTimeout(()=>{
-
-botao.disabled=false;
 
 mostrar("jogo");
 
@@ -1083,20 +1008,14 @@ console.error(erro);
 msg.textContent =
 "❌ Erro de conexão com o servidor.";
 
-botao.disabled=false;
-
 }
 
 }
 
-
-/* =========================
-   DADO
-========================= */
 
 function gerarDado(){
 
-let r=Math.random();
+const r=Math.random();
 
 if(r<0.18)return 1;
 if(r<0.36)return 2;
@@ -1114,14 +1033,6 @@ return 10;
 
 
 function girarDado(){
-
-if(!usuario){
-
-mostrar("login");
-
-return;
-
-}
 
 if(
 !document
@@ -1148,10 +1059,6 @@ atualizar();
 
 }
 
-
-/* =========================
-   PERGUNTA
-========================= */
 
 function mostrarPergunta(){
 
@@ -1205,10 +1112,6 @@ iniciarTimer();
 }
 
 
-/* =========================
-   TIMER
-========================= */
-
 function iniciarTimer(){
 
 pararTimer();
@@ -1239,6 +1142,7 @@ tempoEsgotado();
 
 }
 
+
 function pararTimer(){
 
 if(intervalo){
@@ -1251,60 +1155,6 @@ intervalo=null;
 
 }
 
-
-/* =========================
-   ADICIONAR PONTOS NO BANCO
-========================= */
-
-async function adicionarPontosServidor(valor){
-
-if(!usuario || !usuario.id){
-
-throw new Error(
-"Usuário não identificado."
-);
-
-}
-
-const resposta =
-await fetch(
-"/api/adicionar-pontos",
-{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-usuarioId:usuario.id,
-pontos:valor
-})
-}
-);
-
-const resultado =
-await resposta.json();
-
-if(!resposta.ok || !resultado.sucesso){
-
-throw new Error(
-resultado.mensagem ||
-"Erro ao salvar pontos."
-);
-
-}
-
-salvarUsuario(
-resultado.usuario
-);
-
-return resultado;
-
-}
-
-
-/* =========================
-   RESPOSTA
-========================= */
 
 async function responder(i){
 
@@ -1321,7 +1171,6 @@ botoes.forEach(b=>{
 b.disabled=true;
 });
 
-
 if(i===perguntaAtual.c){
 
 botoes[i].classList.add("certa");
@@ -1329,33 +1178,11 @@ botoes[i].classList.add("certa");
 document
 .getElementById("resultado")
 .textContent =
-"⏳ Salvando pontos...";
-
-try{
+"⏳ Registrando pontos...";
 
 await adicionarPontosServidor(
 pontosDaRodada
 );
-
-document
-.getElementById("resultado")
-.textContent =
-"🎉 ACERTOU! +"+
-pontosDaRodada+
-" pontos";
-
-atualizar();
-
-}catch(erro){
-
-console.error(erro);
-
-document
-.getElementById("resultado")
-.textContent =
-"❌ Não foi possível salvar os pontos.";
-
-}
 
 }else{
 
@@ -1370,7 +1197,69 @@ document
 .textContent =
 "❌ ERROU! Não ganhou os pontos.";
 
+setTimeout(()=>{
+proximaRodada();
+},1500);
+
 }
+
+}
+
+
+async function adicionarPontosServidor(valor){
+
+try{
+
+const resposta =
+await fetch("/api/adicionar-pontos",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+usuarioId:usuario.id,
+pontos:valor
+
+})
+
+});
+
+const resultado =
+await resposta.json();
+
+if(!resposta.ok || !resultado.sucesso){
+
+document
+.getElementById("resultado")
+.textContent =
+"❌ Não foi possível registrar os pontos.";
+
+setTimeout(()=>{
+proximaRodada();
+},1500);
+
+return;
+
+}
+
+usuario =
+resultado.usuario;
+
+pontos =
+Number(usuario.pontos)||0;
+
+document
+.getElementById("resultado")
+.textContent =
+"🎉 ACERTOU! +"+
+valor+
+" pontos";
+
+atualizar();
 
 setTimeout(()=>{
 
@@ -1378,12 +1267,23 @@ proximaRodada();
 
 },1500);
 
+}catch(erro){
+
+console.error(erro);
+
+document
+.getElementById("resultado")
+.textContent =
+"❌ Erro de conexão.";
+
+setTimeout(()=>{
+proximaRodada();
+},1500);
+
 }
 
+}
 
-/* =========================
-   TEMPO ESGOTADO
-========================= */
 
 function tempoEsgotado(){
 
@@ -1398,13 +1298,9 @@ botoes.forEach(b=>{
 b.disabled=true;
 });
 
-if(botoes[perguntaAtual.c]){
-
 botoes[
 perguntaAtual.c
 ].classList.add("certa");
-
-}
 
 document
 .getElementById("resultado")
@@ -1419,10 +1315,6 @@ proximaRodada();
 
 }
 
-
-/* =========================
-   PRÓXIMA RODADA
-========================= */
 
 function proximaRodada(){
 
@@ -1448,17 +1340,14 @@ atualizar();
 }
 
 
-/* =========================
-   CONVITES
-========================= */
-
 async function abrirConvites(){
 
 mostrar("convites");
 
 if(!usuario){
 
-mostrar("login");
+document.getElementById("meuCodigoConvite").textContent =
+"--------";
 
 return;
 
@@ -1467,8 +1356,7 @@ return;
 document
 .getElementById("meuCodigoConvite")
 .textContent =
-usuario.codigo_convite ||
-"--------";
+usuario.codigo_convite;
 
 await mostrarListaConvites();
 
@@ -1478,12 +1366,10 @@ await mostrarListaConvites();
 async function mostrarListaConvites(){
 
 const lista =
-document.getElementById(
-"listaConvites"
-);
+document.getElementById("listaConvites");
 
 lista.innerHTML =
-"<p>⏳ Carregando convites...</p>";
+"<p>⏳ Carregando...</p>";
 
 try{
 
@@ -1521,19 +1407,16 @@ lista.innerHTML="";
 
 convites.forEach(convite=>{
 
-const pontosConvite =
-Number(convite.pontos) || 0;
-
 const percentual =
 Math.min(
 100,
-(pontosConvite/300)*100
+(Number(convite.pontos)/300)*100
 );
 
 const faltam =
 Math.max(
 0,
-300-pontosConvite
+300-Number(convite.pontos)
 );
 
 const div =
@@ -1542,15 +1425,12 @@ document.createElement("div");
 div.className="convite-item";
 
 div.innerHTML=
-
 "<strong>"+
 escapeHTML(convite.nome)+
 "</strong><br><br>"+
-
 "🎯 Pontos: "+
-pontosConvite+
+Number(convite.pontos)+
 " / 300<br>"+
-
 "🎁 Recompensa: "+
 (
 convite.recompensa
@@ -1559,13 +1439,11 @@ convite.recompensa
 :
 "Aguardando"
 )+
-
 "<div class='progresso'>"+
 "<div style='width:"+
 percentual+
 "%'></div>"+
 "</div><br>"+
-
 (
 convite.recompensa
 ?
@@ -1585,7 +1463,7 @@ lista.appendChild(div);
 console.error(erro);
 
 lista.innerHTML =
-"<p>❌ Erro de conexão.</p>";
+"<p>❌ Erro de conexão com o servidor.</p>";
 
 }
 
@@ -1605,56 +1483,6 @@ return div.innerHTML;
 }
 
 
-async function compartilharCodigo(){
-
-if(!usuario || !usuario.codigo_convite){
-
-return;
-
-}
-
-const texto =
-"🎁 Venha jogar QuizUp comigo!\n\n"+
-"Use meu código de convite: "+
-usuario.codigo_convite+
-"\n\nGire. Responda. Pontue! 🎯";
-
-if(navigator.share){
-
-try{
-
-await navigator.share({
-title:"QuizUp",
-text:texto
-});
-
-}catch(erro){}
-
-}else{
-
-try{
-
-await navigator.clipboard.writeText(texto);
-
-alert(
-"✅ Código copiado para compartilhar!"
-);
-
-}catch(erro){
-
-alert(texto);
-
-}
-
-}
-
-}
-
-
-/* =========================
-   SAQUE
-========================= */
-
 function abrirSaque(){
 
 mostrar("saque");
@@ -1671,16 +1499,14 @@ document.getElementById("saqueMsg");
 
 msg.style.display="block";
 
-
-if(saquesHoje>=2){
+if(!usuario){
 
 msg.textContent =
-"⚠️ Limite de 2 solicitações por dia.";
+"⚠️ Faça login novamente.";
 
 return;
 
 }
-
 
 if(pontos<valor){
 
@@ -1690,7 +1516,6 @@ msg.textContent =
 return;
 
 }
-
 
 const metodo =
 document
@@ -1703,7 +1528,6 @@ document
 .value
 .trim();
 
-
 if(!metodo){
 
 msg.textContent =
@@ -1712,7 +1536,6 @@ msg.textContent =
 return;
 
 }
-
 
 if(!chave){
 
@@ -1723,20 +1546,8 @@ return;
 
 }
 
-
-if(!usuario){
-
-msg.textContent =
-"⚠️ Faça login novamente.";
-
-return;
-
-}
-
-
 msg.textContent =
 "⏳ Enviando solicitação de saque...";
-
 
 try{
 
@@ -1744,10 +1555,13 @@ const resposta =
 await fetch(
 "/solicitar-saque",
 {
+
 method:"POST",
+
 headers:{
 "Content-Type":"application/json"
 },
+
 body:JSON.stringify({
 
 usuarioId:usuario.id,
@@ -1756,25 +1570,20 @@ email:usuario.email,
 
 pontos:valor,
 
-valor:Number(
-(valor/1000).toFixed(2)
-),
+valor:valor/1000,
 
 metodo:metodo,
 
 chave:chave
 
 })
-}
-);
+
+});
 
 const resultado =
 await resposta.json();
 
-if(
-!resposta.ok ||
-!resultado.sucesso
-){
+if(!resposta.ok || !resultado.sucesso){
 
 msg.textContent =
 "❌ "+
@@ -1790,18 +1599,6 @@ return;
 pontos-=valor;
 
 usuario.pontos=pontos;
-
-localStorage.setItem(
-"quizup_usuario",
-JSON.stringify(usuario)
-);
-
-saquesHoje++;
-
-localStorage.setItem(
-"quizup_saques",
-saquesHoje
-);
 
 atualizar();
 
@@ -1828,10 +1625,6 @@ msg.textContent =
 }
 
 
-/* =========================
-   PREMIUM
-========================= */
-
 function abrirPremium(){
 
 mostrar("premium");
@@ -1842,8 +1635,7 @@ mostrar("premium");
 function assinarPremium(){
 
 const msg =
-document
-.getElementById("premiumMsg");
+document.getElementById("premiumMsg");
 
 msg.style.display="block";
 
@@ -1859,10 +1651,6 @@ window.location.href =
 
 }
 
-
-/* =========================
-   SAC
-========================= */
 
 function abrirSAC(){
 
@@ -1892,11 +1680,9 @@ document
 .trim();
 
 const msg =
-document
-.getElementById("sacMsg");
+document.getElementById("sacMsg");
 
 msg.style.display="block";
-
 
 if(!nome || !email || !mensagem){
 
@@ -1913,10 +1699,6 @@ msg.textContent =
 }
 
 
-/* =========================
-   SAIR
-========================= */
-
 function voltarJogo(){
 
 mostrar("jogo");
@@ -1932,9 +1714,11 @@ pararTimer();
 
 usuario=null;
 
-localStorage.removeItem(
-"quizup_usuario"
-);
+pontos=0;
+
+rodada=1;
+
+pontosDaRodada=0;
 
 mostrar("inicio");
 
@@ -1945,10 +1729,6 @@ document
 }
 
 
-/* =========================
-   INÍCIO
-========================= */
-
 atualizar();
 
 mostrar("inicio");
@@ -1956,4 +1736,4 @@ mostrar("inicio");
 </script>
 
 </body>
-</html>
+  </html>
