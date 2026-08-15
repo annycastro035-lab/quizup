@@ -144,11 +144,11 @@ async function criarConta(body) {
   const nome = String(body.nome || "").trim();
   const cpf = String(body.cpf || "").trim();
   const email = normalizarEmail(body.email);
-  const senha = String(body.senha || "");
+  const senhaOriginal = String(body.senha || "");
   const codigoInformado =
     String(body.codigoConvite || "").trim().toUpperCase();
 
-  if (!nome || !cpf || !email || !senha) {
+  if (!nome || !cpf || !email || !senhaOriginal) {
     return {
       status: 400,
       dados: {
@@ -178,7 +178,7 @@ async function criarConta(body) {
     };
   }
 
-  if (senha.length < 4) {
+  if (senhaOriginal.length < 4) {
     return {
       status: 400,
       dados: {
@@ -260,7 +260,7 @@ async function criarConta(body) {
       hash.substring(0, 2);
   }
 
-  const senha = senhaHash(body.senha);
+  const senha = senhaHash(senhaOriginal);
 
   const pontosIniciais = convidador ? 5 : 0;
 
