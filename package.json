@@ -1,0 +1,12 @@
+{
+  "name": "quizup",
+  "version": "1.0.0",
+  "description": "QuizUp - Gire. Responda. Pontue!",
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node servidor.js"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}
