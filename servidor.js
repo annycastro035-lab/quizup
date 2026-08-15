@@ -6,19 +6,24 @@ const { Pool } = require('pg');
 
 const PORTA = process.env.PORT || 3000;
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-
-const DATABASE_URL = process.env.DATABASE_URL;
-
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
+const DATABASE_URL = process.env.DATABASE_URL || '';
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
 
-const ADMIN_PERCENTUAL =
-  Number(process.env.ADMIN_PERCENTUAL || 20);
-
+const ADMIN_PERCENTUAL = Number(
+  process.env.ADMIN_PERCENTUAL || 20
+);
 
 // ======================================================
-// BANCO DE DADOS
+// CONFIGURAÇÕES
+// ======================================================
+
+const BONUS_INDICACAO = 50;
+const PONTOS_META_INDICACAO = 300;
+
+// ======================================================
+// BANCO
 // ======================================================
 
 if (!DATABASE_URL) {
@@ -32,13 +37,11 @@ const pool = new Pool({
     : false
 });
 
-
 // ======================================================
 // UTILIDADES
 // ======================================================
 
 function responder(res, status, dados) {
-
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8'
   });
@@ -46,89 +49,106 @@ function responder(res, status, dados) {
   res.end(JSON.stringify(dados));
 }
 
-
 function lerCorpo(req) {
-
   return new Promise((resolve, reject) => {
-
     let corpo = '';
 
     req.on('data', parte => {
       corpo += parte;
+
+      if (corpo.length > 1024 * 1024) {
+        reject(new Error('Requisição muito grande.'));
+        req.destroy();
+      }
     });
 
     req.on('end', () => {
-
-      try {
-
-        resolve(
-          corpo
-            ? JSON.parse(corpo)
-            : {}
-        );
-
-      } catch (erro) {
-
-        reject(
-          new Error('JSON inválido.')
-        );
-
+      if (!corpo) {
+        resolve({});
+        return;
       }
 
+      try {
+        resolve(JSON.parse(corpo));
+      } catch (erro) {
+        reject(new Error('JSON inválido.'));
+      }
     });
 
     req.on('error', reject);
-
   });
-
 }
 
-
 function escaparHTML(valor) {
-
   return String(valor ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
-
 }
-
-
-function dataBrasil(data = new Date()) {
-
-  return data.toLocaleString('pt-BR', {
-    timeZone: 'America/Sao_Paulo'
-  });
-
-}
-
 
 function hash(valor) {
-
   return crypto
     .createHash('sha256')
     .update(String(valor || ''))
     .digest('hex');
-
 }
 
+function gerarCodigoIndicacao() {
+  const parte = crypto
+    .randomBytes(5)
+    .toString('hex')
+    .toUpperCase();
+
+  return `QU${parte}`;
+}
+
+// ======================================================
+// CÓDIGO DE INDICAÇÃO ÚNICO
+// ======================================================
+
+async function gerarCodigoIndicacaoUnico(cliente = pool) {
+  for (let tentativa = 0; tentativa < 20; tentativa++) {
+    const codigo = gerarCodigoIndicacao();
+
+    const resultado = await cliente.query(
+      `
+        SELECT id
+        FROM jogadores
+        WHERE codigo_indicacao = $1
+        LIMIT 1
+      `,
+      [codigo]
+    );
+
+    if (resultado.rows.length === 0) {
+      return codigo;
+    }
+  }
+
+  throw new Error(
+    'Não foi possível gerar um código de indicação único.'
+  );
+}
 
 // ======================================================
 // INICIALIZAR BANCO
 // ======================================================
 
 async function inicializarBanco() {
-
   if (!DATABASE_URL) {
-    return;
+    throw new Error(
+      'DATABASE_URL não configurada.'
+    );
   }
 
+  // ----------------------------------------------------
+  // JOGADORES
+  // ----------------------------------------------------
+
   await pool.query(`
-
     CREATE TABLE IF NOT EXISTS jogadores (
-
       id SERIAL PRIMARY KEY,
 
       nome TEXT NOT NULL,
@@ -138,6 +158,8 @@ async function inicializarBanco() {
       email TEXT UNIQUE NOT NULL,
 
       senha TEXT NOT NULL,
+
+      codigo_indicacao TEXT UNIQUE,
 
       pontos_jogo INTEGER NOT NULL DEFAULT 0,
 
@@ -164,16 +186,15 @@ async function inicializarBanco() {
       criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
       atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-
     );
-
   `);
 
+  // ----------------------------------------------------
+  // SAQUES
+  // ----------------------------------------------------
 
   await pool.query(`
-
     CREATE TABLE IF NOT EXISTS saques (
-
       id SERIAL PRIMARY KEY,
 
       jogador_id INTEGER NOT NULL
@@ -206,16 +227,15 @@ async function inicializarBanco() {
       criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
       analisado_em TIMESTAMP
-
     );
-
   `);
 
+  // ----------------------------------------------------
+  // ATIVIDADES
+  // ----------------------------------------------------
 
   await pool.query(`
-
     CREATE TABLE IF NOT EXISTS atividades (
-
       id SERIAL PRIMARY KEY,
 
       jogador_id INTEGER
@@ -227,16 +247,15 @@ async function inicializarBanco() {
       pontos INTEGER NOT NULL DEFAULT 0,
 
       criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-
     );
-
   `);
 
+  // ----------------------------------------------------
+  // INDICAÇÕES
+  // ----------------------------------------------------
 
   await pool.query(`
-
     CREATE TABLE IF NOT EXISTS indicacoes (
-
       id SERIAL PRIMARY KEY,
 
       indicador_id INTEGER NOT NULL
@@ -251,52 +270,156 @@ async function inicializarBanco() {
 
       status TEXT NOT NULL DEFAULT 'PENDENTE',
 
-      bonus INTEGER NOT NULL DEFAULT 20,
+      bonus INTEGER NOT NULL DEFAULT 50,
 
       criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
       concluido_em TIMESTAMP
-
     );
-
   `);
 
+  // ----------------------------------------------------
+  // ATUALIZAÇÕES DE BANCO ANTIGO
+  // ----------------------------------------------------
 
   await pool.query(`
+    ALTER TABLE jogadores
+    ADD COLUMN IF NOT EXISTS codigo_indicacao TEXT;
+  `);
 
-    CREATE INDEX IF NOT EXISTS idx_jogadores_email
+  await pool.query(`
+    ALTER TABLE jogadores
+    ADD COLUMN IF NOT EXISTS pontos_patrocinado INTEGER NOT NULL DEFAULT 0;
+  `);
+
+  await pool.query(`
+    ALTER TABLE jogadores
+    ADD COLUMN IF NOT EXISTS tentativas_saque INTEGER NOT NULL DEFAULT 0;
+  `);
+
+  await pool.query(`
+    ALTER TABLE jogadores
+    ADD COLUMN IF NOT EXISTS saques_aprovados INTEGER NOT NULL DEFAULT 0;
+  `);
+
+  await pool.query(`
+    ALTER TABLE jogadores
+    ADD COLUMN IF NOT EXISTS saques_recusados INTEGER NOT NULL DEFAULT 0;
+  `);
+
+  await pool.query(`
+    ALTER TABLE jogadores
+    ADD COLUMN IF NOT EXISTS total_sacado_centavos INTEGER NOT NULL DEFAULT 0;
+  `);
+
+  await pool.query(`
+    ALTER TABLE jogadores
+    ADD COLUMN IF NOT EXISTS indicador_id INTEGER;
+  `);
+
+  await pool.query(`
+    ALTER TABLE jogadores
+    ADD COLUMN IF NOT EXISTS indicacao_concluida BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+
+  await pool.query(`
+    ALTER TABLE jogadores
+    ADD COLUMN IF NOT EXISTS bonus_indicacao_recebido BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+
+  await pool.query(`
+    ALTER TABLE indicacoes
+    ADD COLUMN IF NOT EXISTS pontos_indicado INTEGER NOT NULL DEFAULT 0;
+  `);
+
+  await pool.query(`
+    ALTER TABLE indicacoes
+    ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'PENDENTE';
+  `);
+
+  await pool.query(`
+    ALTER TABLE indicacoes
+    ADD COLUMN IF NOT EXISTS bonus INTEGER NOT NULL DEFAULT 50;
+  `);
+
+  // ----------------------------------------------------
+  // ÍNDICES
+  // ----------------------------------------------------
+
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS
+    idx_jogadores_codigo_indicacao
+    ON jogadores(codigo_indicacao)
+    WHERE codigo_indicacao IS NOT NULL;
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS
+    idx_jogadores_email
     ON jogadores(email);
-
   `);
 
-
   await pool.query(`
-
-    CREATE INDEX IF NOT EXISTS idx_saques_status
+    CREATE INDEX IF NOT EXISTS
+    idx_saques_status
     ON saques(status);
-
   `);
-
 
   await pool.query(`
-
-    CREATE INDEX IF NOT EXISTS idx_indicacoes_indicador
+    CREATE INDEX IF NOT EXISTS
+    idx_indicacoes_indicador
     ON indicacoes(indicador_id);
-
   `);
 
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS
+    idx_indicacoes_indicado
+    ON indicacoes(indicado_id);
+  `);
+
+  // ----------------------------------------------------
+  // CORRIGIR BÔNUS
+  // ----------------------------------------------------
+
+  await pool.query(`
+    UPDATE indicacoes
+    SET bonus = 50
+    WHERE bonus IS NULL OR bonus <> 50;
+  `);
+
+  // ----------------------------------------------------
+  // GERAR CÓDIGOS PARA JOGADORES ANTIGOS
+  // ----------------------------------------------------
+
+  const jogadoresSemCodigo = await pool.query(`
+    SELECT id
+    FROM jogadores
+    WHERE codigo_indicacao IS NULL
+  `);
+
+  for (const jogador of jogadoresSemCodigo.rows) {
+    const codigo = await gerarCodigoIndicacaoUnico();
+
+    await pool.query(
+      `
+        UPDATE jogadores
+        SET
+          codigo_indicacao = $1,
+          atualizado_em = CURRENT_TIMESTAMP
+        WHERE id = $2
+      `,
+      [codigo, jogador.id]
+    );
+  }
 
   console.log('Banco de dados QuizUp preparado.');
-
 }
-
 
 // ======================================================
 // BUSCAR JOGADOR
 // ======================================================
 
 async function buscarJogadorPorEmail(email) {
-
   const resultado = await pool.query(
     `
       SELECT *
@@ -308,16 +431,27 @@ async function buscarJogadorPorEmail(email) {
   );
 
   return resultado.rows[0] || null;
-
 }
 
+async function buscarJogadorPorCodigo(codigo) {
+  const resultado = await pool.query(
+    `
+      SELECT *
+      FROM jogadores
+      WHERE UPPER(codigo_indicacao) = UPPER($1)
+      LIMIT 1
+    `,
+    [codigo]
+  );
+
+  return resultado.rows[0] || null;
+}
 
 // ======================================================
 // CRIAR CONTA
 // ======================================================
 
 async function criarJogador(dados) {
-
   const nome = String(dados.nome || '').trim();
 
   const cpf = String(dados.cpf || '').trim();
@@ -328,48 +462,50 @@ async function criarJogador(dados) {
 
   const senha = String(dados.senha || '');
 
-  const codigoIndicacao =
-    String(dados.codigoIndicacao || '').trim();
-
+  const codigoIndicacao = String(
+    dados.codigoIndicacao ||
+    dados.codigo ||
+    ''
+  )
+    .trim()
+    .toUpperCase();
 
   if (!nome || !email || !senha) {
-
     throw new Error(
       'Nome, e-mail e senha são obrigatórios.'
     );
-
   }
-
 
   const existente =
     await buscarJogadorPorEmail(email);
 
-
   if (existente) {
-
     throw new Error(
       'Este e-mail já possui uma conta.'
     );
-
   }
-
 
   let indicadorId = null;
 
-
   if (codigoIndicacao) {
-
     const indicador =
-      await buscarJogadorPorEmail(
+      await buscarJogadorPorCodigo(
         codigoIndicacao
       );
 
-    if (indicador) {
-      indicadorId = indicador.id;
+    if (!indicador) {
+      throw new Error(
+        'Código de indicação inválido.'
+      );
     }
 
+    indicadorId = indicador.id;
   }
 
+  const codigoNovoJogador =
+    await gerarCodigoIndicacaoUnico();
+
+  const senhaHash = hash(senha);
 
   const resultado = await pool.query(
     `
@@ -379,136 +515,115 @@ async function criarJogador(dados) {
         cpf,
         email,
         senha,
+        codigo_indicacao,
         indicador_id
       )
 
       VALUES
-      ($1,$2,$3,$4,$5)
+      ($1,$2,$3,$4,$5,$6)
 
-      RETURNING id,
-                nome,
-                email,
-                pontos_jogo,
-                pontos_patrocinado,
-                acertos,
-                erros
+      RETURNING
+        id,
+        nome,
+        email,
+        codigo_indicacao,
+        pontos_jogo,
+        pontos_patrocinado,
+        acertos,
+        erros
     `,
     [
       nome,
       cpf,
       email,
-      senha,
+      senhaHash,
+      codigoNovoJogador,
       indicadorId
     ]
   );
 
-
-  const jogador =
-    resultado.rows[0];
-
+  const jogador = resultado.rows[0];
 
   if (indicadorId) {
-
     await pool.query(
       `
         INSERT INTO indicacoes
         (
           indicador_id,
           indicado_id,
+          pontos_indicado,
+          status,
           bonus
         )
 
         VALUES
-        ($1,$2,20)
+        ($1,$2,0,'PENDENTE',$3)
       `,
       [
         indicadorId,
-        jogador.id
+        jogador.id,
+        BONUS_INDICACAO
       ]
     );
-
   }
 
-
   return jogador;
-
 }
 
-
 // ======================================================
-// REGISTRAR RESULTADO DA PERGUNTA
+// REGISTRAR RESULTADO
 // ======================================================
 
 async function registrarResultado(dados) {
+  const email = String(dados.email || '')
+    .trim()
+    .toLowerCase();
 
-  const email =
-    String(dados.email || '')
-      .trim()
-      .toLowerCase();
+  const acertou = Boolean(dados.acertou);
 
-  const acertou =
-    Boolean(dados.acertou);
-
-  const pontos =
-    Math.max(
-      0,
+  const pontos = Math.max(
+    0,
+    Math.floor(
       Number(dados.pontos || 0)
-    );
-
+    )
+  );
 
   const jogador =
     await buscarJogadorPorEmail(email);
 
-
   if (!jogador) {
-
     throw new Error(
       'Jogador não encontrado.'
     );
-
   }
 
+  const pontosGanhos =
+    acertou ? pontos : 0;
 
-  let pontosGanhos = 0;
+  const resultado = await pool.query(
+    `
+      UPDATE jogadores
 
+      SET
+        pontos_jogo = pontos_jogo + $1,
 
-  if (acertou) {
+        acertos = acertos + $2,
 
-    pontosGanhos = pontos;
+        erros = erros + $3,
 
-  }
+        atualizado_em = CURRENT_TIMESTAMP
 
+      WHERE id = $4
 
-  const resultado =
-    await pool.query(
-      `
-        UPDATE jogadores
-
-        SET
-          pontos_jogo =
-            pontos_jogo + $1,
-
-          acertos =
-            acertos + $2,
-
-          erros =
-            erros + $3,
-
-          atualizado_em =
-            CURRENT_TIMESTAMP
-
-        WHERE id = $4
-
-        RETURNING *
-      `,
-      [
-        pontosGanhos,
-        acertou ? 1 : 0,
-        acertou ? 0 : 1,
-        jogador.id
-      ]
-    );
-
+      RETURNING *
+    `,
+    [
+      pontosGanhos,
+      acertou ? 1 : 0,
+      acertou ? 0 : 1,
+      jogador.id
+    ]
+  );
 
   await pool.query(
     `
@@ -524,137 +639,186 @@ async function registrarResultado(dados) {
     `,
     [
       jogador.id,
-      acertou
-        ? 'ACERTO'
-        : 'ERRO',
+      acertou ? 'ACERTO' : 'ERRO',
       pontosGanhos
     ]
   );
 
-
-  // Verifica se alguma indicação chegou a 300 pontos.
-
-  await verificarIndicacao(
-    jogador.id
-  );
-
+  await verificarIndicacao(jogador.id);
 
   return resultado.rows[0];
-
 }
-
 
 // ======================================================
 // VERIFICAR INDICAÇÃO
 // ======================================================
 
 async function verificarIndicacao(indicadoId) {
+  const resultado = await pool.query(
+    `
+      SELECT
+        i.id AS indicacao_id,
+        i.indicador_id,
+        i.indicado_id,
+        i.status,
+        i.bonus,
+        j.pontos_jogo
 
-  const resultado =
-    await pool.query(
-      `
-        SELECT
-          i.id AS indicacao_id,
-          i.indicador_id,
-          i.indicado_id,
-          i.status,
-          j.pontos_jogo
+      FROM indicacoes i
 
-        FROM indicacoes i
+      INNER JOIN jogadores j
+        ON j.id = i.indicado_id
 
-        INNER JOIN jogadores j
-          ON j.id = i.indicado_id
+      WHERE
+        i.indicado_id = $1
+        AND i.status = 'PENDENTE'
 
-        WHERE
-          i.indicado_id = $1
-          AND i.status = 'PENDENTE'
+      ORDER BY i.id ASC
 
-        LIMIT 1
-      `,
-      [indicadoId]
-    );
-
+      LIMIT 1
+    `,
+    [indicadoId]
+  );
 
   if (resultado.rows.length === 0) {
     return;
   }
 
+  const indicacao = resultado.rows[0];
 
-  const indicacao =
-    resultado.rows[0];
+  const pontosAtual =
+    Number(indicacao.pontos_jogo);
 
+  await pool.query(
+    `
+      UPDATE indicacoes
 
-  if (Number(indicacao.pontos_jogo) < 300) {
+      SET pontos_indicado = $1
+
+      WHERE id = $2
+      AND status = 'PENDENTE'
+    `,
+    [
+      Math.min(
+        pontosAtual,
+        PONTOS_META_INDICACAO
+      ),
+      indicacao.indicacao_id
+    ]
+  );
+
+  if (pontosAtual < PONTOS_META_INDICACAO) {
     return;
   }
 
-
-  const bonus = 20;
-
-
-  await pool.query('BEGIN');
+  const cliente = await pool.connect();
 
   try {
+    await cliente.query('BEGIN');
 
-    await pool.query(
+    const verificacao =
+      await cliente.query(
+        `
+          SELECT
+            id,
+            indicador_id,
+            indicado_id,
+            status,
+            bonus
+
+          FROM indicacoes
+
+          WHERE id = $1
+
+          FOR UPDATE
+        `,
+        [indicacao.indicacao_id]
+      );
+
+    if (
+      verificacao.rows.length === 0 ||
+      verificacao.rows[0].status !== 'PENDENTE'
+    ) {
+      await cliente.query('ROLLBACK');
+      return;
+    }
+
+    const indicacaoAtual =
+      verificacao.rows[0];
+
+    const bonus = Number(
+      indicacaoAtual.bonus ||
+      BONUS_INDICACAO
+    );
+
+    await cliente.query(
       `
         UPDATE indicacoes
 
         SET
           status = 'CONCLUIDA',
+
           pontos_indicado = $1,
+
           concluido_em = CURRENT_TIMESTAMP
 
         WHERE id = $2
       `,
       [
-        indicacao.pontos_jogo,
-        indicacao.indicacao_id
+        PONTOS_META_INDICACAO,
+        indicacaoAtual.id
       ]
     );
 
+    const indicadorAtualizado =
+      await cliente.query(
+        `
+          UPDATE jogadores
 
-    await pool.query(
-      `
-        UPDATE jogadores
+          SET
+            pontos_jogo =
+              pontos_jogo + $1,
 
-        SET
-          pontos_jogo =
-            pontos_jogo + $1,
+            bonus_indicacao_recebido =
+              TRUE,
 
-          bonus_indicacao_recebido =
-            TRUE,
+            atualizado_em =
+              CURRENT_TIMESTAMP
 
-          atualizado_em =
-            CURRENT_TIMESTAMP
+          WHERE id = $2
 
-        WHERE id = $2
-          AND bonus_indicacao_recebido = FALSE
-      `,
-      [
-        bonus,
-        indicacao.indicador_id
-      ]
-    );
+          RETURNING id
+        `,
+        [
+          bonus,
+          indicacaoAtual.indicador_id
+        ]
+      );
 
+    if (
+      indicadorAtualizado.rows.length === 0
+    ) {
+      throw new Error(
+        'Indicador não encontrado.'
+      );
+    }
 
-    await pool.query(
+    await cliente.query(
       `
         UPDATE jogadores
 
         SET
           indicacao_concluida = TRUE,
-          atualizado_em = CURRENT_TIMESTAMP
+
+          atualizado_em =
+            CURRENT_TIMESTAMP
 
         WHERE id = $1
       `,
-      [
-        indicacao.indicado_id
-      ]
+      [indicacaoAtual.indicado_id]
     );
 
-
-    await pool.query(
+    await cliente.query(
       `
         INSERT INTO atividades
         (
@@ -667,71 +831,58 @@ async function verificarIndicacao(indicadoId) {
         ($1,'BONUS_INDICACAO',$2)
       `,
       [
-        indicacao.indicador_id,
+        indicacaoAtual.indicador_id,
         bonus
       ]
     );
 
-
-    await pool.query('COMMIT');
+    await cliente.query('COMMIT');
 
     console.log(
-      'Indicação concluída:',
-      indicacao.indicacao_id
+      `Indicação ${indicacaoAtual.id} concluída. ` +
+      `Indicador recebeu +${bonus} pontos.`
     );
 
   } catch (erro) {
-
-    await pool.query('ROLLBACK');
-
+    await cliente.query('ROLLBACK');
     throw erro;
-
+  } finally {
+    cliente.release();
   }
-
 }
 
-
 // ======================================================
-// REGISTRAR PONTOS PATROCINADOS
-// ======================================================
-//
-// Essa rota será usada pelo sistema administrativo.
-// NÃO deve ser chamada livremente pelo jogador.
-//
+// PONTOS PATROCINADOS
 // ======================================================
 
 async function registrarPontosPatrocinados(dados) {
+  const email = String(dados.email || '')
+    .trim()
+    .toLowerCase();
 
-  const email =
-    String(dados.email || '')
-      .trim()
-      .toLowerCase();
+  const pontos = Number(dados.pontos || 0);
 
-  const pontos =
-    Number(dados.pontos || 0);
-
-
-  if (!email || !Number.isFinite(pontos) || pontos <= 0) {
-
+  if (
+    !email ||
+    !Number.isFinite(pontos) ||
+    pontos <= 0
+  ) {
     throw new Error(
       'Dados inválidos.'
     );
-
   }
-
 
   const jogador =
     await buscarJogadorPorEmail(email);
 
-
   if (!jogador) {
-
     throw new Error(
       'Jogador não encontrado.'
     );
-
   }
 
+  const pontosInteiros =
+    Math.floor(pontos);
 
   const resultado =
     await pool.query(
@@ -750,11 +901,10 @@ async function registrarPontosPatrocinados(dados) {
         RETURNING *
       `,
       [
-        Math.floor(pontos),
+        pontosInteiros,
         jogador.id
       ]
     );
-
 
   await pool.query(
     `
@@ -770,74 +920,54 @@ async function registrarPontosPatrocinados(dados) {
     `,
     [
       jogador.id,
-      Math.floor(pontos)
+      pontosInteiros
     ]
   );
 
-
   return resultado.rows[0];
-
 }
-
 
 // ======================================================
 // REGRAS DE SAQUE
 // ======================================================
 
 function regraSaque(pontos) {
-
-  const valor =
-    Number(pontos);
-
+  const valor = Number(pontos);
 
   if (valor === 2000) {
-
     return {
       pontos: 2000,
       valorCentavos: 100
     };
-
   }
 
-
   if (valor === 6000) {
-
     return {
       pontos: 6000,
       valorCentavos: 500
     };
-
   }
 
-
   if (valor === 11000) {
-
     return {
       pontos: 11000,
       valorCentavos: 1000
     };
-
   }
 
-
   return null;
-
 }
-
 
 // ======================================================
 // SOLICITAR SAQUE
 // ======================================================
 
 async function solicitarSaque(dados) {
+  const email = String(dados.email || '')
+    .trim()
+    .toLowerCase();
 
-  const email =
-    String(dados.email || '')
-      .trim()
-      .toLowerCase();
-
-  const pontos =
-    Number(dados.pontos || 0);
+  const pontos = Number(dados.pontos || 0);
 
   const metodo =
     String(dados.metodo || '').trim();
@@ -845,108 +975,77 @@ async function solicitarSaque(dados) {
   const chave =
     String(dados.chave || '').trim();
 
-
   if (
     !email ||
     !pontos ||
     !metodo ||
     !chave
   ) {
-
     throw new Error(
       'Preencha todos os dados do saque.'
     );
-
   }
 
-
-  const regra =
-    regraSaque(pontos);
-
+  const regra = regraSaque(pontos);
 
   if (!regra) {
-
     throw new Error(
-      'Valor de saque inválido.'
+      'Valor de saque inválido. ' +
+      'Escolha 2.000, 6.000 ou 11.000 pontos.'
     );
-
   }
-
 
   const jogador =
     await buscarJogadorPorEmail(email);
 
-
   if (!jogador) {
-
     throw new Error(
       'Jogador não encontrado.'
     );
-
   }
-
-
-  // O jogador precisa ter os pontos
-  // no jogo.
 
   if (
     Number(jogador.pontos_jogo) <
     regra.pontos
   ) {
-
     throw new Error(
       'Você não possui pontos suficientes no jogo.'
     );
-
   }
-
-
-  // E também precisa ter os pontos
-  // patrocinados necessários.
 
   if (
     Number(jogador.pontos_patrocinado) <
     regra.pontos
   ) {
-
     throw new Error(
       'Você ainda não possui pontos patrocinados suficientes para este saque.'
     );
-
   }
 
+  const limite = await pool.query(
+    `
+      SELECT
+        COUNT(*)::integer AS total
 
-  // Limite de 2 solicitações por dia.
+      FROM saques
 
-  const limite =
-    await pool.query(
-      `
-        SELECT COUNT(*)::integer AS total
+      WHERE jogador_id = $1
 
-        FROM saques
+      AND criado_em >= CURRENT_DATE
 
-        WHERE jogador_id = $1
-
-        AND criado_em >=
-          CURRENT_DATE
-
-        AND criado_em <
-          CURRENT_DATE + INTERVAL '1 day'
-      `,
-      [jogador.id]
-    );
-
+      AND criado_em <
+        CURRENT_DATE + INTERVAL '1 day'
+    `,
+    [jogador.id]
+  );
 
   if (
     Number(limite.rows[0].total) >= 2
   ) {
-
     throw new Error(
       'Limite de 2 solicitações de saque por dia atingido.'
     );
-
   }
-
 
   const valorJogador =
     regra.valorCentavos;
@@ -956,7 +1055,6 @@ async function solicitarSaque(dados) {
       valorJogador *
       (ADMIN_PERCENTUAL / 100)
     );
-
 
   const resultado =
     await pool.query(
@@ -992,7 +1090,6 @@ async function solicitarSaque(dados) {
       ]
     );
 
-
   await pool.query(
     `
       UPDATE jogadores
@@ -1006,256 +1103,267 @@ async function solicitarSaque(dados) {
 
       WHERE id = $1
     `,
-    [
-      jogador.id
-    ]
+    [jogador.id]
   );
 
-
-  // Enviar e-mail para o administrador.
-
-  if (RESEND_API_KEY && ADMIN_EMAIL) {
-
+  if (
+    RESEND_API_KEY &&
+    ADMIN_EMAIL
+  ) {
     try {
-
       await enviarEmailAdminSaque(
         jogador,
         resultado.rows[0]
       );
-
     } catch (erro) {
-
       console.error(
         'Erro ao enviar e-mail:',
         erro
       );
-
     }
-
   }
 
-
   return resultado.rows[0];
-
 }
 
-
 // ======================================================
-// E-MAIL DO SAQUE
+// E-MAIL ADMIN
 // ======================================================
 
 async function enviarEmailAdminSaque(
   jogador,
   saque
 ) {
+  const resposta = await fetch(
+    'https://api.resend.com/emails',
+    {
+      method: 'POST',
 
-  const resposta =
-    await fetch(
-      'https://api.resend.com/emails',
-      {
-        method: 'POST',
+      headers: {
+        'Authorization':
+          `Bearer ${RESEND_API_KEY}`,
 
-        headers: {
-          'Authorization':
-            `Bearer ${RESEND_API_KEY}`,
+        'Content-Type':
+          'application/json'
+      },
 
-          'Content-Type':
-            'application/json'
-        },
+      body: JSON.stringify({
+        from:
+          'QuizUp <onboarding@resend.dev>',
 
-        body: JSON.stringify({
+        to: [
+          ADMIN_EMAIL
+        ],
 
-          from:
-            'QuizUp <onboarding@resend.dev>',
+        subject:
+          '💰 Novo pedido de saque - QuizUp',
 
-          to: [
-            ADMIN_EMAIL
-          ],
+        html: `
+          <div style="
+            font-family:Arial,sans-serif;
+            max-width:600px;
+            margin:auto;
+            padding:20px;
+          ">
 
-          subject:
-            '💰 Novo pedido de saque - QuizUp',
+            <h2>🎯 Novo pedido de saque</h2>
 
-          html: `
+            <hr>
 
-            <div style="
-              font-family:Arial,sans-serif;
-              max-width:600px;
-              margin:auto;
-              padding:20px;
-            ">
+            <p>
+              <strong>Jogador:</strong>
+              ${escaparHTML(jogador.nome)}
+            </p>
 
-              <h2>🎯 Novo pedido de saque</h2>
+            <p>
+              <strong>E-mail:</strong>
+              ${escaparHTML(jogador.email)}
+            </p>
 
-              <hr>
+            <p>
+              <strong>Pontos do jogo:</strong>
+              ${jogador.pontos_jogo}
+            </p>
 
-              <p>
-                <strong>Jogador:</strong>
-                ${escaparHTML(jogador.nome)}
-              </p>
+            <p>
+              <strong>Pontos patrocinados:</strong>
+              ${jogador.pontos_patrocinado}
+            </p>
 
-              <p>
-                <strong>E-mail:</strong>
-                ${escaparHTML(jogador.email)}
-              </p>
+            <p>
+              <strong>Pontos solicitados:</strong>
+              ${saque.pontos}
+            </p>
 
-              <p>
-                <strong>Pontos do jogo:</strong>
-                ${jogador.pontos_jogo}
-              </p>
+            <p>
+              <strong>Valor:</strong>
+              R$ ${(saque.valor_centavos / 100)
+                .toFixed(2)
+                .replace('.', ',')}
+            </p>
 
-              <p>
-                <strong>Pontos patrocinados:</strong>
-                ${jogador.pontos_patrocinado}
-              </p>
+            <p>
+              <strong>Método:</strong>
+              ${escaparHTML(saque.metodo)}
+            </p>
 
-              <p>
-                <strong>Pontos solicitados:</strong>
-                ${saque.pontos}
-              </p>
+            <p>
+              <strong>Chave:</strong>
+              ${escaparHTML(saque.chave)}
+            </p>
 
-              <p>
-                <strong>Valor:</strong>
-                R$ ${(saque.valor_centavos / 100)
-                  .toFixed(2)
-                  .replace('.', ',')}
-              </p>
+            <p>
+              <strong>Status:</strong>
+              PENDENTE
+            </p>
 
-              <p>
-                <strong>Método:</strong>
-                ${escaparHTML(saque.metodo)}
-              </p>
+            <hr>
 
-              <p>
-                <strong>Chave:</strong>
-                ${escaparHTML(saque.chave)}
-              </p>
+            <p>
+              Entre no painel administrativo
+              para aprovar ou recusar.
+            </p>
 
-              <p>
-                <strong>Status:</strong>
-                PENDENTE
-              </p>
-
-              <hr>
-
-              <p>
-                Entre no painel administrativo
-                para aprovar ou recusar.
-              </p>
-
-            </div>
-
-          `
-        })
-      }
-    );
-
+          </div>
+        `
+      })
+    }
+  );
 
   if (!resposta.ok) {
-
-    const erro =
-      await resposta.text();
-
+    const erro = await resposta.text();
     throw new Error(erro);
-
   }
-
 }
 
+// ======================================================
+// E-MAIL JOGADOR
+// ======================================================
+
+async function enviarEmailJogador(
+  email,
+  assunto,
+  html
+) {
+  const resposta = await fetch(
+    'https://api.resend.com/emails',
+    {
+      method: 'POST',
+
+      headers: {
+        'Authorization':
+          `Bearer ${RESEND_API_KEY}`,
+
+        'Content-Type':
+          'application/json'
+      },
+
+      body: JSON.stringify({
+        from:
+          'QuizUp <onboarding@resend.dev>',
+
+        to: [
+          email
+        ],
+
+        subject: assunto,
+
+        html: `
+          <div style="
+            font-family:Arial,sans-serif;
+            max-width:600px;
+            margin:auto;
+            padding:20px;
+          ">
+            ${html}
+          </div>
+        `
+      })
+    }
+  );
+
+  if (!resposta.ok) {
+    const erro = await resposta.text();
+    throw new Error(erro);
+  }
+}
 
 // ======================================================
 // APROVAR SAQUE
 // ======================================================
 
 async function aprovarSaque(id) {
+  const saqueId = Number(id);
 
-  const saqueId =
-    Number(id);
-
-
-  const resultado =
-    await pool.query(
-      `
-        SELECT
-          s.*,
-          j.pontos_jogo,
-          j.pontos_patrocinado,
-          j.nome
-
-        FROM saques s
-
-        INNER JOIN jogadores j
-          ON j.id = s.jogador_id
-
-        WHERE s.id = $1
-
-        FOR UPDATE
-      `,
-      [saqueId]
-    );
-
-
-  if (resultado.rows.length === 0) {
-
-    throw new Error(
-      'Saque não encontrado.'
-    );
-
-  }
-
-
-  const saque =
-    resultado.rows[0];
-
-
-  if (saque.status !== 'PENDENTE') {
-
-    throw new Error(
-      'Este saque já foi analisado.'
-    );
-
-  }
-
-
-  if (
-    Number(saque.pontos_jogo) <
-    Number(saque.pontos)
-  ) {
-
-    throw new Error(
-      'O jogador não possui mais pontos suficientes para este saque.'
-    );
-
-  }
-
-
-  if (
-    Number(saque.pontos_patrocinado) <
-    Number(saque.pontos)
-  ) {
-
-    throw new Error(
-      'O jogador não possui pontos patrocinados suficientes.'
-    );
-
-  }
-
-
-  await pool.query('BEGIN');
+  const cliente = await pool.connect();
 
   try {
+    await cliente.query('BEGIN');
 
-    // Retira os pontos do QUIZ somente agora,
-    // no momento da aprovação.
+    const resultado =
+      await cliente.query(
+        `
+          SELECT
+            s.*,
+            j.pontos_jogo,
+            j.pontos_patrocinado,
+            j.nome
+
+          FROM saques s
+
+          INNER JOIN jogadores j
+            ON j.id = s.jogador_id
+
+          WHERE s.id = $1
+
+          FOR UPDATE
+        `,
+        [saqueId]
+      );
+
+    if (resultado.rows.length === 0) {
+      throw new Error(
+        'Saque não encontrado.'
+      );
+    }
+
+    const saque = resultado.rows[0];
+
+    if (saque.status !== 'PENDENTE') {
+      throw new Error(
+        'Este saque já foi analisado.'
+      );
+    }
+
+    if (
+      Number(saque.pontos_jogo) <
+      Number(saque.pontos)
+    ) {
+      throw new Error(
+        'O jogador não possui mais pontos suficientes para este saque.'
+      );
+    }
+
+    if (
+      Number(saque.pontos_patrocinado) <
+      Number(saque.pontos)
+    ) {
+      throw new Error(
+        'O jogador não possui pontos patrocinados suficientes.'
+      );
+    }
 
     const jogadorAtualizado =
-      await pool.query(
+      await cliente.query(
         `
           UPDATE jogadores
 
           SET
-
             pontos_jogo =
               pontos_jogo - $1,
+
+            pontos_patrocinado =
+              pontos_patrocinado - $1,
 
             saques_aprovados =
               saques_aprovados + 1,
@@ -1270,6 +1378,8 @@ async function aprovarSaque(id) {
 
           AND pontos_jogo >= $1
 
+          AND pontos_patrocinado >= $1
+
           RETURNING *
         `,
         [
@@ -1279,24 +1389,19 @@ async function aprovarSaque(id) {
         ]
       );
 
-
     if (
       jogadorAtualizado.rows.length === 0
     ) {
-
       throw new Error(
         'Não foi possível retirar os pontos do jogador.'
       );
-
     }
 
-
-    await pool.query(
+    await cliente.query(
       `
         UPDATE saques
 
         SET
-
           status = 'APROVADO',
 
           analisado_em =
@@ -1307,19 +1412,13 @@ async function aprovarSaque(id) {
       [saqueId]
     );
 
-
-    await pool.query('COMMIT');
-
-
-    // Avisar jogador por e-mail, se disponível.
+    await cliente.query('COMMIT');
 
     if (
       RESEND_API_KEY &&
       saque.email
     ) {
-
       try {
-
         await enviarEmailJogador(
           saque.email,
           'Saque aprovado - QuizUp',
@@ -1346,18 +1445,13 @@ async function aprovarSaque(id) {
             </p>
           `
         );
-
       } catch (erro) {
-
         console.error(
           'Erro ao enviar aviso:',
           erro
         );
-
       }
-
     }
-
 
     return {
       sucesso: true,
@@ -1366,15 +1460,12 @@ async function aprovarSaque(id) {
     };
 
   } catch (erro) {
-
-    await pool.query('ROLLBACK');
-
+    await cliente.query('ROLLBACK');
     throw erro;
-
+  } finally {
+    cliente.release();
   }
-
 }
-
 
 // ======================================================
 // RECUSAR SAQUE
@@ -1384,10 +1475,7 @@ async function recusarSaque(
   id,
   motivo
 ) {
-
-  const saqueId =
-    Number(id);
-
+  const saqueId = Number(id);
 
   const resultado =
     await pool.query(
@@ -1399,35 +1487,29 @@ async function recusarSaque(
       [saqueId]
     );
 
-
   if (resultado.rows.length === 0) {
-
     throw new Error(
       'Saque não encontrado.'
     );
-
   }
 
-
-  const saque =
-    resultado.rows[0];
-
+  const saque = resultado.rows[0];
 
   if (saque.status !== 'PENDENTE') {
-
     throw new Error(
       'Este saque já foi analisado.'
     );
-
   }
 
+  const motivoFinal =
+    motivo ||
+    'Solicitação recusada pelo administrador.';
 
   await pool.query(
     `
       UPDATE saques
 
       SET
-
         status = 'RECUSADO',
 
         motivo_recusa = $1,
@@ -1438,19 +1520,16 @@ async function recusarSaque(
       WHERE id = $2
     `,
     [
-      motivo ||
-        'Solicitação recusada pelo administrador.',
+      motivoFinal,
       saqueId
     ]
   );
-
 
   await pool.query(
     `
       UPDATE jogadores
 
       SET
-
         saques_recusados =
           saques_recusados + 1,
 
@@ -1459,19 +1538,14 @@ async function recusarSaque(
 
       WHERE id = $1
     `,
-    [
-      saque.jogador_id
-    ]
+    [saque.jogador_id]
   );
-
 
   if (
     RESEND_API_KEY &&
     saque.email
   ) {
-
     try {
-
       await enviarEmailJogador(
         saque.email,
         'Saque recusado - QuizUp',
@@ -1485,91 +1559,30 @@ async function recusarSaque(
 
           <p>
             Motivo:
-            ${escaparHTML(
-              motivo ||
-              'Solicitação recusada pelo administrador.'
-            )}
+            ${escaparHTML(motivoFinal)}
           </p>
         `
       );
-
     } catch (erro) {
-
       console.error(
         'Erro ao enviar aviso:',
         erro
       );
-
     }
-
   }
-
 
   return {
     sucesso: true,
     mensagem:
       'Saque recusado. Os pontos do jogador não foram retirados.'
   };
-
 }
-
-
-// ======================================================
-// E-MAIL PARA JOGADOR
-// ======================================================
-
-async function enviarEmailJogador(
-  email,
-  assunto,
-  html
-) {
-
-  await fetch(
-    'https://api.resend.com/emails',
-    {
-      method: 'POST',
-
-      headers: {
-        'Authorization':
-          `Bearer ${RESEND_API_KEY}`,
-
-        'Content-Type':
-          'application/json'
-      },
-
-      body: JSON.stringify({
-
-        from:
-          'QuizUp <onboarding@resend.dev>',
-
-        to: [email],
-
-        subject: assunto,
-
-        html: `
-          <div style="
-            font-family:Arial,sans-serif;
-            max-width:600px;
-            margin:auto;
-            padding:20px;
-          ">
-            ${html}
-          </div>
-        `
-
-      })
-    }
-  );
-
-}
-
 
 // ======================================================
 // DADOS DO JOGADOR
 // ======================================================
 
 async function dadosJogador(email) {
-
   const jogador =
     await buscarJogadorPorEmail(
       String(email || '')
@@ -1577,23 +1590,22 @@ async function dadosJogador(email) {
         .toLowerCase()
     );
 
-
   if (!jogador) {
-
     throw new Error(
       'Jogador não encontrado.'
     );
-
   }
-
 
   const indicacoes =
     await pool.query(
       `
         SELECT
+          i.id,
           i.status,
           i.pontos_indicado,
-          j.nome AS indicado_nome
+          i.bonus,
+          j.nome AS indicado_nome,
+          j.email AS indicado_email
 
         FROM indicacoes i
 
@@ -1607,14 +1619,15 @@ async function dadosJogador(email) {
       [jogador.id]
     );
 
-
   return {
-
     id: jogador.id,
 
     nome: jogador.nome,
 
     email: jogador.email,
+
+    codigoIndicacao:
+      jogador.codigo_indicacao,
 
     pontosJogo:
       jogador.pontos_jogo,
@@ -1637,49 +1650,36 @@ async function dadosJogador(email) {
     saquesRecusados:
       jogador.saques_recusados,
 
+    indicacaoConcluida:
+      jogador.indicacao_concluida,
+
     indicacoes:
       indicacoes.rows
-
   };
-
 }
 
-
 // ======================================================
-// PAINEL ADMINISTRATIVO - JOGADORES
+// ADMIN - JOGADORES
 // ======================================================
 
 async function listarJogadores() {
-
   const resultado =
     await pool.query(
       `
         SELECT
-
           id,
-
           nome,
-
           email,
-
+          codigo_indicacao,
           pontos_jogo,
-
           pontos_patrocinado,
-
           acertos,
-
           erros,
-
           tentativas_saque,
-
           saques_aprovados,
-
           saques_recusados,
-
           total_sacado_centavos,
-
           criado_em,
-
           atualizado_em
 
         FROM jogadores
@@ -1688,9 +1688,7 @@ async function listarJogadores() {
       `
     );
 
-
   return resultado.rows.map(jogador => ({
-
     ...jogador,
 
     total_sacado:
@@ -1700,23 +1698,18 @@ async function listarJogadores() {
         ) / 100
       )
       .toFixed(2)
-
   }));
-
 }
 
-
 // ======================================================
-// PAINEL ADMINISTRATIVO - SAQUES
+// ADMIN - SAQUES
 // ======================================================
 
 async function listarSaques() {
-
   const resultado =
     await pool.query(
       `
         SELECT
-
           s.*,
 
           j.nome AS jogador_nome,
@@ -1744,92 +1737,77 @@ async function listarSaques() {
       `
     );
 
-
   return resultado.rows;
-
 }
 
-
 // ======================================================
-// AUTENTICAÇÃO DO ADMIN
+// ADMIN
 // ======================================================
 
 function verificarAdmin(req) {
-
   if (!ADMIN_TOKEN) {
-
     return false;
-
   }
-
 
   const token =
     req.headers['x-admin-token'];
 
-
-  return (
+  return Boolean(
     token &&
     token === ADMIN_TOKEN
   );
-
 }
 
-
 // ======================================================
-// ROTAS
+// SERVIDOR
 // ======================================================
 
-const servidor =
-  http.createServer(
-    async (req, res) => {
+const servidor = http.createServer(
+  async (req, res) => {
 
-      try {
+    try {
 
-        const url =
-          new URL(
-            req.url,
-            `http://${req.headers.host}`
-          );
+      const url = new URL(
+        req.url,
+        `http://${req.headers.host || 'localhost'}`
+      );
 
+      // ==================================================
+      // HEALTH
+      // ==================================================
 
-        // ==================================================
-        // HEALTH
-        // ==================================================
+      if (
+        req.method === 'GET' &&
+        url.pathname === '/health'
+      ) {
+        responder(
+          res,
+          200,
+          {
+            sucesso: true,
+            quizup: 'online'
+          }
+        );
 
-        if (
-          req.method === 'GET' &&
-          url.pathname === '/health'
-        ) {
+        return;
+      }
 
-          responder(
-            res,
-            200,
-            {
-              sucesso: true,
-              quizup: 'online'
-            }
-          );
+      // ==================================================
+      // CRIAR CONTA
+      // ==================================================
 
-          return;
+      if (
+        req.method === 'POST' &&
+        url.pathname === '/api/criar-conta'
+      ) {
 
-        }
+        const dados =
+          await lerCorpo(req);
 
-
-        // ==================================================
-        // CRIAR CONTA
-        // ==================================================
-
-        if (
-          req.method === 'POST' &&
-          url.pathname === '/api/criar-conta'
-        ) {
-
-          const dados =
-            await lerCorpo(req);
+        try {
 
           const jogador =
             await criarJogador(dados);
-
 
           responder(
             res,
@@ -1840,572 +1818,550 @@ const servidor =
             }
           );
 
-          return;
-
-        }
-
-
-        // ==================================================
-        // LOGIN
-        // ==================================================
-
-        if (
-          req.method === 'POST' &&
-          url.pathname === '/api/login'
-        ) {
-
-          const dados =
-            await lerCorpo(req);
-
-          const email =
-            String(dados.email || '')
-              .trim()
-              .toLowerCase();
-
-          const senha =
-            String(dados.senha || '');
-
-
-          const jogador =
-            await buscarJogadorPorEmail(
-              email
-            );
-
-
-          if (
-            !jogador ||
-            jogador.senha !== senha
-          ) {
-
-            responder(
-              res,
-              401,
-              {
-                sucesso: false,
-                mensagem:
-                  'E-mail ou senha incorretos.'
-              }
-            );
-
-            return;
-
-          }
-
+        } catch (erro) {
 
           responder(
             res,
-            200,
+            400,
             {
-              sucesso: true,
-              jogador: await dadosJogador(
-                email
-              )
+              sucesso: false,
+              mensagem: erro.message
             }
           );
-
-          return;
-
         }
 
+        return;
+      }
 
-        // ==================================================
-        // DADOS DO JOGADOR
-        // ==================================================
+      // ==================================================
+      // LOGIN
+      // ==================================================
+
+      if (
+        req.method === 'POST' &&
+        url.pathname === '/api/login'
+      ) {
+
+        const dados =
+          await lerCorpo(req);
+
+        const email =
+          String(dados.email || '')
+            .trim()
+            .toLowerCase();
+
+        const senha =
+          String(dados.senha || '');
+
+        const jogador =
+          await buscarJogadorPorEmail(
+            email
+          );
+
+        const senhaHash =
+          hash(senha);
 
         if (
-          req.method === 'GET' &&
-          url.pathname === '/api/jogador'
+          !jogador ||
+          jogador.senha !== senhaHash
         ) {
-
-          const email =
-            url.searchParams.get('email');
-
-
-          if (!email) {
-
-            responder(
-              res,
-              400,
-              {
-                sucesso: false,
-                mensagem:
-                  'E-mail não informado.'
-              }
-            );
-
-            return;
-
-          }
-
 
           responder(
             res,
-            200,
+            401,
             {
-              sucesso: true,
-              jogador:
-                await dadosJogador(email)
+              sucesso: false,
+              mensagem:
+                'E-mail ou senha incorretos.'
             }
           );
 
           return;
-
         }
-
-
-        // ==================================================
-        // REGISTRAR RESULTADO
-        // ==================================================
-
-        if (
-          req.method === 'POST' &&
-          url.pathname ===
-            '/api/registrar-resultado'
-        ) {
-
-          const dados =
-            await lerCorpo(req);
-
-          const jogador =
-            await registrarResultado(
-              dados
-            );
-
-
-          responder(
-            res,
-            200,
-            {
-              sucesso: true,
-              jogador
-            }
-          );
-
-          return;
-
-        }
-
-
-        // ==================================================
-        // REGISTRAR PONTOS PATROCINADOS
-        // ==================================================
-
-        if (
-          req.method === 'POST' &&
-          url.pathname ===
-            '/api/patrocinado'
-        ) {
-
-
-          if (!verificarAdmin(req)) {
-
-            responder(
-              res,
-              401,
-              {
-                sucesso: false,
-                mensagem:
-                  'Acesso administrativo negado.'
-              }
-            );
-
-            return;
-
-          }
-
-
-          const dados =
-            await lerCorpo(req);
-
-
-          const jogador =
-            await registrarPontosPatrocinados(
-              dados
-            );
-
-
-          responder(
-            res,
-            200,
-            {
-              sucesso: true,
-              jogador
-            }
-          );
-
-          return;
-
-        }
-
-
-        // ==================================================
-        // SOLICITAR SAQUE
-        // ==================================================
-
-        if (
-          req.method === 'POST' &&
-          url.pathname ===
-            '/solicitar-saque'
-        ) {
-
-          const dados =
-            await lerCorpo(req);
-
-
-          try {
-
-            const saque =
-              await solicitarSaque(
-                dados
-              );
-
-
-            responder(
-              res,
-              200,
-              {
-                sucesso: true,
-                mensagem:
-                  'Saque solicitado com sucesso. Aguarde a análise.',
-                saque
-              }
-            );
-
-          } catch (erro) {
-
-            responder(
-              res,
-              400,
-              {
-                sucesso: false,
-                mensagem:
-                  erro.message
-              }
-            );
-
-          }
-
-          return;
-
-        }
-
-
-        // ==================================================
-        // ADMIN - JOGADORES
-        // ==================================================
-
-        if (
-          req.method === 'GET' &&
-          url.pathname ===
-            '/admin/jogadores'
-        ) {
-
-
-          if (!verificarAdmin(req)) {
-
-            responder(
-              res,
-              401,
-              {
-                sucesso: false,
-                mensagem:
-                  'Acesso administrativo negado.'
-              }
-            );
-
-            return;
-
-          }
-
-
-          const jogadores =
-            await listarJogadores();
-
-
-          responder(
-            res,
-            200,
-            {
-              sucesso: true,
-              jogadores
-            }
-          );
-
-          return;
-
-        }
-
-
-        // ==================================================
-        // ADMIN - SAQUES
-        // ==================================================
-
-        if (
-          req.method === 'GET' &&
-          url.pathname ===
-            '/admin/saques'
-        ) {
-
-
-          if (!verificarAdmin(req)) {
-
-            responder(
-              res,
-              401,
-              {
-                sucesso: false,
-                mensagem:
-                  'Acesso administrativo negado.'
-              }
-            );
-
-            return;
-
-          }
-
-
-          const saques =
-            await listarSaques();
-
-
-          responder(
-            res,
-            200,
-            {
-              sucesso: true,
-              saques
-            }
-          );
-
-          return;
-
-        }
-
-
-        // ==================================================
-        // ADMIN - APROVAR SAQUE
-        // ==================================================
-
-        const aprovarMatch =
-          url.pathname.match(
-            /^\/admin\/saques\/(\d+)\/aprovar$/
-          );
-
-
-        if (
-          req.method === 'POST' &&
-          aprovarMatch
-        ) {
-
-
-          if (!verificarAdmin(req)) {
-
-            responder(
-              res,
-              401,
-              {
-                sucesso: false,
-                mensagem:
-                  'Acesso administrativo negado.'
-              }
-            );
-
-            return;
-
-          }
-
-
-          const resultado =
-            await aprovarSaque(
-              aprovarMatch[1]
-            );
-
-
-          responder(
-            res,
-            200,
-            resultado
-          );
-
-          return;
-
-        }
-
-
-        // ==================================================
-        // ADMIN - RECUSAR SAQUE
-        // ==================================================
-
-        const recusarMatch =
-          url.pathname.match(
-            /^\/admin\/saques\/(\d+)\/recusar$/
-          );
-
-
-        if (
-          req.method === 'POST' &&
-          recusarMatch
-        ) {
-
-
-          if (!verificarAdmin(req)) {
-
-            responder(
-              res,
-              401,
-              {
-                sucesso: false,
-                mensagem:
-                  'Acesso administrativo negado.'
-              }
-            );
-
-            return;
-
-          }
-
-
-          const dados =
-            await lerCorpo(req);
-
-
-          const resultado =
-            await recusarSaque(
-              recusarMatch[1],
-              dados.motivo
-            );
-
-
-          responder(
-            res,
-            200,
-            resultado
-          );
-
-          return;
-
-        }
-
-
-        // ==================================================
-        // SERVIR ARQUIVOS
-        // ==================================================
-
-        let arquivo =
-          url.pathname;
-
-
-        if (arquivo === '/') {
-
-          arquivo =
-            '/index.html';
-
-        }
-
-
-        const caminho =
-          path.join(
-            __dirname,
-            arquivo
-          );
-
-
-        fs.readFile(
-          caminho,
-          (erro, conteudo) => {
-
-            if (erro) {
-
-              res.writeHead(
-                404,
-                {
-                  'Content-Type':
-                    'text/plain; charset=utf-8'
-                }
-              );
-
-              res.end(
-                'Arquivo não encontrado.'
-              );
-
-              return;
-
-            }
-
-
-            let tipo =
-              'text/html; charset=utf-8';
-
-
-            if (
-              arquivo.endsWith('.css')
-            ) {
-
-              tipo =
-                'text/css; charset=utf-8';
-
-            }
-
-
-            else if (
-              arquivo.endsWith('.js')
-            ) {
-
-              tipo =
-                'application/javascript; charset=utf-8';
-
-            }
-
-
-            else if (
-              arquivo.endsWith('.json')
-            ) {
-
-              tipo =
-                'application/json; charset=utf-8';
-
-            }
-
-
-            res.writeHead(
-              200,
-              {
-                'Content-Type':
-                  tipo
-              }
-            );
-
-
-            res.end(
-              conteudo
-            );
-
-          }
-        );
-
-      } catch (erro) {
-
-        console.error(
-          'Erro no servidor:',
-          erro
-        );
-
 
         responder(
           res,
-          500,
+          200,
           {
-            sucesso: false,
-            mensagem:
-              'Erro interno do servidor.'
+            sucesso: true,
+            jogador:
+              await dadosJogador(email)
           }
         );
 
+        return;
       }
 
-    }
-  );
+      // ==================================================
+      // DADOS DO JOGADOR
+      // ==================================================
 
+      if (
+        req.method === 'GET' &&
+        url.pathname === '/api/jogador'
+      ) {
+
+        const email =
+          url.searchParams.get('email');
+
+        if (!email) {
+          responder(
+            res,
+            400,
+            {
+              sucesso: false,
+              mensagem:
+                'E-mail não informado.'
+            }
+          );
+
+          return;
+        }
+
+        responder(
+          res,
+          200,
+          {
+            sucesso: true,
+            jogador:
+              await dadosJogador(email)
+          }
+        );
+
+        return;
+      }
+
+      // ==================================================
+      // RESULTADO
+      // ==================================================
+
+      if (
+        req.method === 'POST' &&
+        url.pathname ===
+          '/api/registrar-resultado'
+      ) {
+
+        const dados =
+          await lerCorpo(req);
+
+        const jogador =
+          await registrarResultado(
+            dados
+          );
+
+        responder(
+          res,
+          200,
+          {
+            sucesso: true,
+            jogador
+          }
+        );
+
+        return;
+      }
+
+      // ==================================================
+      // PATROCINADO
+      // ==================================================
+
+      if (
+        req.method === 'POST' &&
+        url.pathname ===
+          '/api/patrocinado'
+      ) {
+
+        if (!verificarAdmin(req)) {
+
+          responder(
+            res,
+            401,
+            {
+              sucesso: false,
+              mensagem:
+                'Acesso administrativo negado.'
+            }
+          );
+
+          return;
+        }
+
+        const dados =
+          await lerCorpo(req);
+
+        const jogador =
+          await registrarPontosPatrocinados(
+            dados
+          );
+
+        responder(
+          res,
+          200,
+          {
+            sucesso: true,
+            jogador
+          }
+        );
+
+        return;
+      }
+
+      // ==================================================
+      // SOLICITAR SAQUE
+      // ==================================================
+
+      if (
+        req.method === 'POST' &&
+        url.pathname ===
+          '/solicitar-saque'
+      ) {
+
+        const dados =
+          await lerCorpo(req);
+
+        try {
+
+          const saque =
+            await solicitarSaque(
+              dados
+            );
+
+          responder(
+            res,
+            200,
+            {
+              sucesso: true,
+              mensagem:
+                'Saque solicitado com sucesso. Aguarde a análise.',
+              saque
+            }
+          );
+
+        } catch (erro) {
+
+          responder(
+            res,
+            400,
+            {
+              sucesso: false,
+              mensagem: erro.message
+            }
+          );
+        }
+
+        return;
+      }
+
+      // ==================================================
+      // ADMIN - JOGADORES
+      // ==================================================
+
+      if (
+        req.method === 'GET' &&
+        url.pathname ===
+          '/admin/jogadores'
+      ) {
+
+        if (!verificarAdmin(req)) {
+
+          responder(
+            res,
+            401,
+            {
+              sucesso: false,
+              mensagem:
+                'Acesso administrativo negado.'
+            }
+          );
+
+          return;
+        }
+
+        const jogadores =
+          await listarJogadores();
+
+        responder(
+          res,
+          200,
+          {
+            sucesso: true,
+            jogadores
+          }
+        );
+
+        return;
+      }
+
+      // ==================================================
+      // ADMIN - SAQUES
+      // ==================================================
+
+      if (
+        req.method === 'GET' &&
+        url.pathname ===
+          '/admin/saques'
+      ) {
+
+        if (!verificarAdmin(req)) {
+
+          responder(
+            res,
+            401,
+            {
+              sucesso: false,
+              mensagem:
+                'Acesso administrativo negado.'
+            }
+          );
+
+          return;
+        }
+
+        const saques =
+          await listarSaques();
+
+        responder(
+          res,
+          200,
+          {
+            sucesso: true,
+            saques
+          }
+        );
+
+        return;
+      }
+
+      // ==================================================
+      // ADMIN - APROVAR
+      // ==================================================
+
+      const aprovarMatch =
+        url.pathname.match(
+          /^\/admin\/saques\/(\d+)\/aprovar$/
+        );
+
+      if (
+        req.method === 'POST' &&
+        aprovarMatch
+      ) {
+
+        if (!verificarAdmin(req)) {
+
+          responder(
+            res,
+            401,
+            {
+              sucesso: false,
+              mensagem:
+                'Acesso administrativo negado.'
+            }
+          );
+
+          return;
+        }
+
+        const resultado =
+          await aprovarSaque(
+            aprovarMatch[1]
+          );
+
+        responder(
+          res,
+          200,
+          resultado
+        );
+
+        return;
+      }
+
+      // ==================================================
+      // ADMIN - RECUSAR
+      // ==================================================
+
+      const recusarMatch =
+        url.pathname.match(
+          /^\/admin\/saques\/(\d+)\/recusar$/
+        );
+
+      if (
+        req.method === 'POST' &&
+        recusarMatch
+      ) {
+
+        if (!verificarAdmin(req)) {
+
+          responder(
+            res,
+            401,
+            {
+              sucesso: false,
+              mensagem:
+                'Acesso administrativo negado.'
+            }
+          );
+
+          return;
+        }
+
+        const dados =
+          await lerCorpo(req);
+
+        const resultado =
+          await recusarSaque(
+            recusarMatch[1],
+            dados.motivo
+          );
+
+        responder(
+          res,
+          200,
+          resultado
+        );
+
+        return;
+      }
+
+      // ==================================================
+      // ARQUIVOS DO SITE
+      // ==================================================
+
+      let arquivo = url.pathname;
+
+      if (arquivo === '/') {
+        arquivo = '/index.html';
+      }
+
+      arquivo = path.normalize(arquivo);
+
+      if (
+        arquivo.includes('..')
+      ) {
+
+        responder(
+          res,
+          403,
+          {
+            sucesso: false,
+            mensagem:
+              'Acesso negado.'
+          }
+        );
+
+        return;
+      }
+
+      const caminho =
+        path.join(
+          __dirname,
+          arquivo
+        );
+
+      fs.readFile(
+        caminho,
+        (erro, conteudo) => {
+
+          if (erro) {
+
+            res.writeHead(
+              404,
+              {
+                'Content-Type':
+                  'text/plain; charset=utf-8'
+              }
+            );
+
+            res.end(
+              'Arquivo não encontrado.'
+            );
+
+            return;
+          }
+
+          let tipo =
+            'text/html; charset=utf-8';
+
+          if (
+            arquivo.endsWith('.css')
+          ) {
+
+            tipo =
+              'text/css; charset=utf-8';
+
+          } else if (
+            arquivo.endsWith('.js')
+          ) {
+
+            tipo =
+              'application/javascript; charset=utf-8';
+
+          } else if (
+            arquivo.endsWith('.json')
+          ) {
+
+            tipo =
+              'application/json; charset=utf-8';
+
+          } else if (
+            arquivo.endsWith('.png')
+          ) {
+
+            tipo =
+              'image/png';
+
+          } else if (
+            arquivo.endsWith('.jpg') ||
+            arquivo.endsWith('.jpeg')
+          ) {
+
+            tipo =
+              'image/jpeg';
+
+          } else if (
+            arquivo.endsWith('.svg')
+          ) {
+
+            tipo =
+              'image/svg+xml';
+
+          } else if (
+            arquivo.endsWith('.ico')
+          ) {
+
+            tipo =
+              'image/x-icon';
+          }
+
+          res.writeHead(
+            200,
+            {
+              'Content-Type': tipo
+            }
+          );
+
+          res.end(conteudo);
+        }
+      );
+
+    } catch (erro) {
+
+      console.error(
+        'Erro no servidor:',
+        erro
+      );
+
+      responder(
+        res,
+        500,
+        {
+          sucesso: false,
+          mensagem:
+            'Erro interno do servidor.'
+        }
+      );
+    }
+  }
+);
 
 // ======================================================
 // INICIAR
@@ -2435,5 +2391,4 @@ inicializarBanco()
     );
 
     process.exit(1);
-
   });
