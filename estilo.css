@@ -1,0 +1,309 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #111827, #1e3a8a);
+  min-height: 100vh;
+  color: #ffffff;
+}
+
+.app {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  margin: auto;
+  padding: 20px;
+}
+
+.tela {
+  display: none;
+}
+
+.tela.ativa {
+  display: block;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  margin: 25px auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 50%;
+  font-size: 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.3);
+}
+
+h1 {
+  text-align: center;
+  font-size: 38px;
+  margin-top: 5px;
+}
+
+.slogan {
+  text-align: center;
+  opacity: .85;
+  margin-bottom: 25px;
+}
+
+.card {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 20px;
+  padding: 22px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+}
+
+.card h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 12px;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  font-size: 16px;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+button {
+  width: 100%;
+  border: none;
+  padding: 15px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #facc15;
+  color: #111827;
+  margin-top: 8px;
+}
+
+button:active {
+  transform: scale(.98);
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.botao-secundario {
+  background: rgba(255,255,255,.15);
+  color: white;
+}
+
+.erro {
+  color: #fecaca;
+  text-align: center;
+  min-height: 20px;
+  margin-top: 8px;
+}
+
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 20px;
+  font-size: 20px;
+}
+
+.saldo {
+  background: rgba(255,255,255,.15);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.usuario {
+  margin-bottom: 15px;
+}
+
+.placar {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.placar div {
+  flex: 1;
+  background: rgba(255,255,255,.12);
+  padding: 14px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.placar span {
+  display: block;
+  font-size: 12px;
+  opacity: .8;
+}
+
+.placar strong {
+  font-size: 22px;
+}
+
+.dado-area {
+  text-align: center;
+  padding: 25px 0;
+}
+
+.dado {
+  width: 100px;
+  height: 100px;
+  background: white;
+  color: #111827;
+  margin: auto;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 45px;
+  font-weight: bold;
+  box-shadow: 0 10px 25px rgba(0,0,0,.3);
+}
+
+.dado.girando {
+  animation: girar .8s linear;
+}
+
+@keyframes girar {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(360deg) scale(1.15);
+  }
+
+  100% {
+    transform: rotate(720deg) scale(1);
+  }
+}
+
+#pontosRodada {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.pergunta-area {
+  background: rgba(255,255,255,.1);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 15px;
+}
+
+.timer {
+  text-align: center;
+  font-size: 25px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.nivel {
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  opacity: .8;
+  margin-bottom: 12px;
+}
+
+#pergunta {
+  font-size: 20px;
+  line-height: 1.4;
+  margin-bottom: 15px;
+}
+
+.respostas button {
+  background: white;
+  color: #111827;
+  text-align: left;
+  margin-top: 10px;
+}
+
+.respostas button:hover {
+  background: #f3f4f6;
+}
+
+.respostas button.correta {
+  background: #22c55e;
+  color: white;
+}
+
+.respostas button.errada {
+  background: #ef4444;
+  color: white;
+}
+
+#resultado,
+#resultadoSaque,
+#resultadoSAC {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 12px;
+  min-height: 22px;
+}
+
+.menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.menu button {
+  font-size: 12px;
+  padding: 12px 5px;
+}
+
+.anuncio {
+  min-height: 80px;
+  margin-top: 18px;
+  border: 1px dashed rgba(255,255,255,.35);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: .5;
+  font-size: 11px;
+}
+
+.conversao {
+  text-align: center;
+  margin-bottom: 15px;
+  opacity: .85;
+}
+
+@media (max-width: 360px) {
+
+  .app {
+    padding: 12px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  .dado {
+    width: 85px;
+    height: 85px;
+  }
+
+}
