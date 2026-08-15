@@ -1,1979 +1,436 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>QuizUp</title>
+  <title>QuizUp - Gire. Responda. Pontue!</title>
 
-<!-- Verificação HilltopAds -->
-<meta name="179068d3f0de074ae365689ad42ea04f113d89a5" content="179068d3f0de074ae365689ad42ea04f113d89a5" />
-
-<style>
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:linear-gradient(135deg,#16002f,#62158f,#e91e63);
-  color:white;
-  min-height:100vh;
-}
-
-.app{
-  max-width:430px;
-  margin:auto;
-  padding:20px;
-}
-
-h1{
-  font-size:40px;
-  margin:5px 0;
-}
-
-.card{
-  background:#ffffff20;
-  border-radius:20px;
-  padding:20px;
-  margin:15px 0;
-  box-shadow:0 8px 25px #0003;
-}
-
-input,select{
-  width:100%;
-  padding:15px;
-  border:0;
-  border-radius:12px;
-  margin:8px 0;
-  font-size:16px;
-}
-
-button{
-  width:100%;
-  padding:15px;
-  border:0;
-  border-radius:12px;
-  margin-top:10px;
-  font-size:16px;
-  font-weight:bold;
-  background:white;
-  color:#57117d;
-}
-
-button:disabled{
-  opacity:.6;
-}
-
-.hidden{
-  display:none!important;
-}
-
-.logo{
-  font-size:70px;
-  text-align:center;
-  margin-top:20px;
-}
-
-.center{
-  text-align:center;
-}
-
-.top{
-  display:flex;
-  gap:10px;
-}
-
-.stat{
-  flex:1;
-  background:#ffffff18;
-  border-radius:15px;
-  padding:12px;
-  text-align:center;
-}
-
-.stat strong{
-  display:block;
-  font-size:22px;
-  margin-top:5px;
-}
-
-.dado{
-  width:115px;
-  height:115px;
-  margin:20px auto;
-  background:white;
-  color:#57117d;
-  border-radius:22px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:58px;
-  font-weight:bold;
-}
-
-.pergunta{
-  font-size:21px;
-  font-weight:bold;
-  line-height:1.3;
-  margin:15px 0;
-}
-
-.opcao{
-  background:#ffffff15;
-  color:white;
-  border:2px solid #ffffff30;
-  text-align:left;
-}
-
-.certa{
-  background:#20c978!important;
-  color:white!important;
-}
-
-.errada{
-  background:#e53935!important;
-  color:white!important;
-}
-
-.timer{
-  font-size:34px;
-  font-weight:bold;
-  text-align:center;
-  margin:10px;
-}
-
-.resultado{
-  text-align:center;
-  font-size:18px;
-  font-weight:bold;
-  min-height:28px;
-}
-
-.saque-item,
-.convite-item{
-  background:#ffffff15;
-  padding:15px;
-  border-radius:15px;
-  margin:10px 0;
-}
-
-.msg{
-  padding:12px;
-  border-radius:12px;
-  background:#ffffff18;
-  margin-top:10px;
-  display:none;
-}
-
-textarea{
-  width:100%;
-  height:130px;
-  padding:15px;
-  border:0;
-  border-radius:12px;
-  font-size:16px;
-  resize:none;
-  font-family:Arial;
-}
-
-.premium-box{
-  border:2px solid #ffd700;
-  background:#ffffff18;
-  border-radius:20px;
-  padding:20px;
-  margin-top:15px;
-}
-
-.premium-price{
-  font-size:38px;
-  font-weight:bold;
-  margin:10px 0;
-}
-
-.premium-item{
-  background:#ffffff15;
-  padding:14px;
-  border-radius:12px;
-  margin:8px 0;
-}
-
-.codigo{
-  font-size:30px;
-  font-weight:bold;
-  letter-spacing:4px;
-  background:white;
-  color:#57117d;
-  padding:15px;
-  border-radius:15px;
-  margin:15px 0;
-  text-align:center;
-}
-
-.progresso{
-  height:12px;
-  background:#ffffff30;
-  border-radius:20px;
-  overflow:hidden;
-  margin-top:10px;
-}
-
-.progresso div{
-  height:100%;
-  background:#20c978;
-}
-
-.publicidade{
-  background:#ffffff15;
-  border:1px dashed #ffffff55;
-  border-radius:15px;
-  padding:15px;
-  margin:15px 0;
-  text-align:center;
-}
-
-.publicidade small{
-  opacity:.8;
-}
-
-.taxa{
-  background:#ffffff15;
-  border-radius:15px;
-  padding:15px;
-  margin:10px 0;
-}
-
-.receber{
-  font-size:22px;
-  font-weight:bold;
-  margin-top:10px;
-}
-</style>
+  <link rel="stylesheet" href="estilo.css">
 </head>
 
 <body>
 
 <div class="app">
 
-<section id="inicio">
+  <!-- =========================
+       LOGIN
+  ========================== -->
 
-<div class="logo">🎯</div>
+  <section id="telaLogin" class="tela ativa">
 
-<div class="card center">
+    <div class="logo">🎯</div>
 
-<h1>QuizUp</h1>
+    <h1>QuizUp</h1>
 
-<p>Gire. Responda. Pontue!</p>
+    <p class="slogan">
+      Gire. Responda. Pontue!
+    </p>
 
-<button onclick="mostrar('cadastro')">
-🆕 CRIAR CONTA
-</button>
+    <div class="card">
 
-<button onclick="mostrar('login')">
-🔐 JÁ TENHO UMA CONTA
-</button>
+      <h2>Entrar</h2>
 
-</div>
+      <input
+        type="email"
+        id="loginEmail"
+        placeholder="E-mail"
+        autocomplete="email"
+      >
 
-<div class="publicidade">
-<strong>📢 PUBLICIDADE / PATROCINADOR</strong>
-<br>
-<small>Espaço reservado para anúncios e patrocinadores.</small>
-</div>
+      <input
+        type="password"
+        id="loginSenha"
+        placeholder="Senha"
+        autocomplete="current-password"
+      >
 
-</section>
+      <button onclick="fazerLogin()">
+        ENTRAR
+      </button>
 
+      <p id="erroLogin" class="erro"></p>
 
-<section id="cadastro" class="hidden">
+      <button
+        class="botao-secundario"
+        onclick="mostrarCadastro()"
+      >
+        CRIAR CONTA
+      </button>
 
-<div class="logo">📝</div>
+    </div>
 
-<div class="card">
+  </section>
 
-<h2>Criar conta</h2>
 
-<input id="nome" placeholder="Nome completo">
+  <!-- =========================
+       CADASTRO
+  ========================== -->
 
-<input id="cpf" inputmode="numeric" placeholder="CPF">
+  <section id="telaCadastro" class="tela">
 
-<input id="emailCadastro" type="email" placeholder="Seu e-mail">
+    <div class="logo">🎯</div>
 
-<input id="senhaCadastro" type="password" placeholder="Crie uma senha">
+    <h1>QuizUp</h1>
 
-<input
-id="codigoConviteCadastro"
-maxlength="8"
-placeholder="Código do convite (opcional)"
->
+    <p class="slogan">
+      Crie sua conta
+    </p>
 
-<button onclick="criarConta()">
-🆕 CRIAR CONTA
-</button>
+    <div class="card">
 
-<div id="cadastroMsg" class="msg"></div>
+      <h2>Cadastro</h2>
 
-<button onclick="mostrar('inicio')">
-⬅️ VOLTAR
-</button>
+      <input
+        type="text"
+        id="cadNome"
+        placeholder="Nome completo"
+        autocomplete="name"
+      >
 
-</div>
+      <input
+        type="text"
+        id="cadCpf"
+        placeholder="CPF"
+        maxlength="14"
+      >
 
-</section>
+      <input
+        type="email"
+        id="cadEmail"
+        placeholder="E-mail"
+        autocomplete="email"
+      >
 
+      <input
+        type="password"
+        id="cadSenha"
+        placeholder="Criar senha"
+        autocomplete="new-password"
+      >
 
-<section id="login" class="hidden">
+      <input
+        type="text"
+        id="cadCodigo"
+        placeholder="Código"
+      >
 
-<div class="logo">🔐</div>
+      <button onclick="cadastrar()">
+        CADASTRAR
+      </button>
 
-<div class="card">
+      <p id="erroCadastro" class="erro"></p>
 
-<h2>Entrar</h2>
+      <button
+        class="botao-secundario"
+        onclick="mostrarLogin()"
+      >
+        VOLTAR PARA LOGIN
+      </button>
 
-<input
-id="emailLogin"
-type="email"
-placeholder="Seu e-mail"
->
+    </div>
 
-<input
-id="senhaLogin"
-type="password"
-placeholder="Sua senha"
->
+  </section>
 
-<button onclick="entrar()">
-🔐 ENTRAR
-</button>
 
-<div id="loginMsg" class="msg"></div>
+  <!-- =========================
+       JOGO
+  ========================== -->
 
-<button onclick="mostrar('inicio')">
-⬅️ VOLTAR
-</button>
+  <section id="telaJogo" class="tela">
 
-</div>
+    <header class="topo">
 
-</section>
+      <div>
+        <strong>QuizUp</strong>
+      </div>
 
+      <div class="saldo">
+        💰
+        <span id="saldo">0</span>
+        pts
+      </div>
 
-<section id="jogo" class="hidden">
+    </header>
 
-<div class="top">
 
-<div class="stat">
-Pontos
-<strong id="pontos">0</strong>
-</div>
+    <div class="usuario">
 
-<div class="stat">
-Rodada
-<strong id="rodada">1</strong>
-</div>
+      Olá,
+      <strong id="nomeUsuario">
+        Jogador
+      </strong>!
 
-</div>
+    </div>
 
 
-<div class="publicidade">
-<strong>📢 PATROCINADOR</strong>
-<br>
-<small>Espaço para publicidade.</small>
-</div>
+    <div class="placar">
 
+      <div>
 
-<div class="card center">
+        <span>
+          Rodada
+        </span>
 
-<h2>🎲 QuizUp</h2>
+        <strong id="rodada">
+          1
+        </strong>
 
-<p>
-Pontos da rodada:
-<strong id="pontosRodada">0</strong>
-</p>
+      </div>
 
-<div class="dado" id="dado">?</div>
 
-<button
-id="botaoGirar"
-onclick="girarDado()"
->
-🎲 GIRAR
-</button>
+      <div>
 
-</div>
+        <span>
+          Pontos
+        </span>
 
+        <strong id="pontos">
+          0
+        </strong>
 
-<div id="areaPergunta" class="card hidden">
+      </div>
 
-<div class="timer">
-⏱️ <span id="tempo">5</span>
-</div>
+    </div>
 
-<div id="pergunta" class="pergunta"></div>
 
-<div id="opcoes"></div>
+    <!-- DADO -->
 
-<div id="resultado" class="resultado"></div>
+    <div class="dado-area">
 
-</div>
+      <div
+        id="dado"
+        class="dado"
+      >
+        ?
+      </div>
 
 
-<div class="publicidade">
-<strong>📢 PUBLICIDADE</strong>
-<br>
-<small>Anúncio / patrocinador</small>
-</div>
+      <button
+        id="botaoGirar"
+        onclick="girarDado()"
+      >
+        🎲 GIRAR
+      </button>
 
 
-<div class="card">
+      <p id="pontosRodada">
+        Gire o dado para começar
+      </p>
 
-<button onclick="abrirConvites()">
-🎁 MEUS CONVITES
-</button>
+    </div>
 
-<button onclick="abrirSaque()">
-💰 SAQUE
-</button>
 
-<button onclick="abrirPremium()">
-💎 PREMIUM
-</button>
+    <!-- PERGUNTA -->
 
-<button onclick="abrirSAC()">
-📞 SAC
-</button>
+    <div
+      id="areaPergunta"
+      class="pergunta-area"
+    >
 
-<button onclick="sair()">
-🚪 SAIR
-</button>
+      <div class="timer">
 
-</div>
+        ⏱️
 
-</section>
+        <span id="timer">
+          5
+        </span>
 
+      </div>
 
-<section id="convites" class="hidden">
 
-<div class="card center">
+      <div
+        class="nivel"
+        id="nivel"
+      >
+        PERGUNTA
+      </div>
 
-<h2>🎁 Meus Convites</h2>
 
-<p>Seu código de convite:</p>
+      <h2 id="pergunta">
+        Gire o dado para começar!
+      </h2>
 
-<div id="meuCodigoConvite" class="codigo">
---------
-</div>
 
-<p>
-Compartilhe esse código com seus amigos.
-</p>
+      <div
+        id="respostas"
+        class="respostas"
+      ></div>
 
-</div>
 
+      <p id="resultado"></p>
 
-<div class="card">
+    </div>
 
-<h3>👥 Pessoas que você convidou</h3>
 
-<div id="listaConvites">
-<p>Carregando...</p>
-</div>
+    <!-- MENU -->
 
-</div>
+    <div class="menu">
 
+      <button onclick="mostrarSaque()">
+        💰 SAQUE
+      </button>
 
-<div class="card">
 
-<h3>🎯 Como funciona</h3>
+      <button onclick="mostrarSAC()">
+        🎧 SAC
+      </button>
 
-<p>
-Quando seu convidado se cadastrar usando seu código,
-ele recebe <strong>5 pontos</strong>.
-</p>
 
-<p>
-🏆 Quando o convidado chegar a
-<strong>300 pontos</strong>,
-você recebe <strong>50 pontos</strong>.
-</p>
+      <button onclick="sair()">
+        🚪 SAIR
+      </button>
 
-<p>
-📊 Acompanhe o progresso dos seus convidados aqui.
-</p>
+    </div>
 
-</div>
 
-<button onclick="voltarJogo()">
-⬅️ VOLTAR
-</button>
+    <!-- PUBLICIDADE -->
 
-</section>
+    <div class="anuncio">
 
+      <span>
+        PUBLICIDADE
+      </span>
 
-<section id="saque" class="hidden">
+    </div>
 
-<div class="card">
+  </section>
 
-<h2>💰 Saque</h2>
 
-<p>Seu saldo:</p>
+  <!-- =========================
+       SAQUE
+  ========================== -->
 
-<h2>
-<span id="saldoSaque">0</span> pontos
-</h2>
+  <section id="telaSaque" class="tela">
 
+    <div class="card">
 
-<div class="taxa">
+      <h2>
+        💰 Solicitar saque
+      </h2>
 
-<p><strong>Conversão:</strong></p>
 
-<p>1.000 pontos = R$ 1,00</p>
-<p>2.000 pontos = R$ 2,00</p>
-<p>5.000 pontos = R$ 5,00</p>
-<p>6.000 pontos = R$ 6,00</p>
-<p>10.000 pontos = R$ 10,00</p>
+      <p>
 
-<hr>
+        Seu saldo:
 
-<p>
-💼 Taxa da plataforma:
-<strong>30%</strong>
-</p>
+        <strong>
 
-<p>
-O valor mostrado no pedido considera a taxa de 30% da plataforma.
-</p>
+          <span id="saldoSaque">
+            0
+          </span>
 
-</div>
+          pontos
 
+        </strong>
 
-<div class="saque-item">
+      </p>
 
-<b>Forma de pagamento</b>
 
-<select id="metodoSaque">
+      <p class="conversao">
 
-<option value="">
-Escolha o método
-</option>
+        1.000 pontos = R$ 1,00
 
-<option value="Pix">
-Pix
-</option>
+      </p>
 
-<option value="PayPal">
-PayPal
-</option>
 
-</select>
+      <input
+        type="number"
+        id="valorSaque"
+        placeholder="Quantidade de pontos"
+      >
 
-<input
-id="chaveSaque"
-placeholder="Chave Pix ou e-mail do PayPal"
->
 
-</div>
+      <select id="tipoSaque">
 
+        <option value="pix">
+          PIX
+        </option>
 
-<div class="saque-item">
+        <option value="paypal">
+          PayPal
+        </option>
 
-<b>R$ 1,00</b>
+      </select>
 
-<p>
-Após 30%:
-<strong>R$ 0,70</strong>
-</p>
 
-<button onclick="solicitarSaque(1000)">
-SACAR 1.000 PONTOS
-</button>
+      <input
+        type="text"
+        id="destinoSaque"
+        placeholder="Chave PIX ou e-mail PayPal"
+      >
 
-</div>
 
+      <button onclick="solicitarSaque()">
+        SOLICITAR SAQUE
+      </button>
 
-<div class="saque-item">
 
-<b>R$ 2,00</b>
+      <p id="resultadoSaque"></p>
 
-<p>
-Após 30%:
-<strong>R$ 1,40</strong>
-</p>
 
-<button onclick="solicitarSaque(2000)">
-SACAR 2.000 PONTOS
-</button>
+      <button
+        class="botao-secundario"
+        onclick="voltarJogo()"
+      >
+        VOLTAR
+      </button>
 
-</div>
+    </div>
 
+  </section>
 
-<div class="saque-item">
 
-<b>R$ 5,00</b>
+  <!-- =========================
+       SAC
+  ========================== -->
 
-<p>
-Após 30%:
-<strong>R$ 3,50</strong>
-</p>
+  <section id="telaSAC" class="tela">
 
-<button onclick="solicitarSaque(5000)">
-SACAR 5.000 PONTOS
-</button>
+    <div class="card">
 
-</div>
+      <h2>
+        🎧 Atendimento
+      </h2>
 
 
-<div class="saque-item">
+      <p>
+        Precisa de ajuda?
+        Envie sua mensagem.
+      </p>
 
-<b>R$ 6,00</b>
 
-<p>
-Após 30%:
-<strong>R$ 4,20</strong>
-</p>
+      <textarea
+        id="mensagemSAC"
+        placeholder="Digite sua mensagem..."
+      ></textarea>
 
-<button onclick="solicitarSaque(6000)">
-SACAR 6.000 PONTOS
-</button>
 
-</div>
+      <button onclick="enviarSAC()">
+        ENVIAR
+      </button>
 
 
-<div class="saque-item">
+      <p id="resultadoSAC"></p>
 
-<b>R$ 10,00</b>
 
-<p>
-Após 30%:
-<strong>R$ 7,00</strong>
-</p>
+      <button
+        class="botao-secundario"
+        onclick="voltarJogo()"
+      >
+        VOLTAR
+      </button>
 
-<button onclick="solicitarSaque(10000)">
-SACAR 10.000 PONTOS
-</button>
+    </div>
 
-</div>
-
-
-<div id="saqueMsg" class="msg"></div>
-
-<button onclick="voltarJogo()">
-⬅️ VOLTAR
-</button>
-
-</div>
-
-</section>
-
-
-<section id="premium" class="hidden">
-
-<div class="card center">
-
-<h2>💎 QuizUp Premium</h2>
-
-<p>
-Tenha uma experiência ainda melhor no QuizUp.
-</p>
-
-<div class="premium-box">
-
-<div class="premium-price">
-R$ 9,90
-</div>
-
-<p>por mês</p>
-
-<div class="premium-item">
-🚫 Sem anúncios
-</div>
-
-<div class="premium-item">
-⭐ Perfil Premium
-</div>
-
-<div class="premium-item">
-🏆 Destaque no ranking
-</div>
-
-<div class="premium-item">
-🎯 Recursos exclusivos
-</div>
-
-<button onclick="assinarPremium()">
-💎 ASSINAR POR R$ 9,90/MÊS
-</button>
-
-<div id="premiumMsg" class="msg"></div>
-
-</div>
-
-<button onclick="voltarJogo()">
-⬅️ VOLTAR
-</button>
-
-</div>
-
-</section>
-
-
-<section id="sac" class="hidden">
-
-<div class="card">
-
-<h2>📞 SAC</h2>
-
-<input
-id="sacNome"
-placeholder="Seu nome"
->
-
-<input
-id="sacEmail"
-type="email"
-placeholder="Seu e-mail"
->
-
-<textarea
-id="sacMensagem"
-placeholder="Digite sua mensagem"
-></textarea>
-
-<button onclick="enviarSAC()">
-ENVIAR MENSAGEM
-</button>
-
-<div id="sacMsg" class="msg"></div>
-
-<button onclick="voltarJogo()">
-⬅️ VOLTAR
-</button>
-
-</div>
-
-</section>
+  </section>
 
 </div>
 
 
-<script>
+<!-- JAVASCRIPT -->
 
-let usuario = null;
-let pontos = 0;
-let rodada = 1;
-let pontosDaRodada = 0;
-let perguntaAtual = null;
-let tempo = 5;
-let intervalo = null;
-let respondida = false;
-
-
-const perguntas = [
-
-{
-p:"Qual é a capital do Brasil?",
-r:["São Paulo","Brasília","Rio de Janeiro","Salvador"],
-c:1
-},
-
-{
-p:"Quanto é 2 + 2?",
-r:["3","4","5","6"],
-c:1
-},
-
-{
-p:"Qual planeta é conhecido como Planeta Vermelho?",
-r:["Terra","Vênus","Marte","Júpiter"],
-c:2
-},
-
-{
-p:"Quantos dias tem uma semana?",
-r:["5","6","7","8"],
-c:2
-},
-
-{
-p:"Qual é o maior oceano da Terra?",
-r:["Atlântico","Índico","Ártico","Pacífico"],
-c:3
-},
-
-{
-p:"Qual é o resultado de 9 × 8?",
-r:["64","72","81","88"],
-c:1
-},
-
-{
-p:"Qual é o símbolo químico do ouro?",
-r:["Ag","Au","Fe","O"],
-c:1
-},
-
-{
-p:"Quem escreveu Dom Casmurro?",
-r:[
-"Machado de Assis",
-"José de Alencar",
-"Monteiro Lobato",
-"Carlos Drummond"
-],
-c:0
-},
-
-{
-p:"Qual é o maior planeta do Sistema Solar?",
-r:["Saturno","Terra","Júpiter","Netuno"],
-c:2
-},
-
-{
-p:"Em que ano o homem chegou à Lua pela primeira vez?",
-r:["1959","1965","1969","1972"],
-c:2
-},
-
-{
-p:"Qual é a raiz quadrada de 144?",
-r:["10","11","12","14"],
-c:2
-},
-
-{
-p:"Qual país possui a maior extensão territorial do mundo?",
-r:["China","Estados Unidos","Canadá","Rússia"],
-c:3
-},
-
-{
-p:"Qual é o elemento químico de número atômico 79?",
-r:["Prata","Ouro","Platina","Cobre"],
-c:1
-},
-
-{
-p:"Qual é a capital da Mongólia?",
-r:["Astana","Ulan Bator","Tashkent","Bishkek"],
-c:1
-},
-
-{
-p:"Qual é o maior deserto quente do mundo?",
-r:["Atacama","Saara","Gobi","Kalahari"],
-c:1
-},
-
-{
-p:"Qual cientista formulou as três leis do movimento?",
-r:[
-"Albert Einstein",
-"Galileu Galilei",
-"Isaac Newton",
-"Marie Curie"
-],
-c:2
-}
-
-];
-
-
-function esconderTudo(){
-
-document
-.querySelectorAll("section")
-.forEach(s=>{
-s.classList.add("hidden");
-});
-
-}
-
-
-function mostrar(id){
-
-esconderTudo();
-
-document
-.getElementById(id)
-.classList
-.remove("hidden");
-
-}
-
-
-function atualizar(){
-
-document.getElementById("pontos").textContent =
-Number(pontos).toLocaleString("pt-BR");
-
-document.getElementById("rodada").textContent =
-rodada;
-
-document.getElementById("pontosRodada").textContent =
-pontosDaRodada;
-
-document.getElementById("saldoSaque").textContent =
-Number(pontos).toLocaleString("pt-BR");
-
-}
-
-
-async function criarConta(){
-
-const nome =
-document.getElementById("nome").value.trim();
-
-const cpf =
-document.getElementById("cpf").value.trim();
-
-const email =
-document.getElementById("emailCadastro").value.trim();
-
-const senha =
-document.getElementById("senhaCadastro").value;
-
-const codigoConvite =
-document
-.getElementById("codigoConviteCadastro")
-.value
-.trim()
-.toUpperCase();
-
-const msg =
-document.getElementById("cadastroMsg");
-
-msg.style.display="block";
-
-
-if(!nome || !cpf || !email || !senha){
-
-msg.textContent =
-"⚠️ Preencha todos os campos obrigatórios.";
-
-return;
-
-}
-
-
-if(cpf.replace(/\D/g,"").length!==11){
-
-msg.textContent =
-"⚠️ Informe um CPF válido.";
-
-return;
-
-}
-
-
-if(!email.includes("@")){
-
-msg.textContent =
-"⚠️ Informe um e-mail válido.";
-
-return;
-
-}
-
-
-if(senha.length<4){
-
-msg.textContent =
-"⚠️ A senha precisa ter pelo menos 4 caracteres.";
-
-return;
-
-}
-
-
-msg.textContent =
-"⏳ Criando sua conta...";
-
-
-try{
-
-const resposta =
-await fetch("/api/criar-conta",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-nome:nome,
-cpf:cpf,
-email:email,
-senha:senha,
-codigoConvite:codigoConvite
-})
-
-});
-
-
-const resultado =
-await resposta.json();
-
-
-if(!resposta.ok || !resultado.sucesso){
-
-msg.textContent =
-"❌ "+
-(resultado.mensagem ||
-"Não foi possível criar a conta.");
-
-return;
-
-}
-
-
-msg.innerHTML =
-"✅ Conta criada com sucesso!<br><br>"+
-"Seu código de convite é:<br>"+
-"<strong>"+
-resultado.usuario.codigo_convite+
-"</strong>";
-
-
-setTimeout(()=>{
-
-document.getElementById("emailLogin").value =
-email;
-
-document.getElementById("senhaLogin").value =
-senha;
-
-mostrar("login");
-
-},1800);
-
-
-}catch(erro){
-
-console.error(erro);
-
-msg.textContent =
-"❌ Erro de conexão com o servidor.";
-
-}
-
-}
-
-
-async function entrar(){
-
-const email =
-document
-.getElementById("emailLogin")
-.value
-.trim();
-
-const senha =
-document
-.getElementById("senhaLogin")
-.value;
-
-const msg =
-document.getElementById("loginMsg");
-
-msg.style.display="block";
-
-
-if(!email || !senha){
-
-msg.textContent =
-"⚠️ Preencha e-mail e senha.";
-
-return;
-
-}
-
-
-msg.textContent =
-"⏳ Entrando...";
-
-
-try{
-
-const resposta =
-await fetch("/api/login",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-email:email,
-senha:senha
-})
-
-});
-
-
-const resultado =
-await resposta.json();
-
-
-if(!resposta.ok || !resultado.sucesso){
-
-msg.textContent =
-"❌ "+
-(resultado.mensagem ||
-"E-mail ou senha incorretos.");
-
-return;
-
-}
-
-
-usuario =
-resultado.usuario;
-
-pontos =
-Number(usuario.pontos)||0;
-
-rodada=1;
-
-msg.textContent =
-"✅ Login realizado!";
-
-
-setTimeout(()=>{
-
-mostrar("jogo");
-
-atualizar();
-
-},500);
-
-
-}catch(erro){
-
-console.error(erro);
-
-msg.textContent =
-"❌ Erro de conexão com o servidor.";
-
-}
-
-}
-
-
-function gerarDado(){
-
-const r=Math.random();
-
-if(r<0.18)return 1;
-if(r<0.36)return 2;
-if(r<0.54)return 3;
-if(r<0.70)return 4;
-if(r<0.78)return 5;
-if(r<0.84)return 6;
-if(r<0.89)return 7;
-if(r<0.94)return 8;
-if(r<0.98)return 9;
-
-return 10;
-
-}
-
-
-function girarDado(){
-
-if(
-!document
-.getElementById("areaPergunta")
-.classList
-.contains("hidden")
-)return;
-
-
-pontosDaRodada =
-gerarDado();
-
-
-document
-.getElementById("dado")
-.textContent =
-pontosDaRodada;
-
-
-document
-.getElementById("botaoGirar")
-.disabled=true;
-
-
-mostrarPergunta();
-
-atualizar();
-
-}
-
-
-function mostrarPergunta(){
-
-respondida=false;
-
-
-document
-.getElementById("areaPergunta")
-.classList
-.remove("hidden");
-
-
-document
-.getElementById("resultado")
-.textContent="";
-
-
-perguntaAtual =
-perguntas[
-Math.floor(
-Math.random()*perguntas.length
-)
-];
-
-
-document
-.getElementById("pergunta")
-.textContent =
-perguntaAtual.p;
-
-
-const opcoes =
-document.getElementById("opcoes");
-
-opcoes.innerHTML="";
-
-
-perguntaAtual.r.forEach((texto,i)=>{
-
-const b =
-document.createElement("button");
-
-b.className="opcao";
-
-b.textContent=texto;
-
-b.onclick=()=>{
-responder(i);
-};
-
-opcoes.appendChild(b);
-
-});
-
-
-iniciarTimer();
-
-}
-
-
-function iniciarTimer(){
-
-pararTimer();
-
-tempo=5;
-
-document
-.getElementById("tempo")
-.textContent=tempo;
-
-
-intervalo=setInterval(()=>{
-
-tempo--;
-
-document
-.getElementById("tempo")
-.textContent=tempo;
-
-
-if(tempo<=0){
-
-pararTimer();
-
-tempoEsgotado();
-
-}
-
-},1000);
-
-}
-
-
-function pararTimer(){
-
-if(intervalo){
-
-clearInterval(intervalo);
-
-intervalo=null;
-
-}
-
-}
-
-
-async function responder(i){
-
-if(respondida)return;
-
-respondida=true;
-
-pararTimer();
-
-
-const botoes =
-document.querySelectorAll(".opcao");
-
-
-botoes.forEach(b=>{
-b.disabled=true;
-});
-
-
-if(i===perguntaAtual.c){
-
-botoes[i].classList.add("certa");
-
-
-document
-.getElementById("resultado")
-.textContent =
-"⏳ Registrando pontos...";
-
-
-await adicionarPontosServidor(
-pontosDaRodada
-);
-
-
-}else{
-
-botoes[i].classList.add("errada");
-
-botoes[
-perguntaAtual.c
-].classList.add("certa");
-
-
-document
-.getElementById("resultado")
-.textContent =
-"❌ ERROU! Não ganhou os pontos.";
-
-
-setTimeout(()=>{
-proximaRodada();
-},1500);
-
-}
-
-}
-
-
-async function adicionarPontosServidor(valor){
-
-try{
-
-const resposta =
-await fetch("/api/adicionar-pontos",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-usuarioId:usuario.id,
-pontos:valor
-})
-
-});
-
-
-const resultado =
-await resposta.json();
-
-
-if(!resposta.ok || !resultado.sucesso){
-
-document
-.getElementById("resultado")
-.textContent =
-"❌ Não foi possível registrar os pontos.";
-
-
-setTimeout(()=>{
-proximaRodada();
-},1500);
-
-return;
-
-}
-
-
-usuario =
-resultado.usuario;
-
-pontos =
-Number(usuario.pontos)||0;
-
-
-document
-.getElementById("resultado")
-.textContent =
-"🎉 ACERTOU! +"+
-valor+
-" pontos";
-
-
-atualizar();
-
-
-setTimeout(()=>{
-proximaRodada();
-},1500);
-
-
-}catch(erro){
-
-console.error(erro);
-
-
-document
-.getElementById("resultado")
-.textContent =
-"❌ Erro de conexão.";
-
-
-setTimeout(()=>{
-proximaRodada();
-},1500);
-
-}
-
-}
-
-
-function tempoEsgotado(){
-
-if(respondida)return;
-
-respondida=true;
-
-
-const botoes =
-document.querySelectorAll(".opcao");
-
-
-botoes.forEach(b=>{
-b.disabled=true;
-});
-
-
-botoes[
-perguntaAtual.c
-].classList.add("certa");
-
-
-document
-.getElementById("resultado")
-.textContent =
-"⏰ TEMPO ESGOTADO! Não ganhou os pontos.";
-
-
-setTimeout(()=>{
-proximaRodada();
-},1500);
-
-}
-
-
-function proximaRodada(){
-
-rodada++;
-
-pontosDaRodada=0;
-
-
-document
-.getElementById("dado")
-.textContent="?";
-
-
-document
-.getElementById("areaPergunta")
-.classList
-.add("hidden");
-
-
-document
-.getElementById("botaoGirar")
-.disabled=false;
-
-
-atualizar();
-
-}
-
-
-async function abrirConvites(){
-
-mostrar("convites");
-
-
-if(!usuario){
-
-document
-.getElementById("meuCodigoConvite")
-.textContent="--------";
-
-return;
-
-}
-
-
-document
-.getElementById("meuCodigoConvite")
-.textContent =
-usuario.codigo_convite;
-
-
-await mostrarListaConvites();
-
-}
-
-
-async function mostrarListaConvites(){
-
-const lista =
-document.getElementById("listaConvites");
-
-lista.innerHTML =
-"<p>⏳ Carregando...</p>";
-
-
-try{
-
-const resposta =
-await fetch(
-"/api/convites?usuarioId="+
-encodeURIComponent(usuario.id)
-);
-
-
-const resultado =
-await resposta.json();
-
-
-if(!resposta.ok || !resultado.sucesso){
-
-lista.innerHTML =
-"<p>❌ Não foi possível carregar os convites.</p>";
-
-return;
-
-}
-
-
-const convites =
-resultado.convites || [];
-
-
-if(convites.length===0){
-
-lista.innerHTML =
-"<p>Você ainda não convidou ninguém.</p>";
-
-return;
-
-}
-
-
-lista.innerHTML="";
-
-
-convites.forEach(convite=>{
-
-const percentual =
-Math.min(
-100,
-(Number(convite.pontos)/300)*100
-);
-
-
-const faltam =
-Math.max(
-0,
-300-Number(convite.pontos)
-);
-
-
-const div =
-document.createElement("div");
-
-div.className="convite-item";
-
-
-div.innerHTML =
-"<strong>"+
-escapeHTML(convite.nome)+
-"</strong><br><br>"+
-"🎯 Pontos: "+
-Number(convite.pontos)+
-" / 300<br>"+
-"🎁 Recompensa: "+
-(
-convite.recompensa
-?
-"50 pontos recebidos"
-:
-"Aguardando"
-)+
-"<div class='progresso'>"+
-"<div style='width:"+
-percentual+
-"%'></div>"+
-"</div><br>"+
-(
-convite.recompensa
-?
-"✅ Meta concluída! Você ganhou 50 pontos."
-:
-"⏳ Faltam "+
-faltam+
-" pontos para liberar seus 50 pontos."
-);
-
-
-lista.appendChild(div);
-
-});
-
-}catch(erro){
-
-console.error(erro);
-
-lista.innerHTML =
-"<p>❌ Erro de conexão com o servidor.</p>";
-
-}
-
-}
-
-
-function escapeHTML(texto){
-
-const div =
-document.createElement("div");
-
-div.textContent=texto;
-
-return div.innerHTML;
-
-}
-
-
-function abrirSaque(){
-
-mostrar("saque");
-
-atualizar();
-
-}
-
-
-async function solicitarSaque(valor){
-
-const msg =
-document.getElementById("saqueMsg");
-
-msg.style.display="block";
-
-
-if(!usuario){
-
-msg.textContent =
-"⚠️ Faça login novamente.";
-
-return;
-
-}
-
-
-if(pontos<valor){
-
-msg.textContent =
-"⚠️ Você não possui pontos suficientes.";
-
-return;
-
-}
-
-
-const metodo =
-document
-.getElementById("metodoSaque")
-.value;
-
-
-const chave =
-document
-.getElementById("chaveSaque")
-.value
-.trim();
-
-
-if(!metodo){
-
-msg.textContent =
-"⚠️ Escolha Pix ou PayPal.";
-
-return;
-
-}
-
-
-if(!chave){
-
-msg.textContent =
-"⚠️ Informe sua chave Pix ou e-mail do PayPal.";
-
-return;
-
-}
-
-
-const valorBruto =
-valor/1000;
-
-const taxa =
-valorBruto*0.30;
-
-const valorLiquido =
-valorBruto-taxa;
-
-
-msg.textContent =
-"⏳ Enviando solicitação de saque...";
-
-
-try{
-
-const resposta =
-await fetch(
-"/solicitar-saque",
-{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-usuarioId:usuario.id,
-
-email:usuario.email,
-
-pontos:valor,
-
-valor:valorBruto,
-
-taxa:taxa,
-
-valorLiquido:valorLiquido,
-
-metodo:metodo,
-
-chave:chave
-
-})
-
-});
-
-
-const resultado =
-await resposta.json();
-
-
-if(!resposta.ok || !resultado.sucesso){
-
-msg.textContent =
-"❌ "+
-(
-resultado.mensagem ||
-"Não foi possível solicitar o saque."
-);
-
-return;
-
-}
-
-
-pontos-=valor;
-
-usuario.pontos=pontos;
-
-atualizar();
-
-
-msg.innerHTML =
-"✅ Saque solicitado!<br><br>"+
-"Valor bruto: R$ "+
-valorBruto
-.toFixed(2)
-.replace(".",",")+
-"<br>"+
-"Taxa da plataforma (30%): R$ "+
-taxa
-.toFixed(2)
-.replace(".",",")+
-"<br>"+
-"<strong>Você receberá: R$ "+
-valorLiquido
-.toFixed(2)
-.replace(".",",")+
-"</strong>";
-
-
-document
-.getElementById("metodoSaque")
-.value="";
-
-
-document
-.getElementById("chaveSaque")
-.value="";
-
-
-}catch(erro){
-
-console.error(erro);
-
-msg.textContent =
-"❌ Erro de conexão. Tente novamente.";
-
-}
-
-}
-
-
-function abrirPremium(){
-
-mostrar("premium");
-
-}
-
-
-function assinarPremium(){
-
-const msg =
-document.getElementById("premiumMsg");
-
-msg.style.display="block";
-
-msg.textContent =
-"💳 Abrindo pagamento seguro da Hotmart...";
-
-
-setTimeout(()=>{
-
-window.location.href =
-"https://pay.hotmart.com/Q107171429I";
-
-},700);
-
-}
-
-
-function abrirSAC(){
-
-mostrar("sac");
-
-}
-
-
-function enviarSAC(){
-
-const nome =
-document
-.getElementById("sacNome")
-.value
-.trim();
-
-
-const email =
-document
-.getElementById("sacEmail")
-.value
-.trim();
-
-
-const mensagem =
-document
-.getElementById("sacMensagem")
-.value
-.trim();
-
-
-const msg =
-document.getElementById("sacMsg");
-
-msg.style.display="block";
-
-
-if(!nome || !email || !mensagem){
-
-msg.textContent =
-"⚠️ Preencha todos os campos.";
-
-return;
-
-}
-
-
-msg.textContent =
-"✅ Mensagem enviada com sucesso!";
-
-}
-
-
-function voltarJogo(){
-
-mostrar("jogo");
-
-atualizar();
-
-}
-
-
-function sair(){
-
-pararTimer();
-
-usuario=null;
-
-pontos=0;
-
-rodada=1;
-
-pontosDaRodada=0;
-
-mostrar("inicio");
-
-}
-
-
-atualizar();
-
-mostrar("inicio");
-
-</script>
+<script src="script.js"></script>
 
 </body>
-</html>
+      </html>
