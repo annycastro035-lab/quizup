@@ -3,522 +3,1353 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>QuizUp - Gire. Responda. Pontue!</title>
 
-  <link rel="stylesheet" href="estilo.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      min-height: 100vh;
+      color: #222;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 430px;
+      margin: auto;
+      min-height: 100vh;
+      background: #f5f7fb;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* LOGIN */
+    #login {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    }
+
+    .login-box {
+      width: 100%;
+      background: white;
+      border-radius: 24px;
+      padding: 30px 22px;
+      box-shadow: 0 15px 40px rgba(0,0,0,.2);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 55px;
+      margin-bottom: 8px;
+    }
+
+    .login-box h1 {
+      font-size: 32px;
+      color: #4f46e5;
+      margin-bottom: 5px;
+    }
+
+    .login-box p {
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 12px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .login-box input:focus {
+      border-color: #4f46e5;
+    }
+
+    .btn {
+      border: none;
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      background: #4f46e5;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    /* APP */
+    #app {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .topo {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      padding: 18px 15px;
+      text-align: center;
+    }
+
+    .topo h1 {
+      font-size: 26px;
+    }
+
+    .topo p {
+      margin-top: 4px;
+      opacity: .9;
+      font-size: 13px;
+    }
+
+    /* SALDO */
+    .saldo-box {
+      margin: 15px;
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,.08);
+    }
+
+    .saldo-label {
+      color: #777;
+      font-size: 13px;
+    }
+
+    .saldo {
+      font-size: 30px;
+      font-weight: bold;
+      color: #16a34a;
+      margin-top: 5px;
+    }
+
+    .pontos {
+      color: #555;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    /* MENU */
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      padding: 0 10px 12px;
+    }
+
+    .menu-item {
+      background: white;
+      border: none;
+      border-radius: 13px;
+      padding: 11px 3px;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,.07);
+      font-size: 11px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .menu-item span {
+      display: block;
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .menu-item.ativo {
+      background: #4f46e5;
+      color: white;
+    }
+
+    /* CONTEÚDO */
+    .conteudo {
+      padding: 0 15px 25px;
+    }
+
+    .tela {
+      display: none;
+    }
+
+    .tela.ativa {
+      display: block;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,.07);
+    }
+
+    .card h2 {
+      color: #4f46e5;
+      margin-bottom: 10px;
+      font-size: 21px;
+    }
+
+    .card h3 {
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      color: #666;
+      line-height: 1.5;
+    }
+
+    /* JOGO */
+    .rodada {
+      text-align: center;
+      font-weight: bold;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .dado {
+      width: 110px;
+      height: 110px;
+      margin: 10px auto 18px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      font-weight: bold;
+      box-shadow: 0 8px 20px rgba(79,70,229,.3);
+    }
+
+    .nivel {
+      text-align: center;
+      color: #7c3aed;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .pergunta {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 15px;
+      line-height: 1.4;
+    }
+
+    .timer {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #dc2626;
+      margin-bottom: 12px;
+    }
+
+    .respostas {
+      display: grid;
+      gap: 10px;
+    }
+
+    .resposta {
+      width: 100%;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .resposta:hover {
+      border-color: #4f46e5;
+      background: #f5f3ff;
+    }
+
+    .btn-jogar {
+      margin-top: 15px;
+    }
+
+    /* INDICAÇÕES */
+    .codigo-indicacao {
+      background: #f3f0ff;
+      border: 2px dashed #7c3aed;
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .codigo-indicacao strong {
+      display: block;
+      font-size: 24px;
+      color: #4f46e5;
+      margin: 8px 0;
+    }
+
+    .link-indicacao {
+      word-break: break-all;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .beneficio {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .beneficio-icon {
+      font-size: 25px;
+    }
+
+    /* PREMIUM */
+    .premium {
+      background: linear-gradient(135deg, #f59e0b, #facc15);
+      color: #3b2600;
+    }
+
+    .premium h2 {
+      color: #3b2600;
+    }
+
+    .plano {
+      border: 2px solid #eee;
+      border-radius: 15px;
+      padding: 16px;
+      margin-top: 12px;
+    }
+
+    .plano.destaque {
+      border-color: #f59e0b;
+    }
+
+    .preco {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 8px 0;
+    }
+
+    /* SAQUE */
+    .saque-opcoes {
+      display: grid;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .opcao-saque {
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .opcao-saque strong {
+      color: #16a34a;
+    }
+
+    /* SAC */
+    .sac-item {
+      padding: 15px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .sac-item:last-child {
+      border-bottom: none;
+    }
+
+    .sac-item strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .sac-textarea {
+      width: 100%;
+      min-height: 110px;
+      margin-top: 12px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 12px;
+      resize: vertical;
+      font-family: Arial;
+    }
+
+    /* RODAPÉ */
+    .rodape {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-size: 12px;
+    }
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,.55);
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.ativo {
+      display: flex;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 400px;
+      background: white;
+      border-radius: 20px;
+      padding: 22px;
+      position: relative;
+    }
+
+    .fechar {
+      position: absolute;
+      right: 15px;
+      top: 10px;
+      border: none;
+      background: none;
+      font-size: 28px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 350px) {
+      .menu-item {
+        font-size: 10px;
+      }
+
+      .menu-item span {
+        font-size: 19px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
 <div class="app">
 
-  <!-- =========================
-       LOGIN
-  ========================== -->
+  <!-- LOGIN -->
+  <section id="login">
+    <div class="login-box">
+      <div class="logo">🎯</div>
+      <h1>QuizUp</h1>
+      <p>Gire. Responda. Pontue!</p>
 
-  <section id="telaLogin" class="tela ativa">
+      <input type="email" id="email" placeholder="Seu e-mail">
+      <input type="password" id="senha" placeholder="Sua senha">
 
-    <div class="logo">🎯</div>
-
-    <h1>QuizUp</h1>
-
-    <p class="slogan">
-      Gire. Responda. Pontue!
-    </p>
-
-    <div class="card">
-
-      <h2>Entrar</h2>
-
-      <input
-        type="email"
-        id="loginEmail"
-        placeholder="E-mail"
-        autocomplete="email"
-      >
-
-      <input
-        type="password"
-        id="loginSenha"
-        placeholder="Senha"
-        autocomplete="current-password"
-      >
-
-      <button onclick="fazerLogin()">
+      <button class="btn" onclick="entrar()">
         ENTRAR
       </button>
-
-      <p id="erroLogin" class="erro"></p>
-
-      <button
-        class="botao-secundario"
-        onclick="mostrarCadastro()"
-      >
-        CRIAR CONTA
-      </button>
-
     </div>
-
   </section>
 
 
-  <!-- =========================
-       CADASTRO
-  ========================== -->
-
-  <section id="telaCadastro" class="tela">
-
-    <div class="logo">🎯</div>
-
-    <h1>QuizUp</h1>
-
-    <p class="slogan">
-      Crie sua conta
-    </p>
-
-    <div class="card">
-
-      <h2>Cadastro</h2>
-
-      <input
-        type="text"
-        id="cadNome"
-        placeholder="Nome completo"
-        autocomplete="name"
-      >
-
-      <input
-        type="text"
-        id="cadCpf"
-        placeholder="CPF"
-        maxlength="14"
-      >
-
-      <input
-        type="email"
-        id="cadEmail"
-        placeholder="E-mail"
-        autocomplete="email"
-      >
-
-      <input
-        type="password"
-        id="cadSenha"
-        placeholder="Criar senha"
-        autocomplete="new-password"
-      >
-
-      <input
-        type="text"
-        id="cadCodigo"
-        placeholder="Código de indicação (opcional)"
-        autocomplete="off"
-      >
-
-      <button onclick="cadastrar()">
-        CADASTRAR
-      </button>
-
-      <p id="erroCadastro" class="erro"></p>
-
-      <button
-        class="botao-secundario"
-        onclick="mostrarLogin()"
-      >
-        VOLTAR PARA LOGIN
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================
-       JOGO
-  ========================== -->
-
-  <section id="telaJogo" class="tela">
+  <!-- APLICATIVO -->
+  <section id="app">
 
     <header class="topo">
-
-      <div>
-        <strong>QuizUp</strong>
-      </div>
-
-      <div class="saldo">
-        💰
-        <span id="saldo">0</span>
-        pts
-      </div>
-
+      <h1>🎯 QuizUp</h1>
+      <p>Gire. Responda. Pontue!</p>
     </header>
 
 
-    <div class="usuario">
-
-      Olá,
-      <strong id="nomeUsuario">
-        Jogador
-      </strong>!
-
+    <!-- SALDO -->
+    <div class="saldo-box">
+      <div class="saldo-label">Seu saldo</div>
+      <div class="saldo" id="saldo">R$ 0,00</div>
+      <div class="pontos">
+        <span id="pontos">0</span> pontos
+      </div>
     </div>
 
 
-    <div class="placar">
+    <!-- MENU PRINCIPAL -->
+    <nav class="menu">
 
-      <div>
-        <span>Rodada</span>
-        <strong id="rodada">1</strong>
+      <button class="menu-item ativo" onclick="abrirTela('jogo', this)">
+        <span>🎯</span>
+        JOGAR
+      </button>
+
+      <button class="menu-item" onclick="abrirTela('indicacoes', this)">
+        <span>👥</span>
+        INDICAÇÕES
+      </button>
+
+      <button class="menu-item" onclick="abrirTela('premium', this)">
+        <span>⭐</span>
+        PREMIUM
+      </button>
+
+      <button class="menu-item" onclick="abrirTela('saque', this)">
+        <span>💰</span>
+        SAQUE
+      </button>
+
+      <button class="menu-item" onclick="abrirTela('sac', this)">
+        <span>🎧</span>
+        SAC
+      </button>
+
+    </nav>
+
+
+    <main class="conteudo">
+
+      <!-- ================= JOGO ================= -->
+      <section id="tela-jogo" class="tela ativa">
+
+        <div class="card">
+
+          <div class="rodada">
+            Rodada <span id="rodada">1</span>
+          </div>
+
+          <div class="nivel" id="nivel">
+            FÁCIL
+          </div>
+
+          <div class="dado" id="dado">
+            ?
+          </div>
+
+          <button class="btn" onclick="girarDado()">
+            🎲 GIRAR
+          </button>
+
+          <div id="areaPergunta" style="display:none; margin-top:20px;">
+
+            <div class="timer">
+              ⏱️ <span id="timer">5</span>
+            </div>
+
+            <div class="pergunta" id="pergunta">
+              Prepare-se...
+            </div>
+
+            <div class="respostas" id="respostas"></div>
+
+          </div>
+
+        </div>
+
+        <div class="card">
+          <h2>🏆 Como jogar</h2>
+          <p>
+            Gire o dado, veja quantos pontos estão em jogo
+            e responda antes do tempo acabar.
+          </p>
+          <br>
+          <p>
+            Quanto mais você acerta, mais pontos acumula.
+          </p>
+        </div>
+
+      </section>
+
+
+      <!-- ================= INDICAÇÕES ================= -->
+      <section id="tela-indicacoes" class="tela">
+
+        <div class="card">
+
+          <h2>👥 Indicações</h2>
+
+          <p>
+            Convide seus amigos para jogar QuizUp e acompanhe
+            suas indicações.
+          </p>
+
+          <div class="codigo-indicacao">
+
+            <div>Seu código de indicação</div>
+
+            <strong id="codigoIndicacao">
+              QUIZUP
+            </strong>
+
+            <div class="link-indicacao" id="linkIndicacao">
+              https://quizup-h1z9.onrender.com/
+            </div>
+
+          </div>
+
+          <button class="btn" style="margin-top:15px" onclick="compartilharIndicacao()">
+            📤 COMPARTILHAR
+          </button>
+
+        </div>
+
+        <div class="card">
+
+          <h2>📊 Minhas indicações</h2>
+
+          <div class="beneficio">
+            <div class="beneficio-icon">👤</div>
+            <div>
+              <strong>Convidados</strong><br>
+              <span id="totalIndicados">0</span> jogadores
+            </div>
+          </div>
+
+          <div class="beneficio">
+            <div class="beneficio-icon">💰</div>
+            <div>
+              <strong>Ganhos por indicação</strong><br>
+              R$ <span id="ganhosIndicacao">0,00</span>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================= PREMIUM ================= -->
+      <section id="tela-premium" class="tela">
+
+        <div class="card premium">
+
+          <h2>⭐ QuizUp Premium</h2>
+
+          <p>
+            Tenha uma experiência especial no QuizUp.
+          </p>
+
+          <div class="plano destaque">
+
+            <h3>⭐ PREMIUM</h3>
+
+            <div class="preco">
+              R$ 9,90
+            </div>
+
+            <p>
+              Plano mensal
+            </p>
+
+            <button class="btn"
+                    style="margin-top:12px;background:#3b2600;"
+                    onclick="assinarPremium()">
+              ASSINAR PREMIUM
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <h2>✨ Benefícios</h2>
+
+          <div class="beneficio">
+            <div class="beneficio-icon">⭐</div>
+            <div>Experiência Premium</div>
+          </div>
+
+          <div class="beneficio">
+            <div class="beneficio-icon">🎯</div>
+            <div>Recursos exclusivos</div>
+          </div>
+
+          <div class="beneficio">
+            <div class="beneficio-icon">🏆</div>
+            <div>Mais destaque no jogo</div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================= SAQUE ================= -->
+      <section id="tela-saque" class="tela">
+
+        <div class="card">
+
+          <h2>💰 Saque</h2>
+
+          <p>
+            Escolha o valor que deseja solicitar.
+          </p>
+
+          <br>
+
+          <p>
+            <strong>1.000 pontos = R$ 1,00</strong>
+          </p>
+
+          <p>
+            <strong>5.000 pontos = R$ 5,00</strong>
+          </p>
+
+          <p>
+            <strong>10.000 pontos = R$ 10,00</strong>
+          </p>
+
+          <div class="saque-opcoes">
+
+            <button class="opcao-saque" onclick="selecionarSaque(1)">
+              💵 <strong>R$ 1,00</strong><br>
+              1.000 pontos
+            </button>
+
+            <button class="opcao-saque" onclick="selecionarSaque(5)">
+              💵 <strong>R$ 5,00</strong><br>
+              5.000 pontos
+            </button>
+
+            <button class="opcao-saque" onclick="selecionarSaque(10)">
+              💵 <strong>R$ 10,00</strong><br>
+              10.000 pontos
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <h2>💳 Forma de recebimento</h2>
+
+          <button class="opcao-saque" onclick="escolherPagamento('Pix')">
+            🔑 PIX
+          </button>
+
+          <br>
+
+          <button class="opcao-saque" onclick="escolherPagamento('PayPal')">
+            🅿️ PayPal
+          </button>
+
+          <p style="margin-top:15px;font-size:12px;">
+            Limite de até 2 solicitações de saque por dia.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================= SAC ================= -->
+      <section id="tela-sac" class="tela">
+
+        <div class="card">
+
+          <h2>🎧 SAC</h2>
+
+          <p>
+            Precisa de ajuda? Estamos aqui para atender você.
+          </p>
+
+          <div class="sac-item">
+            <strong>❓ Como funciona o QuizUp?</strong>
+            <span>
+              Gire o dado, responda às perguntas e acumule pontos.
+            </span>
+          </div>
+
+          <div class="sac-item">
+            <strong>💰 Como faço um saque?</strong>
+            <span>
+              Acesse a aba Saque e escolha o valor disponível.
+            </span>
+          </div>
+
+          <div class="sac-item">
+            <strong>👥 Como funciona a indicação?</strong>
+            <span>
+              Compartilhe seu código com seus amigos.
+            </span>
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <h2>📩 Fale conosco</h2>
+
+          <textarea
+            id="mensagemSac"
+            class="sac-textarea"
+            placeholder="Digite sua mensagem..."
+          ></textarea>
+
+          <button class="btn" style="margin-top:12px" onclick="enviarSAC()">
+            ENVIAR MENSAGEM
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <div class="rodape">
+        QuizUp © 2026<br>
+        Gire. Responda. Pontue!
       </div>
 
-      <div>
-        <span>Pontos</span>
-        <strong id="pontos">0</strong>
-      </div>
-
-    </div>
-
-
-    <!-- =========================
-         INDICAÇÕES
-    ========================== -->
-
-    <div class="card indicacoes-card">
-
-      <h2>👥 Minhas Indicações</h2>
-
-      <p>
-        Seu código de indicação:
-      </p>
-
-      <div class="codigo-indicacao">
-
-        <strong id="meuCodigoIndicacao">
-          --------
-        </strong>
-
-        <button
-          type="button"
-          onclick="copiarCodigoIndicacao()"
-        >
-          📋 COPIAR
-        </button>
-
-      </div>
-
-      <p class="texto-indicacao">
-        Convide amigos usando seu código.
-      </p>
-
-
-      <div
-        id="listaIndicacoes"
-        class="lista-indicacoes"
-      >
-
-        <p>
-          Você ainda não possui indicações.
-        </p>
-
-      </div>
-
-    </div>
-
-
-    <!-- =========================
-         PLANO PREMIUM
-    ========================== -->
-
-    <div class="card premium-card">
-
-      <h2>⭐ Plano Premium</h2>
-
-      <p>
-        Seu plano atual:
-        <strong id="planoAtual">
-          GRATUITO
-        </strong>
-      </p>
-
-      <p id="statusPremium">
-        Tenha acesso ao plano Premium do QuizUp.
-      </p>
-
-      <button
-        type="button"
-        onclick="mostrarPremium()"
-      >
-        ⭐ VER PLANO PREMIUM
-      </button>
-
-    </div>
-
-
-    <!-- =========================
-         DADO
-    ========================== -->
-
-    <div class="dado-area">
-
-      <div
-        id="dado"
-        class="dado"
-      >
-        ?
-      </div>
-
-      <button
-        id="botaoGirar"
-        onclick="girarDado()"
-      >
-        🎲 GIRAR
-      </button>
-
-      <p id="pontosRodada">
-        Gire o dado para começar
-      </p>
-
-    </div>
-
-
-    <!-- =========================
-         PERGUNTA
-    ========================== -->
-
-    <div
-      id="areaPergunta"
-      class="pergunta-area"
-    >
-
-      <div class="timer">
-
-        ⏱️
-
-        <span id="timer">
-          5
-        </span>
-
-      </div>
-
-      <div
-        class="nivel"
-        id="nivel"
-      >
-        PERGUNTA
-      </div>
-
-      <h2 id="pergunta">
-        Gire o dado para começar!
-      </h2>
-
-      <div
-        id="respostas"
-        class="respostas"
-      ></div>
-
-      <p id="resultado"></p>
-
-    </div>
-
-
-    <!-- =========================
-         MENU
-    ========================== -->
-
-    <div class="menu">
-
-      <button onclick="mostrarSaque()">
-        💰 SAQUE
-      </button>
-
-      <button onclick="mostrarSAC()">
-        🎧 SAC
-      </button>
-
-      <button onclick="sair()">
-        🚪 SAIR
-      </button>
-
-    </div>
-
-
-    <!-- PUBLICIDADE -->
-
-    <div class="anuncio">
-
-      <span>
-        PUBLICIDADE
-      </span>
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================
-       PREMIUM
-  ========================== -->
-
-  <section id="telaPremium" class="tela">
-
-    <div class="card">
-
-      <h2>⭐ QuizUp Premium</h2>
-
-      <p>
-        Faça parte do plano Premium do QuizUp.
-      </p>
-
-      <div id="detalhesPremium">
-
-        <p>
-          Seu plano atual:
-          <strong id="premiumPlano">
-            GRATUITO
-          </strong>
-        </p>
-
-      </div>
-
-      <button
-        type="button"
-        onclick="assinarPremium()"
-      >
-        ⭐ ASSINAR PREMIUM
-      </button>
-
-      <p id="resultadoPremium"></p>
-
-      <button
-        class="botao-secundario"
-        onclick="voltarJogo()"
-      >
-        VOLTAR
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================
-       SAQUE
-  ========================== -->
-
-  <section id="telaSaque" class="tela">
-
-    <div class="card">
-
-      <h2>
-        💰 Solicitar saque
-      </h2>
-
-      <p>
-
-        Seu saldo:
-
-        <strong>
-
-          <span id="saldoSaque">
-            0
-          </span>
-
-          pontos
-
-        </strong>
-
-      </p>
-
-      <p class="conversao">
-        1.000 pontos = R$ 1,00
-      </p>
-
-      <input
-        type="number"
-        id="valorSaque"
-        placeholder="Quantidade de pontos"
-      >
-
-      <select id="tipoSaque">
-
-        <option value="pix">
-          PIX
-        </option>
-
-        <option value="paypal">
-          PayPal
-        </option>
-
-      </select>
-
-      <input
-        type="text"
-        id="destinoSaque"
-        placeholder="Chave PIX ou e-mail PayPal"
-      >
-
-      <button onclick="solicitarSaque()">
-        SOLICITAR SAQUE
-      </button>
-
-      <p id="resultadoSaque"></p>
-
-      <button
-        class="botao-secundario"
-        onclick="voltarJogo()"
-      >
-        VOLTAR
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================
-       SAC
-  ========================== -->
-
-  <section id="telaSAC" class="tela">
-
-    <div class="card">
-
-      <h2>
-        🎧 Atendimento
-      </h2>
-
-      <p>
-        Precisa de ajuda?
-        Envie sua mensagem.
-      </p>
-
-      <textarea
-        id="mensagemSAC"
-        placeholder="Digite sua mensagem..."
-      ></textarea>
-
-      <button onclick="enviarSAC()">
-        ENVIAR
-      </button>
-
-      <p id="resultadoSAC"></p>
-
-      <button
-        class="botao-secundario"
-        onclick="voltarJogo()"
-      >
-        VOLTAR
-      </button>
-
-    </div>
+    </main>
 
   </section>
 
 </div>
 
 
-<script src="script.js"></script>
+<!-- MODAL -->
+<div id="modal" class="modal">
+
+  <div class="modal-box">
+
+    <button class="fechar" onclick="fecharModal()">
+      ×
+    </button>
+
+    <div id="modalConteudo"></div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+  /* ================= LOGIN ================= */
+
+  function entrar() {
+
+    const email = document.getElementById("email").value.trim();
+    const senha = document.getElementById("senha").value.trim();
+
+    if (!email || !senha) {
+      alert("Digite seu e-mail e sua senha.");
+      return;
+    }
+
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
+    localStorage.setItem("quizupEmail", email);
+
+    atualizarSaldo();
+  }
+
+
+  /* ================= NAVEGAÇÃO ================= */
+
+  function abrirTela(nome, botao) {
+
+    document.querySelectorAll(".tela").forEach(function(tela) {
+      tela.classList.remove("ativa");
+    });
+
+    document.querySelectorAll(".menu-item").forEach(function(item) {
+      item.classList.remove("ativo");
+    });
+
+    const tela = document.getElementById("tela-" + nome);
+
+    if (tela) {
+      tela.classList.add("ativa");
+    }
+
+    if (botao) {
+      botao.classList.add("ativo");
+    }
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
+
+
+  /* ================= DADO ================= */
+
+  let pontosDaRodada = 0;
+  let rodadaAtual = 1;
+  let timerInterval = null;
+  let tempo = 5;
+
+  function gerarNumeroDado() {
+
+    const r = Math.random();
+
+    if (r < 0.18) return 1;
+    if (r < 0.36) return 2;
+    if (r < 0.54) return 3;
+    if (r < 0.70) return 4;
+    if (r < 0.78) return 5;
+    if (r < 0.84) return 6;
+    if (r < 0.89) return 7;
+    if (r < 0.94) return 8;
+    if (r < 0.98) return 9;
+
+    return 10;
+  }
+
+
+  function girarDado() {
+
+    const numero = gerarNumeroDado();
+
+    pontosDaRodada = numero;
+
+    document.getElementById("dado").textContent = numero;
+
+    document.getElementById("areaPergunta").style.display = "block";
+
+    carregarPergunta();
+
+  }
+
+
+  /* ================= PERGUNTAS ================= */
+
+  const perguntas = [
+
+    {
+      nivel: "FÁCIL",
+      pergunta: "Qual é a capital do Brasil?",
+      opcoes: ["São Paulo", "Brasília", "Rio de Janeiro", "Salvador"],
+      correta: 1
+    },
+
+    {
+      nivel: "FÁCIL",
+      pergunta: "Quanto é 2 + 2?",
+      opcoes: ["3", "4", "5", "6"],
+      correta: 1
+    },
+
+    {
+      nivel: "FÁCIL",
+      pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
+      opcoes: ["Terra", "Marte", "Júpiter", "Saturno"],
+      correta: 1
+    },
+
+    {
+      nivel: "MÉDIO",
+      pergunta: "Qual é o maior planeta do Sistema Solar?",
+      opcoes: ["Terra", "Marte", "Júpiter", "Vênus"],
+      correta: 2
+    },
+
+    {
+      nivel: "MÉDIO",
+      pergunta: "Quantos continentes existem tradicionalmente?",
+      opcoes: ["5", "6", "7", "8"],
+      correta: 2
+    },
+
+    {
+      nivel: "DIFÍCIL",
+      pergunta: "Qual é o maior oceano da Terra?",
+      opcoes: ["Atlântico", "Índico", "Pacífico", "Ártico"],
+      correta: 2
+    },
+
+    {
+      nivel: "SUPER DIFÍCIL",
+      pergunta: "Qual elemento químico possui o símbolo Au?",
+      opcoes: ["Prata", "Ouro", "Alumínio", "Urânio"],
+      correta: 1
+    }
+
+  ];
+
+
+  let perguntaAtual = null;
+
+
+  function carregarPergunta() {
+
+    clearInterval(timerInterval);
+
+    perguntaAtual =
+      perguntas[Math.floor(Math.random() * perguntas.length)];
+
+    document.getElementById("nivel").textContent =
+      perguntaAtual.nivel;
+
+    document.getElementById("pergunta").textContent =
+      perguntaAtual.pergunta;
+
+    const respostas =
+      document.getElementById("respostas");
+
+    respostas.innerHTML = "";
+
+    perguntaAtual.opcoes.forEach(function(opcao, indice) {
+
+      const botao = document.createElement("button");
+
+      botao.className = "resposta";
+      botao.textContent = opcao;
+
+      botao.onclick = function() {
+        responder(indice);
+      };
+
+      respostas.appendChild(botao);
+
+    });
+
+    iniciarTimer();
+
+  }
+
+
+  /* ================= TIMER ================= */
+
+  function iniciarTimer() {
+
+    tempo = 5;
+
+    document.getElementById("timer").textContent = tempo;
+
+    timerInterval = setInterval(function() {
+
+      tempo--;
+
+      document.getElementById("timer").textContent = tempo;
+
+      if (tempo <= 0) {
+
+        clearInterval(timerInterval);
+
+        finalizarResposta(false);
+
+      }
+
+    }, 1000);
+
+  }
+
+
+  /* ================= RESPOSTA ================= */
+
+  function responder(indice) {
+
+    clearInterval(timerInterval);
+
+    const acertou =
+      indice === perguntaAtual.correta;
+
+    finalizarResposta(acertou);
+
+  }
+
+
+  function finalizarResposta(acertou) {
+
+    if (acertou) {
+
+      adicionarPontos(pontosDaRodada);
+
+      alert(
+        "🎉 Acertou!\n\n+" +
+        pontosDaRodada +
+        " pontos!"
+      );
+
+    } else {
+
+      alert(
+        "❌ Resposta incorreta!\n\n" +
+        "Você não ganhou os " +
+        pontosDaRodada +
+        " pontos desta rodada."
+      );
+
+    }
+
+    pontosDaRodada = 0;
+
+    rodadaAtual++;
+
+    document.getElementById("rodada").textContent =
+      rodadaAtual;
+
+    document.getElementById("dado").textContent = "?";
+
+    document.getElementById("areaPergunta").style.display =
+      "none";
+
+  }
+
+
+  /* ================= PONTOS ================= */
+
+  function obterPontos() {
+
+    return Number(
+      localStorage.getItem("quizupPontos") || 0
+    );
+
+  }
+
+
+  function adicionarPontos(valor) {
+
+    const pontos = obterPontos() + valor;
+
+    localStorage.setItem(
+      "quizupPontos",
+      pontos
+    );
+
+    atualizarSaldo();
+
+  }
+
+
+  function atualizarSaldo() {
+
+    const pontos = obterPontos();
+
+    const valor = pontos / 1000;
+
+    document.getElementById("pontos").textContent =
+      pontos.toLocaleString("pt-BR");
+
+    document.getElementById("saldo").textContent =
+      "R$ " +
+      valor.toFixed(2).replace(".", ",");
+
+  }
+
+
+  /* ================= INDICAÇÃO ================= */
+
+  function compartilharIndicacao() {
+
+    const link =
+      "https://quizup-h1z9.onrender.com/?indicacao=" +
+      document.getElementById("codigoIndicacao").textContent;
+
+    if (navigator.share) {
+
+      navigator.share({
+        title: "QuizUp",
+        text: "Venha jogar QuizUp comigo!",
+        url: link
+      });
+
+    } else {
+
+      navigator.clipboard.writeText(link);
+
+      alert(
+        "Link de indicação copiado!"
+      );
+
+    }
+
+  }
+
+
+  /* ================= PREMIUM ================= */
+
+  function assinarPremium() {
+
+    abrirModal(
+      "<h2>⭐ Premium</h2>" +
+      "<p>O pagamento do plano Premium será disponibilizado nesta área.</p>"
+    );
+
+  }
+
+
+  /* ================= SAQUE ================= */
+
+  let valorSaqueSelecionado = 0;
+
+  function selecionarSaque(valor) {
+
+    const pontosNecessarios = valor * 1000;
+    const pontos = obterPontos();
+
+    if (pontos < pontosNecessarios) {
+
+      alert(
+        "Você precisa de " +
+        pontosNecessarios.toLocaleString("pt-BR") +
+        " pontos para solicitar este saque."
+      );
+
+      return;
+
+    }
+
+    valorSaqueSelecionado = valor;
+
+    abrirModal(
+      "<h2>💰 Solicitar saque</h2>" +
+      "<p>Valor: <strong>R$ " +
+      valor.toFixed(2).replace(".", ",") +
+      "</strong></p>" +
+      "<br>" +
+      "<p>Escolha PIX ou PayPal abaixo.</p>"
+    );
+
+  }
+
+
+  function escolherPagamento(tipo) {
+
+    if (!valorSaqueSelecionado) {
+
+      alert(
+        "Primeiro escolha um valor de saque."
+      );
+
+      return;
+
+    }
+
+    abrirModal(
+      "<h2>💳 " + tipo + "</h2>" +
+      "<p>Valor solicitado: <strong>R$ " +
+      valorSaqueSelecionado.toFixed(2).replace(".", ",") +
+      "</strong></p>" +
+      "<br>" +
+      "<input id='dadosPagamento' " +
+      "style='width:100%;padding:14px;border:1px solid #ddd;border-radius:10px' " +
+      "placeholder='Digite seus dados'>" +
+      "<br><br>" +
+      "<button class='btn' onclick='confirmarSaque()'>" +
+      "CONFIRMAR SAQUE" +
+      "</button>"
+    );
+
+  }
+
+
+  function confirmarSaque() {
+
+    const dados =
+      document.getElementById("dadosPagamento").value.trim();
+
+    if (!dados) {
+
+      alert("Informe os dados para recebimento.");
+
+      return;
+
+    }
+
+    alert(
+      "Solicitação registrada.\n\n" +
+      "Valor: R$ " +
+      valorSaqueSelecionado.toFixed(2).replace(".", ",")
+    );
+
+    fecharModal();
+
+    valorSaqueSelecionado = 0;
+
+  }
+
+
+  /* ================= SAC ================= */
+
+  function enviarSAC() {
+
+    const mensagem =
+      document.getElementById("mensagemSac").value.trim();
+
+    if (!mensagem) {
+
+      alert(
+        "Digite sua mensagem antes de enviar."
+      );
+
+      return;
+
+    }
+
+    alert(
+      "Mensagem enviada com sucesso! 🎧"
+    );
+
+    document.getElementById("mensagemSac").value = "";
+
+  }
+
+
+  /* ================= MODAL ================= */
+
+  function abrirModal(conteudo) {
+
+    document.getElementById("modalConteudo").innerHTML =
+      conteudo;
+
+    document.getElementById("modal").classList.add("ativo");
+
+  }
+
+
+  function fecharModal() {
+
+    document.getElementById("modal").classList.remove("ativo");
+
+  }
+
+
+  /* ================= INICIALIZAÇÃO ================= */
+
+  window.addEventListener("load", function() {
+
+    atualizarSaldo();
+
+    const email =
+      localStorage.getItem("quizupEmail");
+
+    if (email) {
+
+      document.getElementById("login").style.display =
+        "none";
+
+      document.getElementById("app").style.display =
+        "block";
+
+    }
+
+  });
+
+</script>
+
+<!--
+  O script.js original do QuizUp pode continuar sendo usado
+  separadamente caso o seu servidor já esteja configurado para ele.
+-->
 
 </body>
   </html>
