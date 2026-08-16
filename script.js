@@ -18,49 +18,41 @@ let perguntaAtiva = false;
 
 const perguntas = [
   {
-    nivel: "FÁCIL",
     pergunta: "Qual é a capital do Brasil?",
     opcoes: ["São Paulo", "Brasília", "Rio de Janeiro", "Salvador"],
     correta: 1
   },
   {
-    nivel: "FÁCIL",
     pergunta: "Quanto é 2 + 2?",
     opcoes: ["3", "4", "5", "6"],
     correta: 1
   },
   {
-    nivel: "FÁCIL",
     pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
     opcoes: ["Terra", "Marte", "Júpiter", "Saturno"],
     correta: 1
   },
   {
-    nivel: "FÁCIL",
     pergunta: "Quantos dias tem uma semana?",
     opcoes: ["5", "6", "7", "8"],
     correta: 2
   },
   {
-    nivel: "FÁCIL",
     pergunta: "Qual animal é conhecido como rei da selva?",
     opcoes: ["Tigre", "Leão", "Elefante", "Lobo"],
     correta: 1
   },
   {
-    nivel: "MÉDIO",
     pergunta: "Qual é o maior planeta do Sistema Solar?",
     opcoes: ["Terra", "Marte", "Júpiter", "Netuno"],
     correta: 2
   },
   {
-    nivel: "MÉDIO",
     pergunta: "Qual é o maior oceano do mundo?",
     opcoes: ["Atlântico", "Índico", "Pacífico", "Ártico"],
     correta: 2
   },
   {
-    nivel: "MÉDIO",
     pergunta: "Quem escreveu Dom Casmurro?",
     opcoes: [
       "Machado de Assis",
@@ -71,19 +63,16 @@ const perguntas = [
     correta: 0
   },
   {
-    nivel: "DIFÍCIL",
     pergunta: "Qual é o elemento químico representado pela letra O?",
     opcoes: ["Ouro", "Oxigênio", "Ósmio", "Ozônio"],
     correta: 1
   },
   {
-    nivel: "DIFÍCIL",
     pergunta: "Qual é a raiz quadrada de 144?",
     opcoes: ["10", "11", "12", "14"],
     correta: 2
   },
   {
-    nivel: "SUPER DIFÍCIL",
     pergunta: "Qual é a velocidade aproximada da luz no vácuo?",
     opcoes: [
       "30 mil km/s",
@@ -94,7 +83,6 @@ const perguntas = [
     correta: 1
   },
   {
-    nivel: "SUPER DIFÍCIL",
     pergunta: "Qual é o maior órgão do corpo humano?",
     opcoes: ["Coração", "Fígado", "Pele", "Pulmão"],
     correta: 2
@@ -114,10 +102,6 @@ function mostrarTela(id) {
     return;
   }
 
-  /*
-   * Esconde somente as telas principais:
-   * Login, Cadastro e o aplicativo do jogo.
-   */
   document.querySelectorAll(
     "body > .app > .tela"
   ).forEach(function(item) {
@@ -126,11 +110,6 @@ function mostrarTela(id) {
 
   });
 
-
-  /*
-   * Premium, Saque, SAC, Jogo e Indicações
-   * ficam dentro de telaJogo.
-   */
   if (
     id === "telaPremium" ||
     id === "telaSaque" ||
@@ -146,7 +125,6 @@ function mostrarTela(id) {
       telaJogo.classList.add("ativa");
     }
 
-
     document.querySelectorAll(
       "#telaJogo .conteudo > .tela"
     ).forEach(function(item) {
@@ -155,18 +133,12 @@ function mostrarTela(id) {
 
     });
 
-
     tela.classList.add("ativa");
 
     return;
   }
 
-
-  /*
-   * Login, Cadastro ou outras telas principais.
-   */
   tela.classList.add("ativa");
-
 }
 
 
@@ -224,15 +196,18 @@ async function cadastrar() {
   const senha =
     document.getElementById("cadSenha").value;
 
+  const campoCodigo =
+    document.getElementById("cadCodigo");
+
   const codigo =
-    document.getElementById("cadCodigo").value.trim();
+    campoCodigo
+      ? campoCodigo.value.trim()
+      : "";
 
   const erro =
     document.getElementById("erroCadastro");
 
-
   erro.textContent = "";
-
 
   /*
    * Código de indicação é OPCIONAL.
@@ -246,7 +221,6 @@ async function cadastrar() {
     return;
   }
 
-
   if (senha.length < 6) {
 
     erro.textContent =
@@ -254,7 +228,6 @@ async function cadastrar() {
 
     return;
   }
-
 
   try {
 
@@ -277,10 +250,8 @@ async function cadastrar() {
 
       });
 
-
     const dados =
       await resposta.json();
-
 
     if (!resposta.ok) {
 
@@ -291,10 +262,8 @@ async function cadastrar() {
       return;
     }
 
-
     let mensagem =
       "Cadastro realizado com sucesso!";
-
 
     if (dados.codigoIndicacao) {
 
@@ -303,19 +272,18 @@ async function cadastrar() {
 
     }
 
-
     alert(mensagem);
-
 
     document.getElementById("cadNome").value = "";
     document.getElementById("cadCpf").value = "";
     document.getElementById("cadEmail").value = "";
     document.getElementById("cadSenha").value = "";
-    document.getElementById("cadCodigo").value = "";
 
+    if (campoCodigo) {
+      campoCodigo.value = "";
+    }
 
     mostrarLogin();
-
 
   } catch (e) {
 
@@ -342,9 +310,7 @@ async function fazerLogin() {
   const erro =
     document.getElementById("erroLogin");
 
-
   erro.textContent = "";
-
 
   if (!email || !senha) {
 
@@ -353,7 +319,6 @@ async function fazerLogin() {
 
     return;
   }
-
 
   try {
 
@@ -373,10 +338,8 @@ async function fazerLogin() {
 
       });
 
-
     const dados =
       await resposta.json();
-
 
     if (!resposta.ok) {
 
@@ -387,26 +350,21 @@ async function fazerLogin() {
       return;
     }
 
-
     usuarioAtual =
       dados.usuario;
-
 
     pontos =
       Number(
         usuarioAtual.pontos || 0
       );
 
-
     saldo =
       Number(
-        usuarioAtual.saldo || pontos
+        usuarioAtual.saldo ?? pontos
       );
-
 
     const nomeUsuario =
       document.getElementById("nomeUsuario");
-
 
     if (nomeUsuario) {
 
@@ -414,7 +372,6 @@ async function fazerLogin() {
         usuarioAtual.nome;
 
     }
-
 
     atualizarTela();
 
@@ -442,17 +399,14 @@ function atualizarDadosIndicacao() {
     return;
   }
 
-
   const codigo =
     usuarioAtual.codigoIndicacao ||
     "--------";
-
 
   const elementoCodigo =
     document.getElementById(
       "meuCodigoIndicacao"
     );
-
 
   if (elementoCodigo) {
 
@@ -461,17 +415,14 @@ function atualizarDadosIndicacao() {
 
   }
 
-
   const plano =
     usuarioAtual.plano ||
     "GRATUITO";
-
 
   const elementoPlano =
     document.getElementById(
       "planoAtual"
     );
-
 
   if (elementoPlano) {
 
@@ -480,12 +431,10 @@ function atualizarDadosIndicacao() {
 
   }
 
-
   const premiumPlano =
     document.getElementById(
       "premiumPlano"
     );
-
 
   if (premiumPlano) {
 
@@ -493,7 +442,6 @@ function atualizarDadosIndicacao() {
       plano;
 
   }
-
 
   carregarIndicacoes();
 
@@ -505,7 +453,6 @@ async function carregarIndicacoes() {
   if (!usuarioAtual) {
     return;
   }
-
 
   try {
 
@@ -527,20 +474,16 @@ async function carregarIndicacoes() {
 
       });
 
-
     const dados =
       await resposta.json();
-
 
     if (!resposta.ok) {
       return;
     }
 
-
     usuarioAtual.codigoIndicacao =
       dados.codigoIndicacao ||
       usuarioAtual.codigoIndicacao;
-
 
     pontos =
       Number(
@@ -549,7 +492,6 @@ async function carregarIndicacoes() {
         0
       );
 
-
     saldo =
       Number(
         dados.saldo ??
@@ -557,10 +499,8 @@ async function carregarIndicacoes() {
         0
       );
 
-
     usuarioAtual.indicacoes =
       dados.indicacoes || [];
-
 
     atualizarTela();
 
@@ -584,11 +524,9 @@ function renderizarIndicacoes() {
       "listaIndicacoes"
     );
 
-
   if (!lista) {
     return;
   }
-
 
   const indicacoes =
     usuarioAtual &&
@@ -598,21 +536,17 @@ function renderizarIndicacoes() {
       ? usuarioAtual.indicacoes
       : [];
 
-
   lista.innerHTML = "";
-
 
   const totalIndicados =
     document.getElementById(
       "totalIndicados"
     );
 
-
   const ganhosIndicacao =
     document.getElementById(
       "ganhosIndicacao"
     );
-
 
   if (totalIndicados) {
 
@@ -621,22 +555,20 @@ function renderizarIndicacoes() {
 
   }
 
-
   let ganhos = 0;
-
 
   indicacoes.forEach(function(indicacao) {
 
-    ganhos +=
-      Number(
-        indicacao.bonus ||
-        indicacao.pontosBonus ||
-        (indicacao.bonusPago ? 50 : 0) ||
-        0
-      );
+    if (
+      indicacao.bonusPago === true ||
+      indicacao.status === "CONCLUÍDO"
+    ) {
+
+      ganhos += 50;
+
+    }
 
   });
-
 
   if (ganhosIndicacao) {
 
@@ -644,7 +576,6 @@ function renderizarIndicacoes() {
       `${ganhos} pontos`;
 
   }
-
 
   if (indicacoes.length === 0) {
 
@@ -657,7 +588,6 @@ function renderizarIndicacoes() {
     return;
   }
 
-
   indicacoes.forEach(function(indicacao) {
 
     const pontosIndicacao =
@@ -665,7 +595,6 @@ function renderizarIndicacoes() {
         Number(indicacao.pontos || 0),
         300
       );
-
 
     const percentual =
       Math.min(
@@ -675,26 +604,21 @@ function renderizarIndicacoes() {
         )
       );
 
-
     const concluido =
       indicacao.status === "CONCLUÍDO" ||
       indicacao.bonusPago === true ||
       pontosIndicacao >= 300;
-
 
     const statusTexto =
       concluido
         ? "🟢 CONCLUÍDO"
         : "🟡 EM ANDAMENTO";
 
-
     const item =
       document.createElement("div");
 
-
     item.className =
       "indicacao-item";
-
 
     item.innerHTML = `
 
@@ -748,7 +672,6 @@ function renderizarIndicacoes() {
 
     `;
 
-
     lista.appendChild(item);
 
   });
@@ -774,10 +697,8 @@ async function copiarCodigoIndicacao() {
     return;
   }
 
-
   const codigo =
     usuarioAtual.codigoIndicacao;
-
 
   if (!codigo) {
 
@@ -788,18 +709,15 @@ async function copiarCodigoIndicacao() {
     return;
   }
 
-
   try {
 
     await navigator.clipboard.writeText(
       codigo
     );
 
-
     alert(
       `Código ${codigo} copiado!`
     );
-
 
   } catch (e) {
 
@@ -827,12 +745,10 @@ function mostrarPremium() {
     return;
   }
 
-
   const resultado =
     document.getElementById(
       "resultadoPremium"
     );
-
 
   if (resultado) {
 
@@ -840,17 +756,14 @@ function mostrarPremium() {
 
   }
 
-
   const plano =
     usuarioAtual.plano ||
     "GRATUITO";
-
 
   const premiumPlano =
     document.getElementById(
       "premiumPlano"
     );
-
 
   if (premiumPlano) {
 
@@ -859,9 +772,7 @@ function mostrarPremium() {
 
   }
 
-
   mostrarTela("telaPremium");
-
 
   ativarMenuPorIndice(2);
 
@@ -874,7 +785,6 @@ function assinarPremium() {
     document.getElementById(
       "resultadoPremium"
     );
-
 
   if (resultado) {
 
@@ -894,7 +804,6 @@ function sortearDado() {
 
   const numero =
     Math.random();
-
 
   if (numero < 0.18) return 1;
   if (numero < 0.36) return 2;
@@ -918,48 +827,37 @@ function girarDado() {
     return;
   }
 
-
   const dado =
     document.getElementById("dado");
 
-
   const botao =
     document.getElementById("botaoGirar");
-
 
   if (!dado || !botao) {
     return;
   }
 
-
   botao.disabled = true;
-
 
   dado.classList.add("girando");
 
-
   const numero =
     sortearDado();
-
 
   setTimeout(function() {
 
     dado.classList.remove("girando");
 
-
     dado.textContent =
       numero;
 
-
     pontosDaRodada =
       numero;
-
 
     const pontosRodada =
       document.getElementById(
         "pontosRodada"
       );
-
 
     if (pontosRodada) {
 
@@ -967,7 +865,6 @@ function girarDado() {
         `Valendo ${numero} ponto${numero > 1 ? "s" : ""}!`;
 
     }
-
 
     carregarPergunta();
 
@@ -990,38 +887,37 @@ function carregarPergunta() {
       )
     ];
 
-
   respostaCorreta =
     pergunta.correta;
-
 
   perguntaAtiva =
     true;
 
+  /*
+   * Os níveis foram retirados.
+   * O elemento "nivel" não recebe mais
+   * FÁCIL, MÉDIO ou DIFÍCIL.
+   */
 
   const nivel =
     document.getElementById("nivel");
 
-
   const perguntaElemento =
     document.getElementById("pergunta");
-
 
   const respostas =
     document.getElementById("respostas");
 
-
   const resultado =
     document.getElementById("resultado");
 
-
   if (nivel) {
 
-    nivel.textContent =
-      pergunta.nivel;
+    nivel.textContent = "";
+
+    nivel.style.display = "none";
 
   }
-
 
   if (perguntaElemento) {
 
@@ -1029,7 +925,6 @@ function carregarPergunta() {
       pergunta.pergunta;
 
   }
-
 
   if (!respostas) {
 
@@ -1039,9 +934,7 @@ function carregarPergunta() {
 
   }
 
-
   respostas.innerHTML = "";
-
 
   pergunta.opcoes.forEach(
     function(opcao, indice) {
@@ -1051,10 +944,8 @@ function carregarPergunta() {
           "button"
         );
 
-
       botao.textContent =
         opcao;
-
 
       botao.onclick =
         function() {
@@ -1063,7 +954,6 @@ function carregarPergunta() {
 
         };
 
-
       respostas.appendChild(
         botao
       );
@@ -1071,13 +961,11 @@ function carregarPergunta() {
     }
   );
 
-
   if (resultado) {
 
     resultado.textContent = "";
 
   }
-
 
   iniciarTimer();
 
@@ -1094,14 +982,11 @@ function iniciarTimer() {
     timerInterval
   );
 
-
   tempoRestante =
     5;
 
-
   const timer =
     document.getElementById("timer");
-
 
   if (timer) {
 
@@ -1110,12 +995,10 @@ function iniciarTimer() {
 
   }
 
-
   timerInterval =
     setInterval(function() {
 
       tempoRestante--;
-
 
       if (timer) {
 
@@ -1124,13 +1007,11 @@ function iniciarTimer() {
 
       }
 
-
       if (tempoRestante <= 0) {
 
         clearInterval(
           timerInterval
         );
-
 
         tempoEsgotado();
 
@@ -1147,20 +1028,16 @@ function tempoEsgotado() {
     return;
   }
 
-
   perguntaAtiva =
     false;
 
-
   pontosDaRodada =
     0;
-
 
   const resultado =
     document.getElementById(
       "resultado"
     );
-
 
   if (resultado) {
 
@@ -1168,7 +1045,6 @@ function tempoEsgotado() {
       "⏰ Tempo esgotado! Você não ganhou os pontos.";
 
   }
-
 
   bloquearRespostas();
 
@@ -1187,28 +1063,23 @@ function responder(indice) {
     return;
   }
 
-
   perguntaAtiva =
     false;
-
 
   clearInterval(
     timerInterval
   );
-
 
   const botoes =
     document.querySelectorAll(
       "#respostas button"
     );
 
-
   botoes.forEach(
     function(botao, i) {
 
       botao.disabled =
         true;
-
 
       if (i === respostaCorreta) {
 
@@ -1221,22 +1092,18 @@ function responder(indice) {
     }
   );
 
-
   const resultado =
     document.getElementById(
       "resultado"
     );
-
 
   if (indice === respostaCorreta) {
 
     pontos +=
       pontosDaRodada;
 
-
     saldo +=
       pontosDaRodada;
-
 
     if (resultado) {
 
@@ -1255,7 +1122,6 @@ function responder(indice) {
 
     }
 
-
     if (resultado) {
 
       resultado.textContent =
@@ -1263,12 +1129,10 @@ function responder(indice) {
 
     }
 
-
     pontosDaRodada =
       0;
 
   }
-
 
   atualizarTela();
 
@@ -1312,7 +1176,6 @@ function finalizarRodada() {
       "botaoGirar"
     );
 
-
   if (botao) {
 
     botao.disabled =
@@ -1320,15 +1183,12 @@ function finalizarRodada() {
 
   }
 
-
   rodada++;
-
 
   const elementoRodada =
     document.getElementById(
       "rodada"
     );
-
 
   if (elementoRodada) {
 
@@ -1336,7 +1196,6 @@ function finalizarRodada() {
       rodada;
 
   }
-
 
   pontosDaRodada =
     0;
@@ -1355,18 +1214,15 @@ function atualizarTela() {
       "pontos"
     );
 
-
   const elementoSaldo =
     document.getElementById(
       "saldo"
     );
 
-
   const elementoSaque =
     document.getElementById(
       "saldoSaque"
     );
-
 
   if (elementoPontos) {
 
@@ -1375,14 +1231,12 @@ function atualizarTela() {
 
   }
 
-
   if (elementoSaldo) {
 
     elementoSaldo.textContent =
       saldo;
 
   }
-
 
   if (elementoSaque) {
 
@@ -1403,7 +1257,6 @@ async function salvarPontuacao() {
   if (!usuarioAtual) {
     return;
   }
-
 
   try {
 
@@ -1434,10 +1287,8 @@ async function salvarPontuacao() {
         }
       );
 
-
     const dados =
       await resposta.json();
-
 
     if (resposta.ok) {
 
@@ -1477,15 +1328,12 @@ function mostrarSaque() {
     return;
   }
 
-
   atualizarTela();
-
 
   const resultado =
     document.getElementById(
       "resultadoSaque"
     );
-
 
   if (resultado) {
 
@@ -1493,9 +1341,7 @@ function mostrarSaque() {
 
   }
 
-
   mostrarTela("telaSaque");
-
 
   ativarMenuPorIndice(3);
 
@@ -1509,14 +1355,12 @@ function preencherSaque(valor) {
       "valorSaque"
     );
 
-
   if (campo) {
 
     campo.value =
       valor;
 
   }
-
 
   mostrarSaque();
 
@@ -1534,30 +1378,25 @@ async function solicitarSaque() {
     return;
   }
 
-
   const campoValor =
     document.getElementById(
       "valorSaque"
     );
-
 
   const campoTipo =
     document.getElementById(
       "tipoSaque"
     );
 
-
   const campoDestino =
     document.getElementById(
       "destinoSaque"
     );
 
-
   const resultado =
     document.getElementById(
       "resultadoSaque"
     );
-
 
   const valor =
     Number(
@@ -1566,49 +1405,42 @@ async function solicitarSaque() {
         : 0
     );
 
-
   const tipo =
     campoTipo
-      ? campoTipo.value
-      : "Pix";
-
+      ? String(campoTipo.value || "").toLowerCase()
+      : "pix";
 
   const destino =
     campoDestino
       ? campoDestino.value.trim()
       : "";
 
-
   if (resultado) {
     resultado.textContent = "";
   }
 
+  /*
+   * SOMENTE ESTES 3 SAQUES EXISTEM:
+   *
+   * 2.000 pontos = R$ 1,00
+   * 6.000 pontos = R$ 5,00
+   * 11.000 pontos = R$ 10,00
+   */
 
-  if (!valor || valor <= 0) {
+  const saquesPermitidos =
+    [2000, 6000, 11000];
+
+  if (!saquesPermitidos.includes(valor)) {
 
     if (resultado) {
 
       resultado.textContent =
-        "Digite a quantidade de pontos.";
+        "Escolha um saque disponível: 2.000 pontos = R$ 1,00; 6.000 pontos = R$ 5,00; 11.000 pontos = R$ 10,00.";
 
     }
 
     return;
   }
-
-
-  if (valor < 1000) {
-
-    if (resultado) {
-
-      resultado.textContent =
-        "O saque mínimo é de 1.000 pontos.";
-
-    }
-
-    return;
-  }
-
 
   if (valor > saldo) {
 
@@ -1622,6 +1454,20 @@ async function solicitarSaque() {
     return;
   }
 
+  if (
+    tipo !== "pix" &&
+    tipo !== "paypal"
+  ) {
+
+    if (resultado) {
+
+      resultado.textContent =
+        "Escolha PIX ou PayPal.";
+
+    }
+
+    return;
+  }
 
   if (!destino) {
 
@@ -1634,7 +1480,6 @@ async function solicitarSaque() {
 
     return;
   }
-
 
   try {
 
@@ -1668,10 +1513,8 @@ async function solicitarSaque() {
         }
       );
 
-
     const dados =
       await resposta.json();
-
 
     if (!resposta.ok) {
 
@@ -1686,33 +1529,36 @@ async function solicitarSaque() {
       return;
     }
 
-
     saldo =
       Number(
         dados.saldo
       );
 
+    pontos =
+      saldo;
+
+    usuarioAtual.pontos =
+      pontos;
+
+    usuarioAtual.saldo =
+      saldo;
 
     atualizarTela();
-
 
     if (resultado) {
 
       resultado.textContent =
-        "✅ Solicitação de saque enviada!";
+        "✅ Solicitação enviada e aguardando análise.";
 
     }
-
 
     if (campoValor) {
       campoValor.value = "";
     }
 
-
     if (campoDestino) {
       campoDestino.value = "";
     }
-
 
   } catch (e) {
 
@@ -1743,12 +1589,10 @@ function mostrarSAC() {
     return;
   }
 
-
   const resultado =
     document.getElementById(
       "resultadoSAC"
     );
-
 
   if (resultado) {
 
@@ -1756,9 +1600,7 @@ function mostrarSAC() {
 
   }
 
-
   mostrarTela("telaSAC");
-
 
   ativarMenuPorIndice(4);
 
@@ -1776,24 +1618,20 @@ async function enviarSAC() {
     return;
   }
 
-
   const campo =
     document.getElementById(
       "mensagemSAC"
     );
-
 
   const resultado =
     document.getElementById(
       "resultadoSAC"
     );
 
-
   const mensagem =
     campo
       ? campo.value.trim()
       : "";
-
 
   if (!mensagem) {
 
@@ -1806,7 +1644,6 @@ async function enviarSAC() {
 
     return;
   }
-
 
   try {
 
@@ -1828,6 +1665,9 @@ async function enviarSAC() {
               email:
                 usuarioAtual.email,
 
+              idJogador:
+                usuarioAtual.idJogador,
+
               mensagem
 
             })
@@ -1835,10 +1675,8 @@ async function enviarSAC() {
         }
       );
 
-
     const dados =
       await resposta.json();
-
 
     if (!resposta.ok) {
 
@@ -1853,7 +1691,6 @@ async function enviarSAC() {
       return;
     }
 
-
     if (resultado) {
 
       resultado.textContent =
@@ -1861,13 +1698,11 @@ async function enviarSAC() {
 
     }
 
-
     if (campo) {
 
       campo.value = "";
 
     }
-
 
   } catch (e) {
 
@@ -1897,7 +1732,6 @@ function ativarMenu(botao) {
 
     });
 
-
   if (botao) {
 
     botao.classList.add("ativo");
@@ -1914,13 +1748,11 @@ function ativarMenuPorIndice(indice) {
       ".menu-item"
     );
 
-
   botoes.forEach(function(botao) {
 
     botao.classList.remove("ativo");
 
   });
-
 
   if (botoes[indice]) {
 
@@ -1947,9 +1779,7 @@ function abrirTelaMenu(nome, botao) {
 
   }
 
-
   ativarMenu(botao);
-
 
   window.scrollTo({
     top: 0,
@@ -1963,48 +1793,83 @@ function abrirTelaMenu(nome, botao) {
    SAIR
 ========================= */
 
-function sair() {
+async function sair() {
 
   clearInterval(
     timerInterval
   );
 
+  /*
+   * Avisa o servidor que o jogador saiu.
+   * Os pontos continuam salvos.
+   */
+
+  if (usuarioAtual) {
+
+    try {
+
+      await fetch(
+        "/api/logout",
+        {
+
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+
+              idJogador:
+                usuarioAtual.idJogador,
+
+              email:
+                usuarioAtual.email
+
+            })
+
+        }
+      );
+
+    } catch (e) {
+
+      console.log(
+        "Não foi possível registrar a saída."
+      );
+
+    }
+
+  }
 
   usuarioAtual =
     null;
 
-
   pontos =
     0;
-
 
   saldo =
     0;
 
-
   rodada =
     1;
-
 
   pontosDaRodada =
     0;
 
-
   perguntaAtiva =
     false;
-
 
   const loginEmail =
     document.getElementById(
       "loginEmail"
     );
 
-
   const loginSenha =
     document.getElementById(
       "loginSenha"
     );
-
 
   if (loginEmail) {
 
@@ -2012,14 +1877,12 @@ function sair() {
 
   }
 
-
   if (loginSenha) {
 
     loginSenha.value = "";
 
   }
 
-
   mostrarLogin();
 
-}
+   }
