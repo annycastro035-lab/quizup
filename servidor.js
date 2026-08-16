@@ -4,168 +4,373 @@ const path = require("path");
 
 const PORT = process.env.PORT || 10000;
 
-const usuarios = [];
-const saques = [];
-const mensagens = [];
+/*
+=========================================================
+  ARMAZENAMENTO
+=========================================================
 
-const tiposArquivo = {
-  ".html": "text/html; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".js": "application/javascript; charset=utf-8",
-  ".json": "application/json; charset=utf-8",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".gif": "image/gif",
-  ".svg": "image/svg+xml",
-  ".ico": "image/x-icon"
+  Os dados são salvos em quizup-dados.json.
+
+  Isso permite que o servidor recarregue os usuários
+  quando o processo do Node for reiniciado.
+
+=========================================================
+*/
+
+const arquivoDados = path.join(
+  __dirname,
+  "quizup-dados.json"
+);
+
+
+let banco = {
+  usuarios: [],
+  saques: [],
+  mensagens: []
 };
 
 
-/* =========================================================
-   RESPOSTA
-========================================================= */
+function carregarBanco() {
 
-function responder(res, status, dados) {
+  try {
 
-  res.writeHead(status, {
-    "Content-Type": "application/json; charset=utf-8",
-    "Access-Control-Allow-Origin": "*"
-  });
+    if (fs.existsSync(arquivoDados)) {
 
-  res.end(JSON.stringify(dados));
+      const dados =
+        fs.readFileSync(
+          arquivoDados,
+          "utf8"
+        );
+
+      const convertido =
+        JSON.parse(dados);
+
+      banco = {
+        usuarios:
+          Array.isArray(convertido.usuarios)
+            ? convertido.usuarios
+            : [],
+
+        saques:
+          Array.isArray(convertido.saques)
+            ? convertido.saques
+            : [],
+
+        mensagens:
+          Array.isArray(convertido.mensagens)
+            ? convertido.mensagens
+            : []
+      };
+
+    }
+
+  } catch (erro) {
+
+    console.log(
+      "Não foi possível carregar os dados:",
+      erro.message
+    );
+
+  }
+
 }
 
 
-/* =========================================================
-   RECEBER DADOS
-========================================================= */
+function salvarBanco() {
+
+  try {
+
+    fs.writeFileSync(
+      arquivoDados,
+      JSON.stringify(
+        banco,
+        null,
+        2
+      ),
+      "utf8"
+    );
+
+  } catch (erro) {
+
+    console.log(
+      "Não foi possível salvar os dados:",
+      erro.message
+    );
+
+  }
+
+}
+
+
+carregarBanco();
+
+
+const usuarios =
+  banco.usuarios;
+
+const saques =
+  banco.saques;
+
+const mensagens =
+  banco.mensagens;
+
+
+/*
+=========================================================
+  TIPOS DE ARQUIVO
+=========================================================
+*/
+
+const tiposArquivo = {
+
+  ".html":
+    "text/html; charset=utf-8",
+
+  ".css":
+    "text/css; charset=utf-8",
+
+  ".js":
+    "application/javascript; charset=utf-8",
+
+  ".json":
+    "application/json; charset=utf-8",
+
+  ".png":
+    "image/png",
+
+  ".jpg":
+    "image/jpeg",
+
+  ".jpeg":
+    "image/jpeg",
+
+  ".gif":
+    "image/gif",
+
+  ".svg":
+    "image/svg+xml",
+
+  ".ico":
+    "image/x-icon"
+
+};
+
+
+/*
+=========================================================
+  RESPOSTA
+=========================================================
+*/
+
+function responder(
+  res,
+  status,
+  dados
+) {
+
+  res.writeHead(
+    status,
+    {
+      "Content-Type":
+        "application/json; charset=utf-8",
+
+      "Access-Control-Allow-Origin":
+        "*",
+
+      "Access-Control-Allow-Methods":
+        "GET,POST,OPTIONS",
+
+      "Access-Control-Allow-Headers":
+        "Content-Type"
+    }
+  );
+
+  res.end(
+    JSON.stringify(dados)
+  );
+
+}
+
+
+/*
+=========================================================
+  RECEBER JSON
+=========================================================
+*/
 
 function receberDados(req) {
 
-  return new Promise((resolve, reject) => {
+  return new Promise(
+    (resolve, reject) => {
 
-    let corpo = "";
+      let corpo = "";
 
-    req.on("data", parte => {
-      corpo += parte;
-    });
+      req.on(
+        "data",
+        parte => {
 
-    req.on("end", () => {
+          corpo += parte;
 
-      try {
-        resolve(corpo ? JSON.parse(corpo) : {});
-      } catch (erro) {
-        reject(erro);
-      }
+        }
+      );
 
-    });
+      req.on(
+        "end",
+        () => {
 
-    req.on("error", reject);
+          try {
 
-  });
+            resolve(
+              corpo
+                ? JSON.parse(corpo)
+                : {}
+            );
+
+          } catch (erro) {
+
+            reject(erro);
+
+          }
+
+        }
+      );
+
+      req.on(
+        "error",
+        reject
+      );
+
+    }
+  );
 
 }
 
 
-/* =========================================================
-   CÓDIGO DE INDICAÇÃO
+/*
 =========================================================
+  ID DO JOGADOR
+=========================================================
+*/
 
-   Cada jogador recebe um código exclusivo de 8 caracteres.
+function gerarIdJogador() {
 
-   O código utiliza alguns caracteres do nome e do e-mail,
-   mas tudo é embaralhado.
+  let id;
 
-   O e-mail completo nunca aparece no código.
+  do {
 
-   Exemplo:
+    id =
+      "QZ" +
+      Date.now().toString(36).toUpperCase() +
+      Math.random()
+        .toString(36)
+        .substring(2, 8)
+        .toUpperCase();
 
-   Nome: Leidiane
-   E-mail: annycastro035@gmail.com
+  } while (
+    usuarios.some(
+      usuario =>
+        usuario.idJogador === id
+    )
+  );
 
-   Poderá gerar algo parecido com:
+  return id;
 
-   LNYAOC35
+}
 
-========================================================= */
 
-function gerarCodigoIndicacao(nome, email) {
+/*
+=========================================================
+  CÓDIGO DE INDICAÇÃO
+=========================================================
+*/
+
+function gerarCodigoIndicacao(
+  nome,
+  email
+) {
 
   const nomeLimpo =
     String(nome || "")
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-zA-Z]/g, "")
+      .replace(
+        /[\u0300-\u036f]/g,
+        ""
+      )
+      .replace(
+        /[^a-zA-Z]/g,
+        ""
+      )
       .toUpperCase();
+
 
   const emailParte =
     String(email || "")
       .split("@")[0]
-      .replace(/[^a-zA-Z0-9]/g, "")
+      .replace(
+        /[^a-zA-Z0-9]/g,
+        ""
+      )
       .toUpperCase();
+
 
   let caracteres = "";
 
-  /*
-   * Retira alguns caracteres do nome.
-   */
 
   for (
     let i = 0;
-    i < nomeLimpo.length && caracteres.length < 4;
+    i < nomeLimpo.length &&
+    caracteres.length < 4;
     i += 2
   ) {
 
-    caracteres += nomeLimpo[i];
+    caracteres +=
+      nomeLimpo[i];
 
   }
 
-  /*
-   * Retira alguns caracteres do e-mail.
-   */
 
   for (
     let i = 0;
-    i < emailParte.length && caracteres.length < 8;
+    i < emailParte.length &&
+    caracteres.length < 8;
     i += 2
   ) {
 
-    caracteres += emailParte[i];
+    caracteres +=
+      emailParte[i];
 
   }
 
-  /*
-   * Completa se necessário.
-   */
 
   const aleatorio =
     "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-  while (caracteres.length < 8) {
+
+  while (
+    caracteres.length < 8
+  ) {
 
     caracteres +=
       aleatorio[
         Math.floor(
-          Math.random() * aleatorio.length
+          Math.random() *
+          aleatorio.length
         )
       ];
 
   }
 
-  /*
-   * Mantém exatamente 8 caracteres.
-   */
 
   caracteres =
-    caracteres.substring(0, 8);
+    caracteres.substring(
+      0,
+      8
+    );
 
-  /*
-   * Embaralha.
-   */
 
   const lista =
     caracteres.split("");
+
 
   for (
     let i = lista.length - 1;
@@ -175,7 +380,8 @@ function gerarCodigoIndicacao(nome, email) {
 
     const j =
       Math.floor(
-        Math.random() * (i + 1)
+        Math.random() *
+        (i + 1)
       );
 
     [
@@ -188,18 +394,18 @@ function gerarCodigoIndicacao(nome, email) {
 
   }
 
+
   const codigo =
     lista.join("");
 
-  /*
-   * Garante que não exista outro igual.
-   */
 
   const existe =
     usuarios.some(
       usuario =>
-        usuario.codigoIndicacao === codigo
+        usuario.codigoIndicacao ===
+        codigo
     );
+
 
   if (existe) {
 
@@ -210,121 +416,188 @@ function gerarCodigoIndicacao(nome, email) {
 
   }
 
+
   return codigo;
+
 }
 
 
-/* =========================================================
-   ATUALIZAR INDICAÇÕES
+/*
 =========================================================
+  ATUALIZAR INDICAÇÕES
+=========================================================
+*/
 
-   REGRA:
-
-   Vinicius indicou Vera.
-
-   Vera = 250 pontos
-   → Vinicius vê 250/300
-   → EM ANDAMENTO
-   → nenhum bônus ainda.
-
-   Vera = 300 pontos
-   → Vinicius recebe 50 pontos
-   → 50 pontos entram no saldo
-   → indicação vira CONCLUÍDO
-   → bônus não é pago novamente.
-
-========================================================= */
-
-function atualizarIndicacoesDoUsuario(usuario) {
+function atualizarIndicacoesDoUsuario(
+  usuario
+) {
 
   let bonusPago = false;
 
+
   if (!usuario.indicacoes) {
+
     usuario.indicacoes = [];
+
   }
 
-  usuario.indicacoes.forEach(indicacao => {
 
-    const indicado =
-      usuarios.find(
-        item =>
-          item.id === indicacao.usuarioId
-      );
+  usuario.indicacoes.forEach(
+    indicacao => {
 
-    if (!indicado) {
-      return;
+      const indicado =
+        usuarios.find(
+          item =>
+            item.id ===
+            indicacao.usuarioId
+        );
+
+
+      if (!indicado) {
+
+        return;
+
+      }
+
+
+      const pontosIndicada =
+        Number(
+          indicado.pontos || 0
+        );
+
+
+      indicacao.pontos =
+        Math.min(
+          pontosIndicada,
+          300
+        );
+
+
+      if (
+        pontosIndicada < 300 &&
+        !indicacao.bonusPago
+      ) {
+
+        indicacao.status =
+          "EM ANDAMENTO";
+
+        return;
+
+      }
+
+
+      if (
+        pontosIndicada >= 300 &&
+        !indicacao.bonusPago
+      ) {
+
+        usuario.pontos =
+          Number(
+            usuario.pontos || 0
+          ) + 50;
+
+
+        usuario.saldo =
+          Number(
+            usuario.saldo || 0
+          ) + 50;
+
+
+        indicacao.bonusPago =
+          true;
+
+
+        indicacao.status =
+          "CONCLUÍDO";
+
+
+        indicacao.dataConclusao =
+          new Date().toISOString();
+
+
+        bonusPago = true;
+
+      }
+
     }
+  );
 
-    const pontosIndicada =
-      Number(indicado.pontos || 0);
-
-    /*
-     * Mostra no máximo 300.
-     */
-
-    indicacao.pontos =
-      Math.min(
-        pontosIndicada,
-        300
-      );
-
-    /*
-     * Ainda não chegou aos 300.
-     */
-
-    if (
-      pontosIndicada < 300 &&
-      !indicacao.bonusPago
-    ) {
-
-      indicacao.status =
-        "EM ANDAMENTO";
-
-      return;
-    }
-
-    /*
-     * Chegou aos 300.
-     *
-     * O bônus só é pago uma vez.
-     */
-
-    if (
-      pontosIndicada >= 300 &&
-      !indicacao.bonusPago
-    ) {
-
-      usuario.pontos =
-        Number(usuario.pontos || 0) + 50;
-
-      usuario.saldo =
-        Number(usuario.saldo || 0) + 50;
-
-      indicacao.bonusPago =
-        true;
-
-      indicacao.status =
-        "CONCLUÍDO";
-
-      indicacao.dataConclusao =
-        new Date().toISOString();
-
-      bonusPago = true;
-    }
-
-  });
 
   return {
     bonusPago
   };
+
 }
 
 
-/* =========================================================
-   ARQUIVOS
-========================================================= */
+/*
+=========================================================
+  LOCALIZAR USUÁRIO
+=========================================================
+*/
 
-function enviarArquivo(res, arquivo) {
+function encontrarUsuario(dados) {
+
+  const id =
+    String(
+      dados.idJogador ||
+      dados.id ||
+      ""
+    ).trim();
+
+
+  const email =
+    String(
+      dados.email ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  if (id) {
+
+    const porId =
+      usuarios.find(
+        usuario =>
+          usuario.idJogador === id ||
+          String(usuario.id) === id
+      );
+
+    if (porId) {
+
+      return porId;
+
+    }
+
+  }
+
+
+  if (email) {
+
+    return usuarios.find(
+      usuario =>
+        usuario.email === email
+    );
+
+  }
+
+
+  return null;
+
+}
+
+
+/*
+=========================================================
+  ARQUIVOS
+=========================================================
+*/
+
+function enviarArquivo(
+  res,
+  arquivo
+) {
 
   fs.readFile(
     arquivo,
@@ -332,45 +605,91 @@ function enviarArquivo(res, arquivo) {
 
       if (erro) {
 
-        res.writeHead(404, {
-          "Content-Type":
-            "text/plain; charset=utf-8"
-        });
+        res.writeHead(
+          404,
+          {
+            "Content-Type":
+              "text/plain; charset=utf-8"
+          }
+        );
 
         res.end(
           "Página não encontrada."
         );
 
         return;
+
       }
+
 
       const extensao =
         path.extname(
           arquivo
         ).toLowerCase();
 
-      res.writeHead(200, {
 
-        "Content-Type":
-          tiposArquivo[extensao] ||
-          "application/octet-stream"
+      res.writeHead(
+        200,
+        {
+          "Content-Type":
+            tiposArquivo[extensao] ||
+            "application/octet-stream"
+        }
+      );
 
-      });
 
       res.end(dados);
 
     }
   );
+
 }
 
 
-/* =========================================================
-   SERVIDOR
-========================================================= */
+/*
+=========================================================
+  SERVIDOR
+=========================================================
+*/
 
 const servidor =
   http.createServer(
-    async (req, res) => {
+    async (
+      req,
+      res
+    ) => {
+
+      /*
+      ---------------------------------------------------
+        CORS OPTIONS
+      ---------------------------------------------------
+      */
+
+      if (
+        req.method ===
+        "OPTIONS"
+      ) {
+
+        res.writeHead(
+          204,
+          {
+            "Access-Control-Allow-Origin":
+              "*",
+
+            "Access-Control-Allow-Methods":
+              "GET,POST,OPTIONS",
+
+            "Access-Control-Allow-Headers":
+              "Content-Type"
+          }
+        );
+
+        res.end();
+
+        return;
+
+      }
+
 
       const url =
         new URL(
@@ -378,16 +697,20 @@ const servidor =
           `http://${req.headers.host}`
         );
 
+
       const caminho =
         url.pathname;
 
 
-      /* ===================================================
-         CADASTRO
-      =================================================== */
+      /*
+      ===================================================
+        CADASTRO
+      ===================================================
+      */
 
       if (
-        caminho === "/api/cadastro" &&
+        caminho ===
+          "/api/cadastro" &&
         req.method === "POST"
       ) {
 
@@ -396,15 +719,18 @@ const servidor =
           const dados =
             await receberDados(req);
 
+
           const nome =
             String(
               dados.nome || ""
             ).trim();
 
+
           const cpf =
             String(
               dados.cpf || ""
             ).trim();
+
 
           const email =
             String(
@@ -413,14 +739,12 @@ const servidor =
               .trim()
               .toLowerCase();
 
+
           const senha =
             String(
               dados.senha || ""
             );
 
-          /*
-           * Código é opcional.
-           */
 
           const codigoRecebido =
             String(
@@ -447,6 +771,7 @@ const servidor =
             );
 
             return;
+
           }
 
 
@@ -464,13 +789,15 @@ const servidor =
             );
 
             return;
+
           }
 
 
           const existeEmail =
             usuarios.find(
               usuario =>
-                usuario.email === email
+                usuario.email ===
+                email
             );
 
 
@@ -486,14 +813,12 @@ const servidor =
             );
 
             return;
+
           }
 
 
-          /*
-           * Descobre quem indicou.
-           */
-
           let indicador = null;
+
 
           if (codigoRecebido) {
 
@@ -503,6 +828,7 @@ const servidor =
                   usuario.codigoIndicacao ===
                   codigoRecebido
               );
+
 
             if (!indicador) {
 
@@ -516,13 +842,11 @@ const servidor =
               );
 
               return;
+
             }
+
           }
 
-
-          /*
-           * Cria código próprio.
-           */
 
           const codigoIndicacao =
             gerarCodigoIndicacao(
@@ -536,8 +860,12 @@ const servidor =
             id:
               Date.now() +
               Math.floor(
-                Math.random() * 10000
+                Math.random() *
+                10000
               ),
+
+            idJogador:
+              gerarIdJogador(),
 
             nome,
 
@@ -547,66 +875,106 @@ const servidor =
 
             senha,
 
-            /*
-             * Código próprio.
-             */
-
             codigoIndicacao,
-
-            /*
-             * Código que usou no cadastro.
-             */
 
             codigoUsado:
               codigoRecebido || "",
-
-            /*
-             * Quem indicou.
-             */
 
             indicadoPorId:
               indicador
                 ? indicador.id
                 : null,
 
-            /*
-             * Indicações feitas.
-             */
-
             indicacoes: [],
-
-            /*
-             * Plano.
-             */
 
             plano:
               "GRATUITO",
 
-            pontos: 0,
+            pontos:
+              0,
 
-            saldo: 0,
+            saldo:
+              0,
 
-            saquesHoje: 0,
+            /*
+            ---------------------------------------------
+              DADOS DE RECEBIMENTO
+            ---------------------------------------------
+            */
+
+            pix:
+              "",
+
+            paypal:
+              "",
+
+            tipoPagamentoPreferido:
+              "",
+
+            /*
+            ---------------------------------------------
+              SAQUES
+            ---------------------------------------------
+            */
+
+            saquesHoje:
+              0,
 
             dataSaques:
-              new Date().toDateString()
+              new Date().toDateString(),
+
+            historicoSaques: [],
+
+            /*
+            ---------------------------------------------
+              DATA
+            ---------------------------------------------
+            */
+
+            criadoEm:
+              new Date().toISOString(),
+
+            ultimoLogin:
+              new Date().toISOString(),
+
+            ativo:
+              true
 
           };
 
 
-          usuarios.push(usuario);
+          usuarios.push(
+            usuario
+          );
 
 
           /*
-           * Registra a indicação.
-           */
+          -----------------------------------------------
+            REGISTRA INDICAÇÃO
+          -----------------------------------------------
+          */
 
           if (indicador) {
+
+            if (
+              !Array.isArray(
+                indicador.indicacoes
+              )
+            ) {
+
+              indicador.indicacoes =
+                [];
+
+            }
+
 
             indicador.indicacoes.push({
 
               usuarioId:
                 usuario.id,
+
+              idJogador:
+                usuario.idJogador,
 
               nome:
                 usuario.nome,
@@ -634,6 +1002,9 @@ const servidor =
           }
 
 
+          salvarBanco();
+
+
           responder(
             res,
             201,
@@ -642,14 +1013,48 @@ const servidor =
               mensagem:
                 "Cadastro realizado com sucesso.",
 
+              idJogador:
+                usuario.idJogador,
+
               codigoIndicacao:
-                usuario.codigoIndicacao
+                usuario.codigoIndicacao,
+
+              usuario: {
+
+                idJogador:
+                  usuario.idJogador,
+
+                nome:
+                  usuario.nome,
+
+                email:
+                  usuario.email,
+
+                pontos:
+                  usuario.pontos,
+
+                saldo:
+                  usuario.saldo,
+
+                codigoIndicacao:
+                  usuario.codigoIndicacao,
+
+                plano:
+                  usuario.plano
+
+              }
 
             }
           );
 
 
         } catch (erro) {
+
+          console.log(
+            "Erro no cadastro:",
+            erro
+          );
+
 
           responder(
             res,
@@ -663,15 +1068,19 @@ const servidor =
         }
 
         return;
+
       }
 
 
-      /* ===================================================
-         LOGIN
-      =================================================== */
+      /*
+      ===================================================
+        LOGIN
+      ===================================================
+      */
 
       if (
-        caminho === "/api/login" &&
+        caminho ===
+          "/api/login" &&
         req.method === "POST"
       ) {
 
@@ -680,6 +1089,7 @@ const servidor =
           const dados =
             await receberDados(req);
 
+
           const email =
             String(
               dados.email || ""
@@ -687,10 +1097,12 @@ const servidor =
               .trim()
               .toLowerCase();
 
+
           const senha =
             String(
               dados.senha || ""
             );
+
 
           const usuario =
             usuarios.find(
@@ -712,17 +1124,24 @@ const servidor =
             );
 
             return;
+
           }
 
 
-          /*
-           * Atualiza as indicações
-           * antes de mostrar a conta.
-           */
+          usuario.ultimoLogin =
+            new Date().toISOString();
+
+
+          usuario.ativo =
+            true;
+
 
           atualizarIndicacoesDoUsuario(
             usuario
           );
+
+
+          salvarBanco();
 
 
           responder(
@@ -737,6 +1156,9 @@ const servidor =
 
                 id:
                   usuario.id,
+
+                idJogador:
+                  usuario.idJogador,
 
                 nome:
                   usuario.nome,
@@ -753,11 +1175,26 @@ const servidor =
                 codigoIndicacao:
                   usuario.codigoIndicacao,
 
+                codigoUsado:
+                  usuario.codigoUsado,
+
                 plano:
                   usuario.plano,
 
+                pix:
+                  usuario.pix || "",
+
+                paypal:
+                  usuario.paypal || "",
+
+                tipoPagamentoPreferido:
+                  usuario.tipoPagamentoPreferido || "",
+
                 indicacoes:
-                  usuario.indicacoes
+                  usuario.indicacoes || [],
+
+                saquesHoje:
+                  usuario.saquesHoje || 0
 
               }
 
@@ -779,15 +1216,25 @@ const servidor =
         }
 
         return;
+
       }
 
 
-      /* ===================================================
-         INDICAÇÕES
-      =================================================== */
+      /*
+      ===================================================
+        SAIR
+      ===================================================
+
+        O jogador pode sair.
+
+        Os dados continuam salvos.
+
+      ===================================================
+      */
 
       if (
-        caminho === "/api/indicacoes" &&
+        caminho ===
+          "/api/logout" &&
         req.method === "POST"
       ) {
 
@@ -796,17 +1243,379 @@ const servidor =
           const dados =
             await receberDados(req);
 
-          const email =
+
+          const usuario =
+            encontrarUsuario(
+              dados
+            );
+
+
+          if (usuario) {
+
+            usuario.ativo =
+              false;
+
+            usuario.ultimoLogout =
+              new Date().toISOString();
+
+            salvarBanco();
+
+          }
+
+
+          responder(
+            res,
+            200,
+            {
+
+              mensagem:
+                "Você saiu do QuizUp com segurança.",
+
+              dadosSalvos:
+                true
+
+            }
+          );
+
+
+        } catch (erro) {
+
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível sair."
+            }
+          );
+
+        }
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        PERFIL DO JOGADOR
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/perfil" &&
+        req.method === "POST"
+      ) {
+
+        try {
+
+          const dados =
+            await receberDados(req);
+
+
+          const usuario =
+            encontrarUsuario(
+              dados
+            );
+
+
+          if (!usuario) {
+
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Jogador não encontrado."
+              }
+            );
+
+            return;
+
+          }
+
+
+          atualizarIndicacoesDoUsuario(
+            usuario
+          );
+
+
+          responder(
+            res,
+            200,
+            {
+
+              idJogador:
+                usuario.idJogador,
+
+              nome:
+                usuario.nome,
+
+              email:
+                usuario.email,
+
+              pontos:
+                usuario.pontos,
+
+              saldo:
+                usuario.saldo,
+
+              codigoIndicacao:
+                usuario.codigoIndicacao,
+
+              plano:
+                usuario.plano,
+
+              pix:
+                usuario.pix || "",
+
+              paypal:
+                usuario.paypal || "",
+
+              tipoPagamentoPreferido:
+                usuario.tipoPagamentoPreferido || "",
+
+              indicacoes:
+                usuario.indicacoes || [],
+
+              saquesHoje:
+                usuario.saquesHoje || 0
+
+            }
+          );
+
+
+        } catch (erro) {
+
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível carregar o perfil."
+            }
+          );
+
+        }
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        SALVAR PIX / PAYPAL
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/pagamento" &&
+        req.method === "POST"
+      ) {
+
+        try {
+
+          const dados =
+            await receberDados(req);
+
+
+          const usuario =
+            encontrarUsuario(
+              dados
+            );
+
+
+          if (!usuario) {
+
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Jogador não encontrado."
+              }
+            );
+
+            return;
+
+          }
+
+
+          const pix =
             String(
-              dados.email || ""
+              dados.pix || ""
+            ).trim();
+
+
+          const paypal =
+            String(
+              dados.paypal || ""
             )
               .trim()
               .toLowerCase();
 
+
+          const preferido =
+            String(
+              dados.tipo || ""
+            )
+              .trim()
+              .toLowerCase();
+
+
+          if (
+            !pix &&
+            !paypal
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Informe uma chave Pix ou um e-mail do PayPal."
+              }
+            );
+
+            return;
+
+          }
+
+
+          if (
+            preferido === "pix" &&
+            !pix
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Informe a chave Pix."
+              }
+            );
+
+            return;
+
+          }
+
+
+          if (
+            preferido === "paypal" &&
+            !paypal
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Informe o e-mail do PayPal."
+              }
+            );
+
+            return;
+
+          }
+
+
+          if (pix) {
+
+            usuario.pix =
+              pix;
+
+          }
+
+
+          if (paypal) {
+
+            usuario.paypal =
+              paypal;
+
+          }
+
+
+          if (
+            preferido === "pix" ||
+            preferido === "paypal"
+          ) {
+
+            usuario.tipoPagamentoPreferido =
+              preferido;
+
+          }
+
+
+          salvarBanco();
+
+
+          responder(
+            res,
+            200,
+            {
+
+              mensagem:
+                "Dados de pagamento salvos.",
+
+              idJogador:
+                usuario.idJogador,
+
+              pix:
+                usuario.pix,
+
+              paypal:
+                usuario.paypal,
+
+              tipoPagamentoPreferido:
+                usuario.tipoPagamentoPreferido
+
+            }
+          );
+
+
+        } catch (erro) {
+
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível salvar os dados de pagamento."
+            }
+          );
+
+        }
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        INDICAÇÕES
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/indicacoes" &&
+        req.method === "POST"
+      ) {
+
+        try {
+
+          const dados =
+            await receberDados(req);
+
+
           const usuario =
-            usuarios.find(
-              item =>
-                item.email === email
+            encontrarUsuario(
+              dados
             );
 
 
@@ -822,6 +1631,7 @@ const servidor =
             );
 
             return;
+
           }
 
 
@@ -830,10 +1640,16 @@ const servidor =
           );
 
 
+          salvarBanco();
+
+
           responder(
             res,
             200,
             {
+
+              idJogador:
+                usuario.idJogador,
 
               codigoIndicacao:
                 usuario.codigoIndicacao,
@@ -868,15 +1684,19 @@ const servidor =
         }
 
         return;
+
       }
 
 
-      /* ===================================================
-         PONTUAÇÃO
-      =================================================== */
+      /*
+      ===================================================
+        PONTUAÇÃO
+      ===================================================
+      */
 
       if (
-        caminho === "/api/pontuacao" &&
+        caminho ===
+          "/api/pontuacao" &&
         req.method === "POST"
       ) {
 
@@ -885,28 +1705,16 @@ const servidor =
           const dados =
             await receberDados(req);
 
-          const email =
-            String(
-              dados.email || ""
-            )
-              .trim()
-              .toLowerCase();
-
-          const pontos =
-            Number(
-              dados.pontos || 0
-            );
-
-          const saldo =
-            Number(
-              dados.saldo || 0
-            );
-
 
           const usuario =
-            usuarios.find(
-              item =>
-                item.email === email
+            encontrarUsuario(
+              dados
+            );
+
+
+          const pontosRecebidos =
+            Number(
+              dados.pontos || 0
             );
 
 
@@ -922,30 +1730,40 @@ const servidor =
             );
 
             return;
+
           }
 
 
-          usuario.pontos =
-            Math.max(
-              0,
-              pontos
-            );
+          /*
+           * O valor enviado representa a
+           * pontuação atual do jogador.
+           */
 
-          usuario.saldo =
-            Math.max(
-              0,
-              saldo
-            );
+          if (
+            Number.isFinite(
+              pontosRecebidos
+            ) &&
+            pontosRecebidos >= 0
+          ) {
+
+            usuario.pontos =
+              pontosRecebidos;
+
+          }
 
 
           /*
-           * IMPORTANTE:
-           *
-           * Verifica se o jogador é uma
-           * pessoa indicada por alguém.
-           *
-           * Se chegar aos 300 pontos,
-           * paga os 50 ao indicador.
+           * O saldo acompanha os pontos
+           * para manter a compatibilidade
+           * com a versão anterior.
+           */
+
+          usuario.saldo =
+            usuario.pontos;
+
+
+          /*
+           * INDICAÇÃO
            */
 
           if (
@@ -962,6 +1780,18 @@ const servidor =
 
             if (indicador) {
 
+              if (
+                !Array.isArray(
+                  indicador.indicacoes
+                )
+              ) {
+
+                indicador.indicacoes =
+                  [];
+
+              }
+
+
               const indicacao =
                 indicador.indicacoes.find(
                   item =>
@@ -971,54 +1801,67 @@ const servidor =
 
 
               if (
-                indicacao &&
-                usuario.pontos >= 300 &&
-                !indicacao.bonusPago
+                indicacao
               ) {
 
-                indicador.pontos =
-                  Number(
-                    indicador.pontos || 0
-                  ) + 50;
+                if (
+                  usuario.pontos >= 300 &&
+                  !indicacao.bonusPago
+                ) {
 
-                indicador.saldo =
-                  Number(
-                    indicador.saldo || 0
-                  ) + 50;
-
-                indicacao.pontos = 300;
-
-                indicacao.bonusPago =
-                  true;
-
-                indicacao.status =
-                  "CONCLUÍDO";
-
-                indicacao.dataConclusao =
-                  new Date().toISOString();
-
-              }
+                  indicador.pontos =
+                    Number(
+                      indicador.pontos || 0
+                    ) + 50;
 
 
-              else if (
-                indicacao &&
-                !indicacao.bonusPago
-              ) {
+                  indicador.saldo =
+                    Number(
+                      indicador.saldo || 0
+                    ) + 50;
 
-                indicacao.pontos =
-                  Math.min(
-                    usuario.pontos,
-                    300
-                  );
 
-                indicacao.status =
-                  "EM ANDAMENTO";
+                  indicacao.pontos =
+                    300;
+
+
+                  indicacao.bonusPago =
+                    true;
+
+
+                  indicacao.status =
+                    "CONCLUÍDO";
+
+
+                  indicacao.dataConclusao =
+                    new Date().toISOString();
+
+                }
+
+                else if (
+                  !indicacao.bonusPago
+                ) {
+
+                  indicacao.pontos =
+                    Math.min(
+                      usuario.pontos,
+                      300
+                    );
+
+
+                  indicacao.status =
+                    "EM ANDAMENTO";
+
+                }
 
               }
 
             }
 
           }
+
+
+          salvarBanco();
 
 
           responder(
@@ -1028,6 +1871,9 @@ const servidor =
 
               mensagem:
                 "Pontuação salva.",
+
+              idJogador:
+                usuario.idJogador,
 
               pontos:
                 usuario.pontos,
@@ -1053,15 +1899,65 @@ const servidor =
         }
 
         return;
+
       }
 
 
-      /* ===================================================
-         SAQUE
-      =================================================== */
+      /*
+      ===================================================
+        REGRAS DE SAQUE
+      ===================================================
+      */
+
+      function calcularSaque(
+        pontos
+      ) {
+
+        /*
+         * VALOR RECEBIDO PELO JOGADOR
+         */
+
+        if (
+          pontos === 2000
+        ) {
+
+          return 1;
+
+        }
+
+
+        if (
+          pontos === 6000
+        ) {
+
+          return 5;
+
+        }
+
+
+        if (
+          pontos === 11000
+        ) {
+
+          return 11;
+
+        }
+
+
+        return 0;
+
+      }
+
+
+      /*
+      ===================================================
+        SAQUE
+      ===================================================
+      */
 
       if (
-        caminho === "/api/saque" &&
+        caminho ===
+          "/api/saque" &&
         req.method === "POST"
       ) {
 
@@ -1070,17 +1966,18 @@ const servidor =
           const dados =
             await receberDados(req);
 
-          const email =
-            String(
-              dados.email || ""
-            )
-              .trim()
-              .toLowerCase();
+
+          const usuario =
+            encontrarUsuario(
+              dados
+            );
+
 
           const quantidade =
             Number(
               dados.pontos || 0
             );
+
 
           const tipo =
             String(
@@ -1089,17 +1986,11 @@ const servidor =
               .trim()
               .toLowerCase();
 
+
           const destino =
             String(
               dados.destino || ""
             ).trim();
-
-
-          const usuario =
-            usuarios.find(
-              item =>
-                item.email === email
-            );
 
 
           if (!usuario) {
@@ -1109,16 +2000,28 @@ const servidor =
               404,
               {
                 erro:
-                  "Usuário não encontrado."
+                  "Jogador não encontrado."
               }
             );
 
             return;
+
           }
 
 
+          /*
+           * SOMENTE OS VALORES DEFINIDOS
+           * PODEM SER SOLICITADOS.
+           */
+
+          const valorJogador =
+            calcularSaque(
+              quantidade
+            );
+
+
           if (
-            quantidade < 1000
+            valorJogador <= 0
           ) {
 
             responder(
@@ -1126,16 +2029,18 @@ const servidor =
               400,
               {
                 erro:
-                  "O saque mínimo é de 1.000 pontos."
+                  "Os saques disponíveis são: 2.000 pontos = R$ 1,00; 6.000 pontos = R$ 5,00; 11.000 pontos = R$ 11,00."
               }
             );
 
             return;
+
           }
 
 
           if (
-            quantidade > usuario.saldo
+            usuario.pontos <
+            quantidade
           ) {
 
             responder(
@@ -1143,11 +2048,75 @@ const servidor =
               400,
               {
                 erro:
-                  "Saldo insuficiente."
+                  "Pontos insuficientes."
               }
             );
 
             return;
+
+          }
+
+
+          /*
+           * 30% DA PLATAFORMA
+           *
+           * O jogador recebe o valor definido.
+           *
+           * A plataforma recebe 30% desse valor
+           * adicionalmente.
+           */
+
+          const percentualPlataforma =
+            0.30;
+
+
+          const valorPlataforma =
+            Number(
+              (
+                valorJogador *
+                percentualPlataforma
+              ).toFixed(2)
+            );
+
+
+          const custoTotal =
+            Number(
+              (
+                valorJogador +
+                valorPlataforma
+              ).toFixed(2)
+            );
+
+
+          /*
+           * VERIFICA PAGAMENTO
+           */
+
+          let destinoFinal =
+            destino;
+
+
+          if (
+            tipo === "pix"
+          ) {
+
+            destinoFinal =
+              destino ||
+              usuario.pix ||
+              "";
+
+          }
+
+
+          if (
+            tipo === "paypal"
+          ) {
+
+            destinoFinal =
+              destino ||
+              usuario.paypal ||
+              "";
+
           }
 
 
@@ -1161,35 +2130,42 @@ const servidor =
               400,
               {
                 erro:
-                  "Forma de pagamento inválida."
+                  "Escolha PIX ou PayPal."
               }
             );
 
             return;
+
           }
 
 
-          if (!destino) {
+          if (!destinoFinal) {
 
             responder(
               res,
               400,
               {
                 erro:
-                  "Informe a chave PIX ou e-mail PayPal."
+                  "Cadastre sua chave Pix ou e-mail do PayPal antes de solicitar o saque."
               }
             );
 
             return;
+
           }
 
+
+          /*
+           * LIMITE DE 2 SAQUES POR DIA
+           */
 
           const hoje =
             new Date().toDateString();
 
 
           if (
-            usuario.dataSaques !== hoje
+            usuario.dataSaques !==
+            hoje
           ) {
 
             usuario.dataSaques =
@@ -1215,16 +2191,28 @@ const servidor =
             );
 
             return;
+
           }
 
+
+          /*
+           * CRIA SAQUE
+           */
 
           const saque = {
 
             id:
+              "SAC" +
               Date.now(),
 
             usuarioId:
               usuario.id,
+
+            idJogador:
+              usuario.idJogador,
+
+            nome:
+              usuario.nome,
 
             email:
               usuario.email,
@@ -1232,12 +2220,23 @@ const servidor =
             pontos:
               quantidade,
 
-            valor:
-              quantidade / 1000,
+            valorJogador:
+              valorJogador,
 
-            tipo,
+            percentualPlataforma:
+              30,
 
-            destino,
+            valorPlataforma:
+              valorPlataforma,
+
+            custoTotal:
+              custoTotal,
+
+            tipo:
+              tipo,
+
+            destino:
+              destinoFinal,
 
             status:
               "PENDENTE",
@@ -1248,13 +2247,44 @@ const servidor =
           };
 
 
-          saques.push(saque);
+          saques.push(
+            saque
+          );
 
 
-          usuario.saldo -=
+          /*
+           * RETIRA OS PONTOS
+           */
+
+          usuario.pontos -=
             quantidade;
 
+
+          usuario.saldo =
+            usuario.pontos;
+
+
           usuario.saquesHoje++;
+
+
+          if (
+            !Array.isArray(
+              usuario.historicoSaques
+            )
+          ) {
+
+            usuario.historicoSaques =
+              [];
+
+          }
+
+
+          usuario.historicoSaques.push(
+            saque.id
+          );
+
+
+          salvarBanco();
 
 
           responder(
@@ -1265,6 +2295,9 @@ const servidor =
               mensagem:
                 "Solicitação de saque enviada.",
 
+              idJogador:
+                usuario.idJogador,
+
               saque: {
 
                 id:
@@ -1273,8 +2306,17 @@ const servidor =
                 pontos:
                   saque.pontos,
 
-                valor:
-                  saque.valor,
+                valorJogador:
+                  saque.valorJogador,
+
+                percentualPlataforma:
+                  saque.percentualPlataforma,
+
+                valorPlataforma:
+                  saque.valorPlataforma,
+
+                custoTotal:
+                  saque.custoTotal,
 
                 tipo:
                   saque.tipo,
@@ -1293,6 +2335,12 @@ const servidor =
 
         } catch (erro) {
 
+          console.log(
+            "Erro no saque:",
+            erro
+          );
+
+
           responder(
             res,
             400,
@@ -1305,15 +2353,19 @@ const servidor =
         }
 
         return;
+
       }
 
 
-      /* ===================================================
-         SAC
-      =================================================== */
+      /*
+      ===================================================
+        HISTÓRICO DE SAQUES
+      ===================================================
+      */
 
       if (
-        caminho === "/api/sac" &&
+        caminho ===
+          "/api/saques" &&
         req.method === "POST"
       ) {
 
@@ -1322,6 +2374,88 @@ const servidor =
           const dados =
             await receberDados(req);
 
+
+          const usuario =
+            encontrarUsuario(
+              dados
+            );
+
+
+          if (!usuario) {
+
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Jogador não encontrado."
+              }
+            );
+
+            return;
+
+          }
+
+
+          const lista =
+            saques.filter(
+              saque =>
+                saque.usuarioId ===
+                usuario.id
+            );
+
+
+          responder(
+            res,
+            200,
+            {
+
+              idJogador:
+                usuario.idJogador,
+
+              saques:
+                lista
+
+            }
+          );
+
+
+        } catch (erro) {
+
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível carregar os saques."
+            }
+          );
+
+        }
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        SAC
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/sac" &&
+        req.method === "POST"
+      ) {
+
+        try {
+
+          const dados =
+            await receberDados(req);
+
+
           const email =
             String(
               dados.email || ""
@@ -1329,9 +2463,16 @@ const servidor =
               .trim()
               .toLowerCase();
 
+
           const mensagem =
             String(
               dados.mensagem || ""
+            ).trim();
+
+
+          const idJogador =
+            String(
+              dados.idJogador || ""
             ).trim();
 
 
@@ -1350,22 +2491,35 @@ const servidor =
             );
 
             return;
+
           }
 
 
           mensagens.push({
 
             id:
+              "MSG" +
               Date.now(),
 
-            email,
+            idJogador:
+              idJogador,
 
-            mensagem,
+            email:
+              email,
+
+            mensagem:
+              mensagem,
 
             data:
-              new Date().toISOString()
+              new Date().toISOString(),
+
+            status:
+              "NOVA"
 
           });
+
+
+          salvarBanco();
 
 
           responder(
@@ -1392,15 +2546,19 @@ const servidor =
         }
 
         return;
+
       }
 
 
-      /* ===================================================
-         STATUS
-      =================================================== */
+      /*
+      ===================================================
+        STATUS
+      ===================================================
+      */
 
       if (
-        caminho === "/api/status" &&
+        caminho ===
+          "/api/status" &&
         req.method === "GET"
       ) {
 
@@ -1418,14 +2576,32 @@ const servidor =
             usuarios:
               usuarios.length,
 
+            jogadoresAtivos:
+              usuarios.filter(
+                usuario =>
+                  usuario.ativo === true
+              ).length,
+
             saques:
               saques.length,
 
+            mensagens:
+              mensagens.length,
+
             indicacoes:
               usuarios.reduce(
-                (total, usuario) =>
+                (
+                  total,
+                  usuario
+                ) =>
                   total +
-                  usuario.indicacoes.length,
+                  (
+                    Array.isArray(
+                      usuario.indicacoes
+                    )
+                      ? usuario.indicacoes.length
+                      : 0
+                  ),
                 0
               )
 
@@ -1433,12 +2609,15 @@ const servidor =
         );
 
         return;
+
       }
 
 
-      /* ===================================================
-         ARQUIVOS DO SITE
-      =================================================== */
+      /*
+      ===================================================
+        ARQUIVOS DO SITE
+      ===================================================
+      */
 
       let arquivo =
         caminho;
@@ -1473,9 +2652,17 @@ const servidor =
         );
 
 
+      /*
+       * Segurança contra acesso
+       * a arquivos fora do projeto.
+       */
+
       if (
+        arquivoFinal !==
+          pastaProjeto &&
         !arquivoFinal.startsWith(
-          pastaProjeto
+          pastaProjeto +
+          path.sep
         )
       ) {
 
@@ -1492,6 +2679,7 @@ const servidor =
         );
 
         return;
+
       }
 
 
@@ -1504,9 +2692,11 @@ const servidor =
   );
 
 
-/* =========================================================
-   INICIAR SERVIDOR
-========================================================= */
+/*
+=========================================================
+  INICIAR SERVIDOR
+=========================================================
+*/
 
 servidor.listen(
   PORT,
