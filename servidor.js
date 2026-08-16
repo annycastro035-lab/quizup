@@ -4,16 +4,10 @@ const path = require("path");
 
 const PORT = process.env.PORT || 10000;
 
+
 /*
 =========================================================
   ARMAZENAMENTO
-=========================================================
-
-  Os dados são salvos em quizup-dados.json.
-
-  Isso permite que o servidor recarregue os usuários
-  quando o processo do Node for reiniciado.
-
 =========================================================
 */
 
@@ -466,12 +460,22 @@ function atualizarIndicacoesDoUsuario(
         );
 
 
+      /*
+       * A indicação acompanha no máximo
+       * 300 pontos.
+       */
+
       indicacao.pontos =
         Math.min(
           pontosIndicada,
           300
         );
 
+
+      /*
+       * Abaixo de 300 pontos:
+       * não paga bônus.
+       */
 
       if (
         pontosIndicada < 300 &&
@@ -485,6 +489,11 @@ function atualizarIndicacoesDoUsuario(
 
       }
 
+
+      /*
+       * Ao atingir 300 pontos:
+       * paga exatamente 50 pontos uma única vez.
+       */
 
       if (
         pontosIndicada >= 300 &&
@@ -501,6 +510,14 @@ function atualizarIndicacoesDoUsuario(
           Number(
             usuario.saldo || 0
           ) + 50;
+
+
+        indicacao.pontos =
+          300;
+
+
+        indicacao.bonus =
+          50;
 
 
         indicacao.bonusPago =
@@ -659,10 +676,11 @@ const servidor =
       res
     ) => {
 
+
       /*
-      ---------------------------------------------------
+      ===================================================
         CORS OPTIONS
-      ---------------------------------------------------
+      ===================================================
       */
 
       if (
@@ -745,6 +763,10 @@ const servidor =
               dados.senha || ""
             );
 
+
+          /*
+           * Código de indicação é opcional.
+           */
 
           const codigoRecebido =
             String(
@@ -896,12 +918,6 @@ const servidor =
             saldo:
               0,
 
-            /*
-            ---------------------------------------------
-              DADOS DE RECEBIMENTO
-            ---------------------------------------------
-            */
-
             pix:
               "",
 
@@ -911,12 +927,6 @@ const servidor =
             tipoPagamentoPreferido:
               "",
 
-            /*
-            ---------------------------------------------
-              SAQUES
-            ---------------------------------------------
-            */
-
             saquesHoje:
               0,
 
@@ -924,12 +934,6 @@ const servidor =
               new Date().toDateString(),
 
             historicoSaques: [],
-
-            /*
-            ---------------------------------------------
-              DATA
-            ---------------------------------------------
-            */
 
             criadoEm:
               new Date().toISOString(),
@@ -1224,12 +1228,6 @@ const servidor =
       ===================================================
         SAIR
       ===================================================
-
-        O jogador pode sair.
-
-        Os dados continuam salvos.
-
-      ===================================================
       */
 
       if (
@@ -1298,7 +1296,7 @@ const servidor =
 
       /*
       ===================================================
-        PERFIL DO JOGADOR
+        PERFIL
       ===================================================
       */
 
@@ -1339,6 +1337,9 @@ const servidor =
           atualizarIndicacoesDoUsuario(
             usuario
           );
+
+
+          salvarBanco();
 
 
           responder(
@@ -1406,7 +1407,7 @@ const servidor =
 
       /*
       ===================================================
-        SALVAR PIX / PAYPAL
+        PAGAMENTO
       ===================================================
       */
 
@@ -1734,11 +1735,6 @@ const servidor =
           }
 
 
-          /*
-           * O valor enviado representa a
-           * pontuação atual do jogador.
-           */
-
           if (
             Number.isFinite(
               pontosRecebidos
@@ -1752,19 +1748,18 @@ const servidor =
           }
 
 
-          /*
-           * O saldo acompanha os pontos
-           * para manter a compatibilidade
-           * com a versão anterior.
-           */
-
           usuario.saldo =
             usuario.pontos;
 
 
           /*
-           * INDICAÇÃO
-           */
+          =================================================
+            INDICAÇÃO
+
+            O bônus de 50 pontos somente é liberado
+            quando o jogador indicado atingir 300 pontos.
+          =================================================
+          */
 
           if (
             usuario.indicadoPorId
@@ -1800,9 +1795,7 @@ const servidor =
                 );
 
 
-              if (
-                indicacao
-              ) {
+              if (indicacao) {
 
                 if (
                   usuario.pontos >= 300 &&
@@ -1823,6 +1816,10 @@ const servidor =
 
                   indicacao.pontos =
                     300;
+
+
+                  indicacao.bonus =
+                    50;
 
 
                   indicacao.bonusPago =
@@ -1907,15 +1904,16 @@ const servidor =
       ===================================================
         REGRAS DE SAQUE
       ===================================================
+
+        2.000 pontos = R$ 1,00
+        6.000 pontos = R$ 5,00
+        11.000 pontos = R$ 10,00
+      ===================================================
       */
 
       function calcularSaque(
         pontos
       ) {
-
-        /*
-         * VALOR RECEBIDO PELO JOGADOR
-         */
 
         if (
           pontos === 2000
@@ -1939,7 +1937,7 @@ const servidor =
           pontos === 11000
         ) {
 
-          return 11;
+          return 10;
 
         }
 
@@ -2010,7 +2008,7 @@ const servidor =
 
 
           /*
-           * SOMENTE OS VALORES DEFINIDOS
+           * SOMENTE OS TRÊS VALORES
            * PODEM SER SOLICITADOS.
            */
 
@@ -2029,7 +2027,7 @@ const servidor =
               400,
               {
                 erro:
-                  "Os saques disponíveis são: 2.000 pontos = R$ 1,00; 6.000 pontos = R$ 5,00; 11.000 pontos = R$ 11,00."
+                  "Os saques disponíveis são: 2.000 pontos = R$ 1,00; 6.000 pontos = R$ 5,00; 11.000 pontos = R$ 10,00."
               }
             );
 
@@ -2058,13 +2056,24 @@ const servidor =
 
 
           /*
-           * 30% DA PLATAFORMA
-           *
-           * O jogador recebe o valor definido.
-           *
-           * A plataforma recebe 30% desse valor
-           * adicionalmente.
-           */
+          =================================================
+            30% DA PLATAFORMA
+          =================================================
+
+            O jogador recebe o valor correspondente
+            à tabela.
+
+            Os 30% são registrados separadamente
+            como participação da plataforma.
+
+            Exemplo:
+
+            Saque jogador: R$ 10,00
+            Plataforma 30%: R$ 3,00
+            Custo total: R$ 13,00
+
+          =================================================
+          */
 
           const percentualPlataforma =
             0.30;
@@ -2089,8 +2098,10 @@ const servidor =
 
 
           /*
-           * VERIFICA PAGAMENTO
-           */
+          =================================================
+            DESTINO DO PAGAMENTO
+          =================================================
+          */
 
           let destinoFinal =
             destino;
@@ -2156,8 +2167,10 @@ const servidor =
 
 
           /*
-           * LIMITE DE 2 SAQUES POR DIA
-           */
+          =================================================
+            LIMITE DE 2 SAQUES POR DIA
+          =================================================
+          */
 
           const hoje =
             new Date().toDateString();
@@ -2196,8 +2209,19 @@ const servidor =
 
 
           /*
-           * CRIA SAQUE
-           */
+          =================================================
+            CRIA SOLICITAÇÃO
+          =================================================
+
+            IMPORTANTE:
+
+            O saque nasce como PENDENTE.
+
+            Assim você pode verificar no painel
+            administrativo se o jogador é elegível
+            antes do pagamento.
+          =================================================
+          */
 
           const saque = {
 
@@ -2241,6 +2265,9 @@ const servidor =
             status:
               "PENDENTE",
 
+            elegibilidade:
+              "AGUARDANDO ANÁLISE",
+
             data:
               new Date().toISOString()
 
@@ -2253,8 +2280,12 @@ const servidor =
 
 
           /*
-           * RETIRA OS PONTOS
-           */
+          =================================================
+            RETIRA OS PONTOS DA CONTA
+
+            O pedido continua PENDENTE no painel.
+          =================================================
+          */
 
           usuario.pontos -=
             quantidade;
@@ -2293,7 +2324,7 @@ const servidor =
             {
 
               mensagem:
-                "Solicitação de saque enviada.",
+                "Solicitação de saque enviada e aguardando análise.",
 
               idJogador:
                 usuario.idJogador,
@@ -2322,7 +2353,10 @@ const servidor =
                   saque.tipo,
 
                 status:
-                  saque.status
+                  saque.status,
+
+                elegibilidade:
+                  saque.elegibilidade
 
               },
 
