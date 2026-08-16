@@ -1166,7 +1166,7 @@ function bloquearRespostas() {
 
 
 /* =========================
-   FINALIZAR RODADA
+   FINALIZAR RODADA + EXOCLICK
 ========================= */
 
 function finalizarRodada() {
@@ -1175,13 +1175,6 @@ function finalizarRodada() {
     document.getElementById(
       "botaoGirar"
     );
-
-  if (botao) {
-
-    botao.disabled =
-      false;
-
-  }
 
   rodada++;
 
@@ -1199,6 +1192,223 @@ function finalizarRodada() {
 
   pontosDaRodada =
     0;
+
+  /*
+   * ANÚNCIO ALTERNADO
+   *
+   * Rodada 2 = vídeo
+   * Rodada 3 = sem vídeo
+   * Rodada 4 = vídeo
+   * Rodada 5 = sem vídeo
+   * E assim por diante.
+   */
+
+  if (rodada % 2 === 0) {
+
+    mostrarAnuncioVideo(
+      function() {
+
+        if (botao) {
+
+          botao.disabled =
+            false;
+
+        }
+
+      }
+    );
+
+  } else {
+
+    if (botao) {
+
+      botao.disabled =
+        false;
+
+    }
+
+  }
+
+}
+
+
+/* =========================
+   ANÚNCIO EXOCLICK
+   ZONA 6003854
+========================= */
+
+function mostrarAnuncioVideo(callback) {
+
+  const existente =
+    document.getElementById(
+      "quizupAnuncioVideo"
+    );
+
+  if (existente) {
+
+    existente.remove();
+
+  }
+
+  const card =
+    document.createElement(
+      "div"
+    );
+
+  card.id =
+    "quizupAnuncioVideo";
+
+  card.style.cssText = `
+    background:#ffffff;
+    border-radius:18px;
+    padding:15px;
+    margin:15px 0;
+    text-align:center;
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+  `;
+
+  card.innerHTML = `
+
+    <div style="
+      font-size:14px;
+      font-weight:bold;
+      color:#666;
+      margin-bottom:10px;
+    ">
+      📺 PUBLICIDADE
+    </div>
+
+    <div
+      id="exoclickVideo"
+      style="
+        width:100%;
+        min-height:180px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        overflow:hidden;
+        border-radius:12px;
+      "
+    ></div>
+
+    <div style="
+      font-size:12px;
+      color:#999;
+      margin-top:10px;
+    ">
+      Aguarde o anúncio...
+    </div>
+
+  `;
+
+  const conteudo =
+    document.querySelector(
+      ".conteudo"
+    );
+
+  if (conteudo) {
+
+    conteudo.insertBefore(
+      card,
+      conteudo.firstChild
+    );
+
+  }
+
+  const anuncio =
+    document.getElementById(
+      "exoclickVideo"
+    );
+
+  if (!anuncio) {
+
+    if (callback) {
+
+      callback();
+
+    }
+
+    return;
+
+  }
+
+  /*
+   * Carrega o provedor ExoClick.
+   */
+
+  const script =
+    document.createElement(
+      "script"
+    );
+
+  script.async =
+    true;
+
+  script.type =
+    "application/javascript";
+
+  script.src =
+    "https://a.magsrv.com/ad-provider.js";
+
+  anuncio.appendChild(
+    script
+  );
+
+  /*
+   * Zona ExoClick:
+   * 6003854
+   */
+
+  const ins =
+    document.createElement(
+      "ins"
+    );
+
+  ins.className =
+    "eas6a97888e37";
+
+  ins.setAttribute(
+    "data-zoneid",
+    "6003854"
+  );
+
+  anuncio.appendChild(
+    ins
+  );
+
+  /*
+   * Comando de exibição.
+   */
+
+  const scriptServe =
+    document.createElement(
+      "script"
+    );
+
+  scriptServe.textContent =
+    '(AdProvider = window.AdProvider || []).push({"serve": {}});';
+
+  anuncio.appendChild(
+    scriptServe
+  );
+
+  /*
+   * Aguarda alguns segundos
+   * antes de liberar o próximo giro.
+   */
+
+  setTimeout(
+    function() {
+
+      if (callback) {
+
+        callback();
+
+      }
+
+    },
+    5000
+  );
 
 }
 
@@ -1416,7 +1626,9 @@ async function solicitarSaque() {
       : "";
 
   if (resultado) {
+
     resultado.textContent = "";
+
   }
 
   /*
@@ -1861,6 +2073,15 @@ async function sair() {
   perguntaAtiva =
     false;
 
+  const anuncio =
+    document.getElementById(
+      "quizupAnuncioVideo"
+    );
+
+  if (anuncio) {
+    anuncio.remove();
+  }
+
   const loginEmail =
     document.getElementById(
       "loginEmail"
@@ -1885,4 +2106,4 @@ async function sair() {
 
   mostrarLogin();
 
-   }
+     }
