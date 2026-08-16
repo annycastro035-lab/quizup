@@ -23,7 +23,6 @@ const perguntas = [
     ],
     correta: 1
   },
-
   {
     nivel: "FÁCIL",
     pergunta: "Quanto é 2 + 2?",
@@ -178,7 +177,6 @@ function voltarJogo() {
 }
 
 async function cadastrar() {
-
   const nome = document.getElementById("cadNome").value.trim();
   const cpf = document.getElementById("cadCpf").value.trim();
   const email = document.getElementById("cadEmail").value.trim();
@@ -189,8 +187,10 @@ async function cadastrar() {
 
   erro.textContent = "";
 
-  if (!nome || !cpf || !email || !senha || !codigo) {
-    erro.textContent = "Preencha todos os campos.";
+  // Código de indicação é OPCIONAL.
+  // Somente nome, CPF, e-mail e senha são obrigatórios.
+  if (!nome || !cpf || !email || !senha) {
+    erro.textContent = "Preencha todos os campos obrigatórios.";
     return;
   }
 
@@ -324,7 +324,6 @@ function sortearDado() {
   if (numero < 0.78) return 5;
   if (numero < 0.84) return 6;
   if (numero < 0.89) return 7;
-
   if (numero < 0.94) return 8;
   if (numero < 0.98) return 9;
 
@@ -813,4 +812,4 @@ function sair() {
   ).value = "";
 
   mostrarLogin();
-      }
+}
