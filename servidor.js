@@ -23,7 +23,7 @@ const tiposArquivo = {
 
 
 /* =========================================================
-   RESPOSTA JSON
+   RESPOSTA
 ========================================================= */
 
 function responder(res, status, dados) {
@@ -38,7 +38,7 @@ function responder(res, status, dados) {
 
 
 /* =========================================================
-   RECEBER JSON
+   RECEBER DADOS
 ========================================================= */
 
 function receberDados(req) {
@@ -54,17 +54,9 @@ function receberDados(req) {
     req.on("end", () => {
 
       try {
-
-        resolve(
-          corpo
-            ? JSON.parse(corpo)
-            : {}
-        );
-
+        resolve(corpo ? JSON.parse(corpo) : {});
       } catch (erro) {
-
         reject(erro);
-
       }
 
     });
@@ -77,22 +69,25 @@ function receberDados(req) {
 
 
 /* =========================================================
-   GERADOR DO CÓDIGO DE INDICAÇÃO
+   CÓDIGO DE INDICAÇÃO
 =========================================================
 
-   O código possui exatamente 8 caracteres.
+   Cada jogador recebe um código exclusivo de 8 caracteres.
 
-   Ele usa pequenos trechos do nome e do e-mail,
-   mas embaralhados.
+   O código utiliza alguns caracteres do nome e do e-mail,
+   mas tudo é embaralhado.
 
-   O e-mail completo NUNCA é mostrado.
+   O e-mail completo nunca aparece no código.
 
    Exemplo:
+
    Nome: Leidiane
    E-mail: annycastro035@gmail.com
 
-   Resultado possível:
+   Poderá gerar algo parecido com:
+
    LNYAOC35
+
 ========================================================= */
 
 function gerarCodigoIndicacao(nome, email) {
@@ -112,9 +107,8 @@ function gerarCodigoIndicacao(nome, email) {
 
   let caracteres = "";
 
-
   /*
-   * Pegamos alguns caracteres do nome
+   * Retira alguns caracteres do nome.
    */
 
   for (
@@ -123,15 +117,12 @@ function gerarCodigoIndicacao(nome, email) {
     i += 2
   ) {
 
-    caracteres +=
-      nomeLimpo[i];
+    caracteres += nomeLimpo[i];
 
   }
 
-
   /*
-   * Pegamos alguns caracteres
-   * do início do e-mail.
+   * Retira alguns caracteres do e-mail.
    */
 
   for (
@@ -140,44 +131,41 @@ function gerarCodigoIndicacao(nome, email) {
     i += 2
   ) {
 
-    caracteres +=
-      emailParte[i];
+    caracteres += emailParte[i];
 
   }
 
-
   /*
-   * Se ainda não tiver 8 caracteres,
-   * completa com caracteres aleatórios.
+   * Completa se necessário.
    */
 
   const aleatorio =
     "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-
-  while (
-    caracteres.length < 8
-  ) {
+  while (caracteres.length < 8) {
 
     caracteres +=
       aleatorio[
         Math.floor(
-          Math.random() *
-          aleatorio.length
+          Math.random() * aleatorio.length
         )
       ];
 
   }
 
+  /*
+   * Mantém exatamente 8 caracteres.
+   */
+
+  caracteres =
+    caracteres.substring(0, 8);
 
   /*
-   * Embaralha tudo.
+   * Embaralha.
    */
 
   const lista =
-    caracteres
-      .substring(0, 8)
-      .split("");
+    caracteres.split("");
 
   for (
     let i = lista.length - 1;
@@ -187,25 +175,21 @@ function gerarCodigoIndicacao(nome, email) {
 
     const j =
       Math.floor(
-        Math.random() *
-        (i + 1)
+        Math.random() * (i + 1)
       );
 
     [
       lista[i],
       lista[j]
-    ] =
-    [
+    ] = [
       lista[j],
       lista[i]
     ];
 
   }
 
-
   const codigo =
     lista.join("");
-
 
   /*
    * Garante que não exista outro igual.
@@ -217,7 +201,6 @@ function gerarCodigoIndicacao(nome, email) {
         usuario.codigoIndicacao === codigo
     );
 
-
   if (existe) {
 
     return gerarCodigoIndicacao(
@@ -227,9 +210,113 @@ function gerarCodigoIndicacao(nome, email) {
 
   }
 
-
   return codigo;
+}
 
+
+/* =========================================================
+   ATUALIZAR INDICAÇÕES
+=========================================================
+
+   REGRA:
+
+   Vinicius indicou Vera.
+
+   Vera = 250 pontos
+   → Vinicius vê 250/300
+   → EM ANDAMENTO
+   → nenhum bônus ainda.
+
+   Vera = 300 pontos
+   → Vinicius recebe 50 pontos
+   → 50 pontos entram no saldo
+   → indicação vira CONCLUÍDO
+   → bônus não é pago novamente.
+
+========================================================= */
+
+function atualizarIndicacoesDoUsuario(usuario) {
+
+  let bonusPago = false;
+
+  if (!usuario.indicacoes) {
+    usuario.indicacoes = [];
+  }
+
+  usuario.indicacoes.forEach(indicacao => {
+
+    const indicado =
+      usuarios.find(
+        item =>
+          item.id === indicacao.usuarioId
+      );
+
+    if (!indicado) {
+      return;
+    }
+
+    const pontosIndicada =
+      Number(indicado.pontos || 0);
+
+    /*
+     * Mostra no máximo 300.
+     */
+
+    indicacao.pontos =
+      Math.min(
+        pontosIndicada,
+        300
+      );
+
+    /*
+     * Ainda não chegou aos 300.
+     */
+
+    if (
+      pontosIndicada < 300 &&
+      !indicacao.bonusPago
+    ) {
+
+      indicacao.status =
+        "EM ANDAMENTO";
+
+      return;
+    }
+
+    /*
+     * Chegou aos 300.
+     *
+     * O bônus só é pago uma vez.
+     */
+
+    if (
+      pontosIndicada >= 300 &&
+      !indicacao.bonusPago
+    ) {
+
+      usuario.pontos =
+        Number(usuario.pontos || 0) + 50;
+
+      usuario.saldo =
+        Number(usuario.saldo || 0) + 50;
+
+      indicacao.bonusPago =
+        true;
+
+      indicacao.status =
+        "CONCLUÍDO";
+
+      indicacao.dataConclusao =
+        new Date().toISOString();
+
+      bonusPago = true;
+    }
+
+  });
+
+  return {
+    bonusPago
+  };
 }
 
 
@@ -255,15 +342,12 @@ function enviarArquivo(res, arquivo) {
         );
 
         return;
-
       }
-
 
       const extensao =
         path.extname(
           arquivo
         ).toLowerCase();
-
 
       res.writeHead(200, {
 
@@ -273,12 +357,10 @@ function enviarArquivo(res, arquivo) {
 
       });
 
-
       res.end(dados);
 
     }
   );
-
 }
 
 
@@ -295,7 +377,6 @@ const servidor =
           req.url,
           `http://${req.headers.host}`
         );
-
 
       const caminho =
         url.pathname;
@@ -315,18 +396,15 @@ const servidor =
           const dados =
             await receberDados(req);
 
-
           const nome =
             String(
               dados.nome || ""
             ).trim();
 
-
           const cpf =
             String(
               dados.cpf || ""
             ).trim();
-
 
           const email =
             String(
@@ -335,15 +413,13 @@ const servidor =
               .trim()
               .toLowerCase();
 
-
           const senha =
             String(
               dados.senha || ""
             );
 
-
           /*
-           * Código de indicação é opcional.
+           * Código é opcional.
            */
 
           const codigoRecebido =
@@ -371,7 +447,6 @@ const servidor =
             );
 
             return;
-
           }
 
 
@@ -389,7 +464,6 @@ const servidor =
             );
 
             return;
-
           }
 
 
@@ -412,17 +486,14 @@ const servidor =
             );
 
             return;
-
           }
 
 
           /*
-           * Se foi informado código,
-           * encontramos o indicador.
+           * Descobre quem indicou.
            */
 
           let indicador = null;
-
 
           if (codigoRecebido) {
 
@@ -432,7 +503,6 @@ const servidor =
                   usuario.codigoIndicacao ===
                   codigoRecebido
               );
-
 
             if (!indicador) {
 
@@ -446,15 +516,12 @@ const servidor =
               );
 
               return;
-
             }
-
           }
 
 
           /*
-           * Cria o código próprio
-           * do novo jogador.
+           * Cria código próprio.
            */
 
           const codigoIndicacao =
@@ -487,14 +554,14 @@ const servidor =
             codigoIndicacao,
 
             /*
-             * Código usado no cadastro.
+             * Código que usou no cadastro.
              */
 
             codigoUsado:
               codigoRecebido || "",
 
             /*
-             * ID de quem indicou.
+             * Quem indicou.
              */
 
             indicadoPorId:
@@ -503,13 +570,13 @@ const servidor =
                 : null,
 
             /*
-             * Dados das indicações.
+             * Indicações feitas.
              */
 
             indicacoes: [],
 
             /*
-             * Plano atual.
+             * Plano.
              */
 
             plano:
@@ -531,8 +598,7 @@ const servidor =
 
 
           /*
-           * Registra a nova indicação
-           * na conta de quem indicou.
+           * Registra a indicação.
            */
 
           if (indicador) {
@@ -597,7 +663,6 @@ const servidor =
         }
 
         return;
-
       }
 
 
@@ -615,7 +680,6 @@ const servidor =
           const dados =
             await receberDados(req);
 
-
           const email =
             String(
               dados.email || ""
@@ -623,12 +687,10 @@ const servidor =
               .trim()
               .toLowerCase();
 
-
           const senha =
             String(
               dados.senha || ""
             );
-
 
           const usuario =
             usuarios.find(
@@ -650,13 +712,12 @@ const servidor =
             );
 
             return;
-
           }
 
 
           /*
-           * Atualiza as indicações antes
-           * de devolver os dados.
+           * Atualiza as indicações
+           * antes de mostrar a conta.
            */
 
           atualizarIndicacoesDoUsuario(
@@ -718,7 +779,6 @@ const servidor =
         }
 
         return;
-
       }
 
 
@@ -736,14 +796,12 @@ const servidor =
           const dados =
             await receberDados(req);
 
-
           const email =
             String(
               dados.email || ""
             )
               .trim()
               .toLowerCase();
-
 
           const usuario =
             usuarios.find(
@@ -764,7 +822,6 @@ const servidor =
             );
 
             return;
-
           }
 
 
@@ -811,12 +868,11 @@ const servidor =
         }
 
         return;
-
       }
 
 
       /* ===================================================
-         ATUALIZAR PONTUAÇÃO
+         PONTUAÇÃO
       =================================================== */
 
       if (
@@ -829,7 +885,6 @@ const servidor =
           const dados =
             await receberDados(req);
 
-
           const email =
             String(
               dados.email || ""
@@ -837,12 +892,10 @@ const servidor =
               .trim()
               .toLowerCase();
 
-
           const pontos =
             Number(
               dados.pontos || 0
             );
-
 
           const saldo =
             Number(
@@ -869,7 +922,6 @@ const servidor =
             );
 
             return;
-
           }
 
 
@@ -879,7 +931,6 @@ const servidor =
               pontos
             );
 
-
           usuario.saldo =
             Math.max(
               0,
@@ -888,14 +939,86 @@ const servidor =
 
 
           /*
-           * Verifica se alguma indicação
-           * chegou aos 300 pontos.
+           * IMPORTANTE:
+           *
+           * Verifica se o jogador é uma
+           * pessoa indicada por alguém.
+           *
+           * Se chegar aos 300 pontos,
+           * paga os 50 ao indicador.
            */
 
-          const resultadoIndicacao =
-            atualizarIndicacoesDoUsuario(
-              usuario
-            );
+          if (
+            usuario.indicadoPorId
+          ) {
+
+            const indicador =
+              usuarios.find(
+                item =>
+                  item.id ===
+                  usuario.indicadoPorId
+              );
+
+
+            if (indicador) {
+
+              const indicacao =
+                indicador.indicacoes.find(
+                  item =>
+                    item.usuarioId ===
+                    usuario.id
+                );
+
+
+              if (
+                indicacao &&
+                usuario.pontos >= 300 &&
+                !indicacao.bonusPago
+              ) {
+
+                indicador.pontos =
+                  Number(
+                    indicador.pontos || 0
+                  ) + 50;
+
+                indicador.saldo =
+                  Number(
+                    indicador.saldo || 0
+                  ) + 50;
+
+                indicacao.pontos = 300;
+
+                indicacao.bonusPago =
+                  true;
+
+                indicacao.status =
+                  "CONCLUÍDO";
+
+                indicacao.dataConclusao =
+                  new Date().toISOString();
+
+              }
+
+
+              else if (
+                indicacao &&
+                !indicacao.bonusPago
+              ) {
+
+                indicacao.pontos =
+                  Math.min(
+                    usuario.pontos,
+                    300
+                  );
+
+                indicacao.status =
+                  "EM ANDAMENTO";
+
+              }
+
+            }
+
+          }
 
 
           responder(
@@ -910,10 +1033,7 @@ const servidor =
                 usuario.pontos,
 
               saldo:
-                usuario.saldo,
-
-              bonusIndicacaoPago:
-                resultadoIndicacao.bonusPago
+                usuario.saldo
 
             }
           );
@@ -933,7 +1053,6 @@ const servidor =
         }
 
         return;
-
       }
 
 
@@ -951,7 +1070,6 @@ const servidor =
           const dados =
             await receberDados(req);
 
-
           const email =
             String(
               dados.email || ""
@@ -959,12 +1077,10 @@ const servidor =
               .trim()
               .toLowerCase();
 
-
           const quantidade =
             Number(
               dados.pontos || 0
             );
-
 
           const tipo =
             String(
@@ -972,7 +1088,6 @@ const servidor =
             )
               .trim()
               .toLowerCase();
-
 
           const destino =
             String(
@@ -999,7 +1114,6 @@ const servidor =
             );
 
             return;
-
           }
 
 
@@ -1017,7 +1131,6 @@ const servidor =
             );
 
             return;
-
           }
 
 
@@ -1035,7 +1148,6 @@ const servidor =
             );
 
             return;
-
           }
 
 
@@ -1054,7 +1166,6 @@ const servidor =
             );
 
             return;
-
           }
 
 
@@ -1070,13 +1181,11 @@ const servidor =
             );
 
             return;
-
           }
 
 
           const hoje =
-            new Date()
-              .toDateString();
+            new Date().toDateString();
 
 
           if (
@@ -1106,7 +1215,6 @@ const servidor =
             );
 
             return;
-
           }
 
 
@@ -1145,7 +1253,6 @@ const servidor =
 
           usuario.saldo -=
             quantidade;
-
 
           usuario.saquesHoje++;
 
@@ -1198,7 +1305,6 @@ const servidor =
         }
 
         return;
-
       }
 
 
@@ -1216,14 +1322,12 @@ const servidor =
           const dados =
             await receberDados(req);
 
-
           const email =
             String(
               dados.email || ""
             )
               .trim()
               .toLowerCase();
-
 
           const mensagem =
             String(
@@ -1246,7 +1350,6 @@ const servidor =
             );
 
             return;
-
           }
 
 
@@ -1289,7 +1392,6 @@ const servidor =
         }
 
         return;
-
       }
 
 
@@ -1331,7 +1433,6 @@ const servidor =
         );
 
         return;
-
       }
 
 
@@ -1391,7 +1492,6 @@ const servidor =
         );
 
         return;
-
       }
 
 
@@ -1402,127 +1502,6 @@ const servidor =
 
     }
   );
-
-
-/* =========================================================
-   ATUALIZA INDICAÇÕES
-=========================================================
-
-   Exemplo:
-
-   Vinicius indicou Vera.
-
-   Vera = 250 pontos
-   → Vinicius vê 250 / 300
-   → continua EM ANDAMENTO
-
-   Vera = 300 pontos
-   → Vinicius recebe +50 pontos
-   → indicação vira CONCLUÍDO
-   → não paga novamente.
-========================================================= */
-
-function atualizarIndicacoesDoUsuario(
-  usuario
-) {
-
-  let bonusPago =
-    false;
-
-
-  if (
-    !usuario.indicacoes
-  ) {
-
-    usuario.indicacoes =
-      [];
-
-  }
-
-
-  usuario.indicacoes.forEach(
-    indicacao => {
-
-      const indicado =
-        usuarios.find(
-          item =>
-            item.id ===
-            indicacao.usuarioId
-        );
-
-
-      if (!indicado) {
-        return;
-      }
-
-
-      const pontosIndicada =
-        Number(
-          indicado.pontos || 0
-        );
-
-
-      indicacao.pontos =
-        Math.min(
-          pontosIndicada,
-          300
-        );
-
-
-      /*
-       * Chegou aos 300?
-       */
-
-      if (
-        pontosIndicada >= 300 &&
-        !indicacao.bonusPago
-      ) {
-
-        /*
-         * Libera os 50 pontos
-         * para quem indicou.
-         */
-
-        usuario.pontos +=
-          50;
-
-        usuario.saldo +=
-          50;
-
-
-        indicacao.bonusPago =
-          true;
-
-
-        indicacao.status =
-          "CONCLUÍDO";
-
-
-        indicacao.dataConclusao =
-          new Date().toISOString();
-
-
-        bonusPago =
-          true;
-
-      } else if (
-        !indicacao.bonusPago
-      ) {
-
-        indicacao.status =
-          "EM ANDAMENTO";
-
-      }
-
-    }
-  );
-
-
-  return {
-    bonusPago
-  };
-
-}
 
 
 /* =========================================================
