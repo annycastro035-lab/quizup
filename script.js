@@ -102,27 +102,151 @@ const perguntas = [
 ========================= */
 
 function mostrarTela(id) {
-  document.querySelectorAll(".tela").forEach(tela => {
+
+  /*
+   * LOGIN E CADASTRO:
+   * continuam funcionando normalmente.
+   */
+  if (
+    id === "telaLogin" ||
+    id === "telaCadastro"
+  ) {
+
+    document.querySelectorAll(".tela").forEach(tela => {
+      tela.classList.remove("ativa");
+    });
+
+    const tela = document.getElementById(id);
+
+    if (tela) {
+      tela.classList.add("ativa");
+    }
+
+    return;
+  }
+
+
+  /*
+   * TODAS AS TELAS INTERNAS DO APLICATIVO
+   * ficam dentro da telaJogo.
+   *
+   * Não podemos remover a classe "ativa"
+   * da telaJogo, senão Premium, Saque e SAC
+   * ficam escondidos.
+   */
+  const telaJogo =
+    document.getElementById("telaJogo");
+
+  if (telaJogo) {
+    telaJogo.classList.add("ativa");
+  }
+
+
+  /*
+   * Esconde somente o conteúdo interno
+   * do aplicativo.
+   */
+  document.querySelectorAll(
+    "#telaJogo .conteudo > .tela"
+  ).forEach(tela => {
     tela.classList.remove("ativa");
   });
 
-  const tela = document.getElementById(id);
+
+  const tela =
+    document.getElementById(id);
 
   if (tela) {
     tela.classList.add("ativa");
   }
 }
 
+
 function mostrarLogin() {
   mostrarTela("telaLogin");
 }
+
 
 function mostrarCadastro() {
   mostrarTela("telaCadastro");
 }
 
+
 function voltarJogo() {
-  mostrarTela("telaJogo");
+
+  mostrarTela("conteudoJogo");
+
+  document.querySelectorAll(
+    ".menu-item"
+  ).forEach(function(item) {
+    item.classList.remove("ativo");
+  });
+
+  const primeiroMenu =
+    document.querySelectorAll(
+      ".menu-item"
+    )[0];
+
+  if (primeiroMenu) {
+    primeiroMenu.classList.add("ativo");
+  }
+}
+
+
+/* =========================
+   MENU
+========================= */
+
+function abrirTelaMenu(nome, botao) {
+
+  document.querySelectorAll(
+    "#telaJogo .conteudo > .tela"
+  ).forEach(function(tela) {
+
+    tela.classList.remove("ativa");
+
+  });
+
+
+  const tela =
+    document.getElementById(
+      nome === "jogo"
+        ? "conteudoJogo"
+        : "conteudoIndicacoes"
+    );
+
+
+  if (tela) {
+    tela.classList.add("ativa");
+  }
+
+
+  ativarMenu(botao);
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+function ativarMenu(botao) {
+
+  document.querySelectorAll(
+    ".menu-item"
+  ).forEach(function(item) {
+
+    item.classList.remove("ativo");
+
+  });
+
+
+  if (botao) {
+    botao.classList.add("ativo");
+  }
+
 }
 
 
@@ -717,23 +841,27 @@ function mostrarPremium() {
 
 
   mostrarTela("telaPremium");
+
+
+  /*
+   * Mantém o botão PREMIUM ativo.
+   */
+  const botoes =
+    document.querySelectorAll(".menu-item");
+
+  if (botoes[2]) {
+    ativarMenu(botoes[2]);
+  }
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
 
 function assinarPremium() {
-
-  /*
-   * A tela do Premium já está
-   * preparada.
-   *
-   * Não vamos marcar a assinatura
-   * como paga automaticamente.
-   *
-   * O preço e a forma de pagamento
-   * serão conectados quando as regras
-   * originais do Premium forem
-   * confirmadas.
-   */
 
   const resultado =
     document.getElementById(
@@ -1221,12 +1349,6 @@ async function salvarPontuacao() {
 
     if (resposta.ok) {
 
-      /*
-       * O servidor pode ter
-       * liberado um bônus para
-       * o indicador deste jogador.
-       */
-
       if (
         dados.bonusIndicacaoPago
       ) {
@@ -1265,6 +1387,41 @@ function mostrarSaque() {
   mostrarTela(
     "telaSaque"
   );
+
+
+  /*
+   * Mantém o botão SAQUE ativo.
+   */
+  const botoes =
+    document.querySelectorAll(".menu-item");
+
+  if (botoes[3]) {
+    ativarMenu(botoes[3]);
+  }
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+function preencherSaque(pontos) {
+
+  const campo =
+    document.getElementById(
+      "valorSaque"
+    );
+
+
+  if (campo) {
+    campo.value = pontos;
+  }
+
+
+  mostrarSaque();
 
 }
 
@@ -1331,6 +1488,15 @@ async function solicitarSaque() {
 
     resultado.textContent =
       "Informe a chave PIX ou e-mail do PayPal.";
+
+    return;
+  }
+
+
+  if (!usuarioAtual) {
+
+    resultado.textContent =
+      "Faça login novamente.";
 
     return;
   }
@@ -1431,6 +1597,23 @@ function mostrarSAC() {
     "telaSAC"
   );
 
+
+  /*
+   * Mantém o botão SAC ativo.
+   */
+  const botoes =
+    document.querySelectorAll(".menu-item");
+
+  if (botoes[4]) {
+    ativarMenu(botoes[4]);
+  }
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
 }
 
 
@@ -1452,6 +1635,15 @@ async function enviarSAC() {
 
     resultado.textContent =
       "Digite sua mensagem.";
+
+    return;
+  }
+
+
+  if (!usuarioAtual) {
+
+    resultado.textContent =
+      "Faça login novamente.";
 
     return;
   }
@@ -1565,4 +1757,4 @@ function sair() {
 
   mostrarLogin();
 
-  }
+             }
