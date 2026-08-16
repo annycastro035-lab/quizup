@@ -82,6 +82,7 @@ const servidor = http.createServer(async (req, res) => {
 
   const caminho = url.pathname;
 
+
   /*
    * =========================
    * CADASTRO
@@ -97,31 +98,48 @@ const servidor = http.createServer(async (req, res) => {
 
       const dados = await receberDados(req);
 
-      const nome = String(dados.nome || "").trim();
-      const cpf = String(dados.cpf || "").trim();
-      const email = String(dados.email || "").trim().toLowerCase();
-      const senha = String(dados.senha || "");
-      const codigo = String(dados.codigo || "").trim();
+      const nome =
+        String(dados.nome || "").trim();
+
+      const cpf =
+        String(dados.cpf || "").trim();
+
+      const email =
+        String(dados.email || "")
+          .trim()
+          .toLowerCase();
+
+      const senha =
+        String(dados.senha || "");
+
+      // Código de indicação é OPCIONAL
+      const codigo =
+        String(dados.codigo || "").trim();
+
+
+      // SOMENTE estes campos são obrigatórios:
+      // nome, CPF, e-mail e senha
 
       if (
         !nome ||
         !cpf ||
         !email ||
-        !senha ||
-        !codigo
+        !senha
       ) {
 
         responder(res, 400, {
-          erro: "Preencha todos os campos."
+          erro: "Preencha todos os campos obrigatórios."
         });
 
         return;
       }
 
+
       const existe = usuarios.find(
         usuario =>
           usuario.email === email
       );
+
 
       if (existe) {
 
@@ -132,29 +150,52 @@ const servidor = http.createServer(async (req, res) => {
         return;
       }
 
+
       const usuario = {
+
         id: Date.now(),
+
         nome,
+
         cpf,
+
         email,
+
         senha,
+
+        // Pode ficar vazio quando não houver indicação
         codigo,
+
         pontos: 0,
+
         saldo: 0,
+
         saquesHoje: 0,
-        dataSaques: new Date().toDateString()
+
+        dataSaques:
+          new Date().toDateString()
+
       };
+
 
       usuarios.push(usuario);
 
+
       responder(res, 201, {
-        mensagem: "Cadastro realizado com sucesso."
+
+        mensagem:
+          "Cadastro realizado com sucesso."
+
       });
+
 
     } catch (erro) {
 
       responder(res, 400, {
-        erro: "Dados inválidos."
+
+        erro:
+          "Dados inválidos."
+
       });
 
     }
@@ -176,15 +217,19 @@ const servidor = http.createServer(async (req, res) => {
 
     try {
 
-      const dados = await receberDados(req);
+      const dados =
+        await receberDados(req);
+
 
       const email =
         String(dados.email || "")
           .trim()
           .toLowerCase();
 
+
       const senha =
         String(dados.senha || "");
+
 
       const usuario =
         usuarios.find(
@@ -193,31 +238,49 @@ const servidor = http.createServer(async (req, res) => {
             item.senha === senha
         );
 
+
       if (!usuario) {
 
         responder(res, 401, {
-          erro: "E-mail ou senha incorretos."
+
+          erro:
+            "E-mail ou senha incorretos."
+
         });
 
         return;
       }
 
+
       responder(res, 200, {
-        mensagem: "Login realizado com sucesso.",
+
+        mensagem:
+          "Login realizado com sucesso.",
 
         usuario: {
+
           id: usuario.id,
+
           nome: usuario.nome,
+
           email: usuario.email,
+
           pontos: usuario.pontos,
+
           saldo: usuario.saldo
+
         }
+
       });
+
 
     } catch (erro) {
 
       responder(res, 400, {
-        erro: "Dados inválidos."
+
+        erro:
+          "Dados inválidos."
+
       });
 
     }
@@ -239,46 +302,70 @@ const servidor = http.createServer(async (req, res) => {
 
     try {
 
-      const dados = await receberDados(req);
+      const dados =
+        await receberDados(req);
+
 
       const email =
         String(dados.email || "")
           .trim()
           .toLowerCase();
 
+
       const pontos =
         Number(dados.pontos || 0);
+
 
       const saldo =
         Number(dados.saldo || 0);
 
+
       const usuario =
         usuarios.find(
-          item => item.email === email
+          item =>
+            item.email === email
         );
+
 
       if (!usuario) {
 
         responder(res, 404, {
-          erro: "Usuário não encontrado."
+
+          erro:
+            "Usuário não encontrado."
+
         });
 
         return;
       }
 
+
       usuario.pontos = pontos;
+
       usuario.saldo = saldo;
 
+
       responder(res, 200, {
-        mensagem: "Pontuação salva.",
-        pontos: usuario.pontos,
-        saldo: usuario.saldo
+
+        mensagem:
+          "Pontuação salva.",
+
+        pontos:
+          usuario.pontos,
+
+        saldo:
+          usuario.saldo
+
       });
+
 
     } catch (erro) {
 
       responder(res, 400, {
-        erro: "Não foi possível salvar a pontuação."
+
+        erro:
+          "Não foi possível salvar a pontuação."
+
       });
 
     }
@@ -300,56 +387,76 @@ const servidor = http.createServer(async (req, res) => {
 
     try {
 
-      const dados = await receberDados(req);
+      const dados =
+        await receberDados(req);
+
 
       const email =
         String(dados.email || "")
           .trim()
           .toLowerCase();
 
+
       const quantidade =
         Number(dados.pontos || 0);
+
 
       const tipo =
         String(dados.tipo || "")
           .trim()
           .toLowerCase();
 
+
       const destino =
         String(dados.destino || "")
           .trim();
 
+
       const usuario =
         usuarios.find(
-          item => item.email === email
+          item =>
+            item.email === email
         );
+
 
       if (!usuario) {
 
         responder(res, 404, {
-          erro: "Usuário não encontrado."
+
+          erro:
+            "Usuário não encontrado."
+
         });
 
         return;
       }
+
 
       if (quantidade < 1000) {
 
         responder(res, 400, {
-          erro: "O saque mínimo é de 1.000 pontos."
+
+          erro:
+            "O saque mínimo é de 1.000 pontos."
+
         });
 
         return;
       }
+
 
       if (quantidade > usuario.saldo) {
 
         responder(res, 400, {
-          erro: "Saldo insuficiente."
+
+          erro:
+            "Saldo insuficiente."
+
         });
 
         return;
       }
+
 
       if (
         tipo !== "pix" &&
@@ -357,16 +464,23 @@ const servidor = http.createServer(async (req, res) => {
       ) {
 
         responder(res, 400, {
-          erro: "Forma de pagamento inválida."
+
+          erro:
+            "Forma de pagamento inválida."
+
         });
 
         return;
       }
 
+
       if (!destino) {
 
         responder(res, 400, {
-          erro: "Informe a chave PIX ou e-mail PayPal."
+
+          erro:
+            "Informe a chave PIX ou e-mail PayPal."
+
         });
 
         return;
@@ -380,21 +494,27 @@ const servidor = http.createServer(async (req, res) => {
       const hoje =
         new Date().toDateString();
 
+
       if (
         usuario.dataSaques !== hoje
       ) {
 
         usuario.dataSaques = hoje;
+
         usuario.saquesHoje = 0;
 
       }
+
 
       if (
         usuario.saquesHoje >= 2
       ) {
 
         responder(res, 400, {
-          erro: "Você já realizou 2 solicitações de saque hoje."
+
+          erro:
+            "Você já realizou 2 solicitações de saque hoje."
+
         });
 
         return;
@@ -402,26 +522,36 @@ const servidor = http.createServer(async (req, res) => {
 
 
       const saque = {
+
         id: Date.now(),
 
-        usuarioId: usuario.id,
+        usuarioId:
+          usuario.id,
 
-        email: usuario.email,
+        email:
+          usuario.email,
 
-        pontos: quantidade,
+        pontos:
+          quantidade,
 
-        valor: quantidade / 1000,
+        valor:
+          quantidade / 1000,
 
         tipo,
 
         destino,
 
-        status: "PENDENTE",
+        status:
+          "PENDENTE",
 
-        data: new Date().toISOString()
+        data:
+          new Date().toISOString()
+
       };
 
+
       saques.push(saque);
+
 
       usuario.saldo -= quantidade;
 
@@ -434,11 +564,22 @@ const servidor = http.createServer(async (req, res) => {
           "Solicitação de saque enviada.",
 
         saque: {
-          id: saque.id,
-          pontos: saque.pontos,
-          valor: saque.valor,
-          tipo: saque.tipo,
-          status: saque.status
+
+          id:
+            saque.id,
+
+          pontos:
+            saque.pontos,
+
+          valor:
+            saque.valor,
+
+          tipo:
+            saque.tipo,
+
+          status:
+            saque.status
+
         },
 
         saldo:
@@ -446,10 +587,14 @@ const servidor = http.createServer(async (req, res) => {
 
       });
 
+
     } catch (erro) {
 
       responder(res, 400, {
-        erro: "Não foi possível solicitar o saque."
+
+        erro:
+          "Não foi possível solicitar o saque."
+
       });
 
     }
@@ -474,35 +619,45 @@ const servidor = http.createServer(async (req, res) => {
       const dados =
         await receberDados(req);
 
+
       const email =
         String(dados.email || "")
           .trim()
           .toLowerCase();
 
+
       const mensagem =
         String(dados.mensagem || "")
           .trim();
 
+
       if (!email || !mensagem) {
 
         responder(res, 400, {
-          erro: "Informe o e-mail e a mensagem."
+
+          erro:
+            "Informe o e-mail e a mensagem."
+
         });
 
         return;
       }
 
+
       mensagens.push({
 
-        id: Date.now(),
+        id:
+          Date.now(),
 
         email,
 
         mensagem,
 
-        data: new Date().toISOString()
+        data:
+          new Date().toISOString()
 
       });
+
 
       responder(res, 200, {
 
@@ -511,10 +666,14 @@ const servidor = http.createServer(async (req, res) => {
 
       });
 
+
     } catch (erro) {
 
       responder(res, 400, {
-        erro: "Não foi possível enviar a mensagem."
+
+        erro:
+          "Não foi possível enviar a mensagem."
+
       });
 
     }
@@ -536,13 +695,17 @@ const servidor = http.createServer(async (req, res) => {
 
     responder(res, 200, {
 
-      status: "online",
+      status:
+        "online",
 
-      mensagem: "QuizUp funcionando!",
+      mensagem:
+        "QuizUp funcionando!",
 
-      usuarios: usuarios.length,
+      usuarios:
+        usuarios.length,
 
-      saques: saques.length
+      saques:
+        saques.length
 
     });
 
@@ -558,14 +721,21 @@ const servidor = http.createServer(async (req, res) => {
 
   let arquivo = caminho;
 
+
   if (arquivo === "/") {
-    arquivo = "/index.html";
+
+    arquivo =
+      "/index.html";
+
   }
 
-  arquivo = path.join(
-    __dirname,
-    arquivo
-  );
+
+  arquivo =
+    path.join(
+      __dirname,
+      arquivo
+    );
+
 
   /*
    * Segurança:
@@ -576,8 +746,10 @@ const servidor = http.createServer(async (req, res) => {
   const pastaProjeto =
     path.resolve(__dirname);
 
+
   const arquivoFinal =
     path.resolve(arquivo);
+
 
   if (
     !arquivoFinal.startsWith(
@@ -586,14 +758,19 @@ const servidor = http.createServer(async (req, res) => {
   ) {
 
     res.writeHead(403, {
+
       "Content-Type":
         "text/plain; charset=utf-8"
+
     });
 
-    res.end("Acesso negado.");
+    res.end(
+      "Acesso negado."
+    );
 
     return;
   }
+
 
   enviarArquivo(
     res,
