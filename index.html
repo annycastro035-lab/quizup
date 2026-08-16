@@ -109,8 +109,6 @@
         autocomplete="new-password"
       >
 
-      <!-- CÓDIGO DE INDICAÇÃO - OPCIONAL -->
-
       <input
         type="text"
         id="cadCodigo"
@@ -170,34 +168,96 @@
     <div class="placar">
 
       <div>
+        <span>Rodada</span>
+        <strong id="rodada">1</strong>
+      </div>
 
-        <span>
-          Rodada
-        </span>
+      <div>
+        <span>Pontos</span>
+        <strong id="pontos">0</strong>
+      </div>
 
-        <strong id="rodada">
-          1
+    </div>
+
+
+    <!-- =========================
+         INDICAÇÕES
+    ========================== -->
+
+    <div class="card indicacoes-card">
+
+      <h2>👥 Minhas Indicações</h2>
+
+      <p>
+        Seu código de indicação:
+      </p>
+
+      <div class="codigo-indicacao">
+
+        <strong id="meuCodigoIndicacao">
+          --------
         </strong>
+
+        <button
+          type="button"
+          onclick="copiarCodigoIndicacao()"
+        >
+          📋 COPIAR
+        </button>
 
       </div>
 
+      <p class="texto-indicacao">
+        Convide amigos usando seu código.
+      </p>
 
-      <div>
 
-        <span>
-          Pontos
-        </span>
+      <div
+        id="listaIndicacoes"
+        class="lista-indicacoes"
+      >
 
-        <strong id="pontos">
-          0
-        </strong>
+        <p>
+          Você ainda não possui indicações.
+        </p>
 
       </div>
 
     </div>
 
 
-    <!-- DADO -->
+    <!-- =========================
+         PLANO PREMIUM
+    ========================== -->
+
+    <div class="card premium-card">
+
+      <h2>⭐ Plano Premium</h2>
+
+      <p>
+        Seu plano atual:
+        <strong id="planoAtual">
+          GRATUITO
+        </strong>
+      </p>
+
+      <p id="statusPremium">
+        Tenha acesso ao plano Premium do QuizUp.
+      </p>
+
+      <button
+        type="button"
+        onclick="mostrarPremium()"
+      >
+        ⭐ VER PLANO PREMIUM
+      </button>
+
+    </div>
+
+
+    <!-- =========================
+         DADO
+    ========================== -->
 
     <div class="dado-area">
 
@@ -208,14 +268,12 @@
         ?
       </div>
 
-
       <button
         id="botaoGirar"
         onclick="girarDado()"
       >
         🎲 GIRAR
       </button>
-
 
       <p id="pontosRodada">
         Gire o dado para começar
@@ -224,7 +282,9 @@
     </div>
 
 
-    <!-- PERGUNTA -->
+    <!-- =========================
+         PERGUNTA
+    ========================== -->
 
     <div
       id="areaPergunta"
@@ -241,7 +301,6 @@
 
       </div>
 
-
       <div
         class="nivel"
         id="nivel"
@@ -249,24 +308,23 @@
         PERGUNTA
       </div>
 
-
       <h2 id="pergunta">
         Gire o dado para começar!
       </h2>
-
 
       <div
         id="respostas"
         class="respostas"
       ></div>
 
-
       <p id="resultado"></p>
 
     </div>
 
 
-    <!-- MENU -->
+    <!-- =========================
+         MENU
+    ========================== -->
 
     <div class="menu">
 
@@ -274,11 +332,9 @@
         💰 SAQUE
       </button>
 
-
       <button onclick="mostrarSAC()">
         🎧 SAC
       </button>
-
 
       <button onclick="sair()">
         🚪 SAIR
@@ -301,6 +357,52 @@
 
 
   <!-- =========================
+       PREMIUM
+  ========================== -->
+
+  <section id="telaPremium" class="tela">
+
+    <div class="card">
+
+      <h2>⭐ QuizUp Premium</h2>
+
+      <p>
+        Faça parte do plano Premium do QuizUp.
+      </p>
+
+      <div id="detalhesPremium">
+
+        <p>
+          Seu plano atual:
+          <strong id="premiumPlano">
+            GRATUITO
+          </strong>
+        </p>
+
+      </div>
+
+      <button
+        type="button"
+        onclick="assinarPremium()"
+      >
+        ⭐ ASSINAR PREMIUM
+      </button>
+
+      <p id="resultadoPremium"></p>
+
+      <button
+        class="botao-secundario"
+        onclick="voltarJogo()"
+      >
+        VOLTAR
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
        SAQUE
   ========================== -->
 
@@ -311,7 +413,6 @@
       <h2>
         💰 Solicitar saque
       </h2>
-
 
       <p>
 
@@ -329,18 +430,15 @@
 
       </p>
 
-
       <p class="conversao">
         1.000 pontos = R$ 1,00
       </p>
-
 
       <input
         type="number"
         id="valorSaque"
         placeholder="Quantidade de pontos"
       >
-
 
       <select id="tipoSaque">
 
@@ -354,21 +452,17 @@
 
       </select>
 
-
       <input
         type="text"
         id="destinoSaque"
         placeholder="Chave PIX ou e-mail PayPal"
       >
 
-
       <button onclick="solicitarSaque()">
         SOLICITAR SAQUE
       </button>
 
-
       <p id="resultadoSaque"></p>
-
 
       <button
         class="botao-secundario"
@@ -394,26 +488,21 @@
         🎧 Atendimento
       </h2>
 
-
       <p>
         Precisa de ajuda?
         Envie sua mensagem.
       </p>
-
 
       <textarea
         id="mensagemSAC"
         placeholder="Digite sua mensagem..."
       ></textarea>
 
-
       <button onclick="enviarSAC()">
         ENVIAR
       </button>
 
-
       <p id="resultadoSAC"></p>
-
 
       <button
         class="botao-secundario"
@@ -429,9 +518,7 @@
 </div>
 
 
-<!-- JAVASCRIPT -->
-
 <script src="script.js"></script>
 
 </body>
-        </html>
+  </html>
