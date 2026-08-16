@@ -29,8 +29,6 @@
       overflow-x: hidden;
     }
 
-    /* ================= LOGIN ================= */
-
     .tela {
       display: none;
     }
@@ -130,14 +128,6 @@
       margin-bottom: 8px;
     }
 
-    .aviso {
-      font-size: 12px;
-      color: #777;
-      margin-top: 10px;
-    }
-
-    /* ================= TOPO ================= */
-
     .topo {
       background: linear-gradient(135deg, #4f46e5, #7c3aed);
       color: white;
@@ -155,7 +145,16 @@
       font-size: 13px;
     }
 
-    /* ================= SALDO ================= */
+    .botao-sair-topo {
+      margin-top: 12px;
+      border: none;
+      background: rgba(255,255,255,.2);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
     .saldo-box {
       margin: 15px;
@@ -183,8 +182,6 @@
       font-size: 13px;
       margin-top: 4px;
     }
-
-    /* ================= MENU ================= */
 
     .menu {
       display: grid;
@@ -216,8 +213,6 @@
       color: white;
     }
 
-    /* ================= CONTEÚDO ================= */
-
     .conteudo {
       padding: 0 15px 25px;
     }
@@ -244,8 +239,6 @@
       color: #666;
       line-height: 1.5;
     }
-
-    /* ================= JOGO ================= */
 
     .rodada {
       text-align: center;
@@ -356,8 +349,6 @@
       min-height: 22px;
     }
 
-    /* ================= INDICAÇÕES ================= */
-
     .codigo-indicacao {
       background: #f3f0ff;
       border: 2px dashed #7c3aed;
@@ -402,8 +393,6 @@
       margin-top: 7px;
     }
 
-    /* ================= PREMIUM ================= */
-
     .premium {
       background: linear-gradient(135deg, #f59e0b, #facc15);
       color: #3b2600;
@@ -438,8 +427,6 @@
       margin-top: 12px;
     }
 
-    /* ================= SAQUE ================= */
-
     .saque-opcoes {
       display: grid;
       gap: 10px;
@@ -471,7 +458,17 @@
       outline: none;
     }
 
-    /* ================= SAC ================= */
+    .taxa-plataforma {
+      margin-top: 15px;
+      padding: 15px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 12px;
+    }
+
+    .taxa-plataforma strong {
+      color: #c2410c;
+    }
 
     .sac-item {
       padding: 15px 0;
@@ -498,8 +495,6 @@
       font-family: Arial;
       font-size: 15px;
     }
-
-    /* ================= RODAPÉ ================= */
 
     .rodape {
       text-align: center;
@@ -528,10 +523,6 @@
 
 <div class="app">
 
-  <!-- =====================================================
-       LOGIN
-  ====================================================== -->
-
   <section id="telaLogin" class="tela ativa">
 
     <div class="login-box">
@@ -556,22 +547,13 @@
         placeholder="Sua senha"
       >
 
-      <div
-        id="erroLogin"
-        class="erro"
-      ></div>
+      <div id="erroLogin" class="erro"></div>
 
-      <button
-        class="btn"
-        onclick="fazerLogin()"
-      >
+      <button class="btn" onclick="fazerLogin()">
         ENTRAR
       </button>
 
-      <button
-        class="btn btn-secundario"
-        onclick="mostrarCadastro()"
-      >
+      <button class="btn btn-secundario" onclick="mostrarCadastro()">
         CRIAR CONTA
       </button>
 
@@ -579,10 +561,6 @@
 
   </section>
 
-
-  <!-- =====================================================
-       CADASTRO
-  ====================================================== -->
 
   <section id="telaCadastro" class="tela">
 
@@ -620,29 +598,19 @@
         placeholder="Senha (mínimo 6 caracteres)"
       >
 
-      <!-- CÓDIGO DE INDICAÇÃO É OPCIONAL -->
       <input
         type="text"
         id="cadCodigo"
         placeholder="Código de indicação (opcional)"
       >
 
-      <div
-        id="erroCadastro"
-        class="erro"
-      ></div>
+      <div id="erroCadastro" class="erro"></div>
 
-      <button
-        class="btn"
-        onclick="cadastrar()"
-      >
+      <button class="btn" onclick="cadastrar()">
         CADASTRAR
       </button>
 
-      <button
-        class="btn btn-secundario"
-        onclick="mostrarLogin()"
-      >
+      <button class="btn btn-secundario" onclick="mostrarLogin()">
         VOLTAR PARA LOGIN
       </button>
 
@@ -650,10 +618,6 @@
 
   </section>
 
-
-  <!-- =====================================================
-       APLICATIVO
-  ====================================================== -->
 
   <section id="telaJogo" class="tela">
 
@@ -670,10 +634,15 @@
         <strong id="nomeUsuario"></strong>
       </p>
 
+      <button
+        class="botao-sair-topo"
+        onclick="sair()"
+      >
+        🚪 SAIR DA CONTA
+      </button>
+
     </header>
 
-
-    <!-- SALDO -->
 
     <div class="saldo-box">
 
@@ -693,8 +662,6 @@
 
     </div>
 
-
-    <!-- MENU -->
 
     <nav class="menu">
 
@@ -743,14 +710,8 @@
 
     <main class="conteudo">
 
-      <!-- =================================================
-           JOGO
-      ================================================== -->
 
-      <section
-        id="conteudoJogo"
-        class="tela ativa"
-      >
+      <section id="conteudoJogo" class="tela ativa">
 
         <div class="card">
 
@@ -762,9 +723,7 @@
           <div
             class="nivel"
             id="nivel"
-          >
-            FÁCIL
-          </div>
+          ></div>
 
           <div
             class="dado"
@@ -853,14 +812,7 @@
       </section>
 
 
-      <!-- =================================================
-           INDICAÇÕES
-      ================================================== -->
-
-      <section
-        id="conteudoIndicacoes"
-        class="tela"
-      >
+      <section id="conteudoIndicacoes" class="tela">
 
         <div class="card">
 
@@ -968,14 +920,7 @@
       </section>
 
 
-      <!-- =================================================
-           PREMIUM
-      ================================================== -->
-
-      <section
-        id="telaPremium"
-        class="tela"
-      >
+      <section id="telaPremium" class="tela">
 
         <div class="card premium">
 
@@ -1085,14 +1030,7 @@
       </section>
 
 
-      <!-- =================================================
-           SAQUE
-      ================================================== -->
-
-      <section
-        id="telaSaque"
-        class="tela"
-      >
+      <section id="telaSaque" class="tela">
 
         <div class="card">
 
@@ -1131,6 +1069,23 @@
               10.000 pontos = R$ 10,00
             </strong>
           </p>
+
+
+          <div class="taxa-plataforma">
+
+            <strong>
+              ℹ️ Taxa da plataforma
+            </strong>
+
+            <p style="margin-top:6px;">
+              A plataforma fica com 30% do valor
+              gerado e 70% corresponde ao valor
+              destinado ao jogador, conforme as
+              regras do QuizUp.
+            </p>
+
+          </div>
+
 
           <div class="saque-opcoes">
 
@@ -1252,14 +1207,7 @@
       </section>
 
 
-      <!-- =================================================
-           SAC
-      ================================================== -->
-
-      <section
-        id="telaSAC"
-        class="tela"
-      >
+      <section id="telaSAC" class="tela">
 
         <div class="card">
 
@@ -1343,8 +1291,6 @@
       </section>
 
 
-      <!-- RODAPÉ -->
-
       <div class="rodape">
 
         QuizUp © 2026
@@ -1378,12 +1324,6 @@
 
 
 <script>
-
-  /*
-   * O jogo usa o script.js principal.
-   * Não colocamos outra versão das funções
-   * de login, jogo, saque ou indicações aqui.
-   */
 
   function abrirTelaMenu(nome, botao) {
 
@@ -1469,9 +1409,12 @@
 
     });
 
-    document.querySelectorAll(
-      ".menu-item"
-    )[3].classList.add("ativo");
+    const botoes =
+      document.querySelectorAll(".menu-item");
+
+    if (botoes[3]) {
+      botoes[3].classList.add("ativo");
+    }
 
     window.scrollTo({
       top: 0,
@@ -1483,13 +1426,7 @@
 </script>
 
 
-<!-- =====================================================
-     SCRIPT PRINCIPAL DO QUIZUP
-     
-     ESTE É O SCRIPT.JS QUE VOCÊ JÁ ME MANDOU.
-====================================================== -->
-
 <script src="script.js"></script>
 
 </body>
-</html>
+  </html>
