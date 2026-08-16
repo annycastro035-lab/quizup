@@ -108,30 +108,101 @@ const perguntas = [
 
 function mostrarTela(id) {
 
-  document.querySelectorAll(".tela").forEach(tela => {
-    tela.classList.remove("ativa");
-  });
-
   const tela = document.getElementById(id);
 
-  if (tela) {
-    tela.classList.add("ativa");
+  if (!tela) {
+    return;
   }
+
+  /*
+   * Esconde somente as telas principais:
+   * Login, Cadastro e o aplicativo do jogo.
+   */
+  document.querySelectorAll(
+    "body > .app > .tela"
+  ).forEach(function(item) {
+
+    item.classList.remove("ativa");
+
+  });
+
+
+  /*
+   * Premium, Saque, SAC, Jogo e Indicações
+   * ficam dentro de telaJogo.
+   */
+  if (
+    id === "telaPremium" ||
+    id === "telaSaque" ||
+    id === "telaSAC" ||
+    id === "conteudoJogo" ||
+    id === "conteudoIndicacoes"
+  ) {
+
+    const telaJogo =
+      document.getElementById("telaJogo");
+
+    if (telaJogo) {
+      telaJogo.classList.add("ativa");
+    }
+
+
+    document.querySelectorAll(
+      "#telaJogo .conteudo > .tela"
+    ).forEach(function(item) {
+
+      item.classList.remove("ativa");
+
+    });
+
+
+    tela.classList.add("ativa");
+
+    return;
+  }
+
+
+  /*
+   * Login, Cadastro ou outras telas principais.
+   */
+  tela.classList.add("ativa");
+
 }
 
 
+/* =========================
+   LOGIN / CADASTRO
+========================= */
+
 function mostrarLogin() {
+
   mostrarTela("telaLogin");
+
 }
 
 
 function mostrarCadastro() {
+
   mostrarTela("telaCadastro");
+
 }
 
 
 function voltarJogo() {
-  mostrarTela("telaJogo");
+
+  mostrarTela("conteudoJogo");
+
+  const botoes =
+    document.querySelectorAll(".menu-item");
+
+  botoes.forEach(function(botao) {
+    botao.classList.remove("ativo");
+  });
+
+  if (botoes[0]) {
+    botoes[0].classList.add("ativo");
+  }
+
 }
 
 
@@ -159,10 +230,13 @@ async function cadastrar() {
   const erro =
     document.getElementById("erroCadastro");
 
+
   erro.textContent = "";
 
 
-  /* Código de indicação é OPCIONAL */
+  /*
+   * Código de indicação é OPCIONAL.
+   */
 
   if (!nome || !cpf || !email || !senha) {
 
@@ -249,6 +323,7 @@ async function cadastrar() {
       "Erro de conexão com o servidor.";
 
   }
+
 }
 
 
@@ -266,6 +341,7 @@ async function fazerLogin() {
 
   const erro =
     document.getElementById("erroLogin");
+
 
   erro.textContent = "";
 
@@ -344,8 +420,7 @@ async function fazerLogin() {
 
     atualizarDadosIndicacao();
 
-    mostrarTela("telaJogo");
-
+    mostrarTela("conteudoJogo");
 
   } catch (e) {
 
@@ -353,6 +428,7 @@ async function fazerLogin() {
       "Erro de conexão com o servidor.";
 
   }
+
 }
 
 
@@ -420,6 +496,7 @@ function atualizarDadosIndicacao() {
 
 
   carregarIndicacoes();
+
 }
 
 
@@ -467,16 +544,16 @@ async function carregarIndicacoes() {
 
     pontos =
       Number(
-        dados.pontos ||
-        usuarioAtual.pontos ||
+        dados.pontos ??
+        usuarioAtual.pontos ??
         0
       );
 
 
     saldo =
       Number(
-        dados.saldo ||
-        usuarioAtual.saldo ||
+        dados.saldo ??
+        usuarioAtual.saldo ??
         0
       );
 
@@ -489,7 +566,6 @@ async function carregarIndicacoes() {
 
     renderizarIndicacoes();
 
-
   } catch (e) {
 
     console.log(
@@ -497,6 +573,7 @@ async function carregarIndicacoes() {
     );
 
   }
+
 }
 
 
@@ -525,6 +602,50 @@ function renderizarIndicacoes() {
   lista.innerHTML = "";
 
 
+  const totalIndicados =
+    document.getElementById(
+      "totalIndicados"
+    );
+
+
+  const ganhosIndicacao =
+    document.getElementById(
+      "ganhosIndicacao"
+    );
+
+
+  if (totalIndicados) {
+
+    totalIndicados.textContent =
+      indicacoes.length;
+
+  }
+
+
+  let ganhos = 0;
+
+
+  indicacoes.forEach(function(indicacao) {
+
+    ganhos +=
+      Number(
+        indicacao.bonus ||
+        indicacao.pontosBonus ||
+        (indicacao.bonusPago ? 50 : 0) ||
+        0
+      );
+
+  });
+
+
+  if (ganhosIndicacao) {
+
+    ganhosIndicacao.textContent =
+      `${ganhos} pontos`;
+
+  }
+
+
   if (indicacoes.length === 0) {
 
     lista.innerHTML = `
@@ -537,7 +658,7 @@ function renderizarIndicacoes() {
   }
 
 
-  indicacoes.forEach(indicacao => {
+  indicacoes.forEach(function(indicacao) {
 
     const pontosIndicacao =
       Math.min(
@@ -687,6 +808,7 @@ async function copiarCodigoIndicacao() {
     );
 
   }
+
 }
 
 
@@ -695,6 +817,16 @@ async function copiarCodigoIndicacao() {
 ========================= */
 
 function mostrarPremium() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para acessar o Premium."
+    );
+
+    return;
+  }
+
 
   const resultado =
     document.getElementById(
@@ -710,10 +842,8 @@ function mostrarPremium() {
 
 
   const plano =
-    usuarioAtual &&
-    usuarioAtual.plano
-      ? usuarioAtual.plano
-      : "GRATUITO";
+    usuarioAtual.plano ||
+    "GRATUITO";
 
 
   const premiumPlano =
@@ -731,6 +861,10 @@ function mostrarPremium() {
 
 
   mostrarTela("telaPremium");
+
+
+  ativarMenuPorIndice(2);
+
 }
 
 
@@ -748,6 +882,7 @@ function assinarPremium() {
       "O plano Premium será ativado após a configuração do pagamento.";
 
   }
+
 }
 
 
@@ -773,6 +908,7 @@ function sortearDado() {
   if (numero < 0.98) return 9;
 
   return 10;
+
 }
 
 
@@ -786,6 +922,7 @@ function girarDado() {
   const dado =
     document.getElementById("dado");
 
+
   const botao =
     document.getElementById("botaoGirar");
 
@@ -797,6 +934,7 @@ function girarDado() {
 
   botao.disabled = true;
 
+
   dado.classList.add("girando");
 
 
@@ -804,9 +942,10 @@ function girarDado() {
     sortearDado();
 
 
-  setTimeout(() => {
+  setTimeout(function() {
 
     dado.classList.remove("girando");
+
 
     dado.textContent =
       numero;
@@ -893,7 +1032,11 @@ function carregarPergunta() {
 
 
   if (!respostas) {
+
+    perguntaAtiva = false;
+
     return;
+
   }
 
 
@@ -901,7 +1044,7 @@ function carregarPergunta() {
 
 
   pergunta.opcoes.forEach(
-    (opcao, indice) => {
+    function(opcao, indice) {
 
       const botao =
         document.createElement(
@@ -914,7 +1057,11 @@ function carregarPergunta() {
 
 
       botao.onclick =
-        () => responder(indice);
+        function() {
+
+          responder(indice);
+
+        };
 
 
       respostas.appendChild(
@@ -965,7 +1112,7 @@ function iniciarTimer() {
 
 
   timerInterval =
-    setInterval(() => {
+    setInterval(function() {
 
       tempoRestante--;
 
@@ -978,9 +1125,7 @@ function iniciarTimer() {
       }
 
 
-      if (
-        tempoRestante <= 0
-      ) {
+      if (tempoRestante <= 0) {
 
         clearInterval(
           timerInterval
@@ -1059,15 +1204,13 @@ function responder(indice) {
 
 
   botoes.forEach(
-    (botao, i) => {
+    function(botao, i) {
 
       botao.disabled =
         true;
 
 
-      if (
-        i === respostaCorreta
-      ) {
+      if (i === respostaCorreta) {
 
         botao.classList.add(
           "correta"
@@ -1085,9 +1228,7 @@ function responder(indice) {
     );
 
 
-  if (
-    indice === respostaCorreta
-  ) {
+  if (indice === respostaCorreta) {
 
     pontos +=
       pontosDaRodada;
@@ -1149,7 +1290,7 @@ function bloquearRespostas() {
       "#respostas button"
     )
     .forEach(
-      botao => {
+      function(botao) {
 
         botao.disabled =
           true;
@@ -1195,6 +1336,10 @@ function finalizarRodada() {
       rodada;
 
   }
+
+
+  pontosDaRodada =
+    0;
 
 }
 
@@ -1323,6 +1468,16 @@ async function salvarPontuacao() {
 
 function mostrarSaque() {
 
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para acessar o saque."
+    );
+
+    return;
+  }
+
+
   atualizarTela();
 
 
@@ -1339,9 +1494,31 @@ function mostrarSaque() {
   }
 
 
-  mostrarTela(
-    "telaSaque"
-  );
+  mostrarTela("telaSaque");
+
+
+  ativarMenuPorIndice(3);
+
+}
+
+
+function preencherSaque(valor) {
+
+  const campo =
+    document.getElementById(
+      "valorSaque"
+    );
+
+
+  if (campo) {
+
+    campo.value =
+      valor;
+
+  }
+
+
+  mostrarSaque();
 
 }
 
@@ -1358,24 +1535,22 @@ async function solicitarSaque() {
   }
 
 
-  const valor =
-    Number(
-      document.getElementById(
-        "valorSaque"
-      ).value
+  const campoValor =
+    document.getElementById(
+      "valorSaque"
     );
 
 
-  const tipo =
+  const campoTipo =
     document.getElementById(
       "tipoSaque"
-    ).value;
+    );
 
 
-  const destino =
+  const campoDestino =
     document.getElementById(
       "destinoSaque"
-    ).value.trim();
+    );
 
 
   const resultado =
@@ -1384,13 +1559,39 @@ async function solicitarSaque() {
     );
 
 
-  resultado.textContent = "";
+  const valor =
+    Number(
+      campoValor
+        ? campoValor.value
+        : 0
+    );
+
+
+  const tipo =
+    campoTipo
+      ? campoTipo.value
+      : "Pix";
+
+
+  const destino =
+    campoDestino
+      ? campoDestino.value.trim()
+      : "";
+
+
+  if (resultado) {
+    resultado.textContent = "";
+  }
 
 
   if (!valor || valor <= 0) {
 
-    resultado.textContent =
-      "Digite a quantidade de pontos.";
+    if (resultado) {
+
+      resultado.textContent =
+        "Digite a quantidade de pontos.";
+
+    }
 
     return;
   }
@@ -1398,8 +1599,12 @@ async function solicitarSaque() {
 
   if (valor < 1000) {
 
-    resultado.textContent =
-      "O saque mínimo é de 1.000 pontos.";
+    if (resultado) {
+
+      resultado.textContent =
+        "O saque mínimo é de 1.000 pontos.";
+
+    }
 
     return;
   }
@@ -1407,8 +1612,12 @@ async function solicitarSaque() {
 
   if (valor > saldo) {
 
-    resultado.textContent =
-      "Você não possui pontos suficientes.";
+    if (resultado) {
+
+      resultado.textContent =
+        "Você não possui pontos suficientes.";
+
+    }
 
     return;
   }
@@ -1416,8 +1625,12 @@ async function solicitarSaque() {
 
   if (!destino) {
 
-    resultado.textContent =
-      "Informe a chave PIX ou e-mail do PayPal.";
+    if (resultado) {
+
+      resultado.textContent =
+        "Informe a chave PIX ou e-mail do PayPal.";
+
+    }
 
     return;
   }
@@ -1462,9 +1675,13 @@ async function solicitarSaque() {
 
     if (!resposta.ok) {
 
-      resultado.textContent =
-        dados.erro ||
-        "Não foi possível solicitar o saque.";
+      if (resultado) {
+
+        resultado.textContent =
+          dados.erro ||
+          "Não foi possível solicitar o saque.";
+
+      }
 
       return;
     }
@@ -1479,24 +1696,32 @@ async function solicitarSaque() {
     atualizarTela();
 
 
-    resultado.textContent =
-      "✅ Solicitação de saque enviada!";
+    if (resultado) {
+
+      resultado.textContent =
+        "✅ Solicitação de saque enviada!";
+
+    }
 
 
-    document.getElementById(
-      "valorSaque"
-    ).value = "";
+    if (campoValor) {
+      campoValor.value = "";
+    }
 
 
-    document.getElementById(
-      "destinoSaque"
-    ).value = "";
+    if (campoDestino) {
+      campoDestino.value = "";
+    }
 
 
   } catch (e) {
 
-    resultado.textContent =
-      "Erro de conexão com o servidor.";
+    if (resultado) {
+
+      resultado.textContent =
+        "Erro de conexão com o servidor.";
+
+    }
 
   }
 
@@ -1508,6 +1733,16 @@ async function solicitarSaque() {
 ========================= */
 
 function mostrarSAC() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para acessar o SAC."
+    );
+
+    return;
+  }
+
 
   const resultado =
     document.getElementById(
@@ -1522,9 +1757,10 @@ function mostrarSAC() {
   }
 
 
-  mostrarTela(
-    "telaSAC"
-  );
+  mostrarTela("telaSAC");
+
+
+  ativarMenuPorIndice(4);
 
 }
 
@@ -1541,10 +1777,10 @@ async function enviarSAC() {
   }
 
 
-  const mensagem =
+  const campo =
     document.getElementById(
       "mensagemSAC"
-    ).value.trim();
+    );
 
 
   const resultado =
@@ -1553,10 +1789,20 @@ async function enviarSAC() {
     );
 
 
+  const mensagem =
+    campo
+      ? campo.value.trim()
+      : "";
+
+
   if (!mensagem) {
 
-    resultado.textContent =
-      "Digite sua mensagem.";
+    if (resultado) {
+
+      resultado.textContent =
+        "Digite sua mensagem.";
+
+    }
 
     return;
   }
@@ -1596,29 +1842,119 @@ async function enviarSAC() {
 
     if (!resposta.ok) {
 
-      resultado.textContent =
-        dados.erro ||
-        "Não foi possível enviar.";
+      if (resultado) {
+
+        resultado.textContent =
+          dados.erro ||
+          "Não foi possível enviar.";
+
+      }
 
       return;
     }
 
 
-    resultado.textContent =
-      "✅ Mensagem enviada com sucesso.";
+    if (resultado) {
+
+      resultado.textContent =
+        "✅ Mensagem enviada com sucesso.";
+
+    }
 
 
-    document.getElementById(
-      "mensagemSAC"
-    ).value = "";
+    if (campo) {
+
+      campo.value = "";
+
+    }
 
 
   } catch (e) {
 
-    resultado.textContent =
-      "Erro de conexão com o servidor.";
+    if (resultado) {
+
+      resultado.textContent =
+        "Erro de conexão com o servidor.";
+
+    }
 
   }
+
+}
+
+
+/* =========================
+   MENU
+========================= */
+
+function ativarMenu(botao) {
+
+  document
+    .querySelectorAll(".menu-item")
+    .forEach(function(item) {
+
+      item.classList.remove("ativo");
+
+    });
+
+
+  if (botao) {
+
+    botao.classList.add("ativo");
+
+  }
+
+}
+
+
+function ativarMenuPorIndice(indice) {
+
+  const botoes =
+    document.querySelectorAll(
+      ".menu-item"
+    );
+
+
+  botoes.forEach(function(botao) {
+
+    botao.classList.remove("ativo");
+
+  });
+
+
+  if (botoes[indice]) {
+
+    botoes[indice].classList.add(
+      "ativo"
+    );
+
+  }
+
+}
+
+
+function abrirTelaMenu(nome, botao) {
+
+  if (nome === "jogo") {
+
+    mostrarTela("conteudoJogo");
+
+  } else if (nome === "indicacoes") {
+
+    mostrarTela("conteudoIndicacoes");
+
+    renderizarIndicacoes();
+
+  }
+
+
+  ativarMenu(botao);
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 
 }
 
@@ -1671,12 +2007,16 @@ function sair() {
 
 
   if (loginEmail) {
+
     loginEmail.value = "";
+
   }
 
 
   if (loginSenha) {
+
     loginSenha.value = "";
+
   }
 
 
