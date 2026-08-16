@@ -15,86 +15,45 @@ const perguntas = [
   {
     nivel: "FÁCIL",
     pergunta: "Qual é a capital do Brasil?",
-    opcoes: [
-      "São Paulo",
-      "Brasília",
-      "Rio de Janeiro",
-      "Salvador"
-    ],
+    opcoes: ["São Paulo", "Brasília", "Rio de Janeiro", "Salvador"],
     correta: 1
   },
   {
     nivel: "FÁCIL",
     pergunta: "Quanto é 2 + 2?",
-    opcoes: [
-      "3",
-      "4",
-      "5",
-      "6"
-    ],
+    opcoes: ["3", "4", "5", "6"],
     correta: 1
   },
-
   {
     nivel: "FÁCIL",
     pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
-    opcoes: [
-      "Terra",
-      "Marte",
-      "Júpiter",
-      "Saturno"
-    ],
+    opcoes: ["Terra", "Marte", "Júpiter", "Saturno"],
     correta: 1
   },
-
   {
     nivel: "FÁCIL",
     pergunta: "Quantos dias tem uma semana?",
-    opcoes: [
-      "5",
-      "6",
-      "7",
-      "8"
-    ],
+    opcoes: ["5", "6", "7", "8"],
     correta: 2
   },
-
   {
     nivel: "FÁCIL",
     pergunta: "Qual animal é conhecido como rei da selva?",
-    opcoes: [
-      "Tigre",
-      "Leão",
-      "Elefante",
-      "Lobo"
-    ],
+    opcoes: ["Tigre", "Leão", "Elefante", "Lobo"],
     correta: 1
   },
-
   {
     nivel: "MÉDIO",
     pergunta: "Qual é o maior planeta do Sistema Solar?",
-    opcoes: [
-      "Terra",
-      "Marte",
-      "Júpiter",
-      "Netuno"
-    ],
+    opcoes: ["Terra", "Marte", "Júpiter", "Netuno"],
     correta: 2
   },
-
   {
     nivel: "MÉDIO",
     pergunta: "Qual é o maior oceano do mundo?",
-    opcoes: [
-      "Atlântico",
-      "Índico",
-      "Pacífico",
-      "Ártico"
-    ],
+    opcoes: ["Atlântico", "Índico", "Pacífico", "Ártico"],
     correta: 2
   },
-
   {
     nivel: "MÉDIO",
     pergunta: "Quem escreveu Dom Casmurro?",
@@ -106,31 +65,18 @@ const perguntas = [
     ],
     correta: 0
   },
-
   {
     nivel: "DIFÍCIL",
     pergunta: "Qual é o elemento químico representado pela letra O?",
-    opcoes: [
-      "Ouro",
-      "Oxigênio",
-      "Ósmio",
-      "Ozônio"
-    ],
+    opcoes: ["Ouro", "Oxigênio", "Ósmio", "Ozônio"],
     correta: 1
   },
-
   {
     nivel: "DIFÍCIL",
     pergunta: "Qual é a raiz quadrada de 144?",
-    opcoes: [
-      "10",
-      "11",
-      "12",
-      "14"
-    ],
+    opcoes: ["10", "11", "12", "14"],
     correta: 2
   },
-
   {
     nivel: "SUPER DIFÍCIL",
     pergunta: "Qual é a velocidade aproximada da luz no vácuo?",
@@ -142,26 +88,29 @@ const perguntas = [
     ],
     correta: 1
   },
-
   {
     nivel: "SUPER DIFÍCIL",
     pergunta: "Qual é o maior órgão do corpo humano?",
-    opcoes: [
-      "Coração",
-      "Fígado",
-      "Pele",
-      "Pulmão"
-    ],
+    opcoes: ["Coração", "Fígado", "Pele", "Pulmão"],
     correta: 2
   }
 ];
+
+
+/* =========================
+   TELAS
+========================= */
 
 function mostrarTela(id) {
   document.querySelectorAll(".tela").forEach(tela => {
     tela.classList.remove("ativa");
   });
 
-  document.getElementById(id).classList.add("ativa");
+  const tela = document.getElementById(id);
+
+  if (tela) {
+    tela.classList.add("ativa");
+  }
 }
 
 function mostrarLogin() {
@@ -176,56 +125,102 @@ function voltarJogo() {
   mostrarTela("telaJogo");
 }
 
-async function cadastrar() {
-  const nome = document.getElementById("cadNome").value.trim();
-  const cpf = document.getElementById("cadCpf").value.trim();
-  const email = document.getElementById("cadEmail").value.trim();
-  const senha = document.getElementById("cadSenha").value;
-  const codigo = document.getElementById("cadCodigo").value.trim();
 
-  const erro = document.getElementById("erroCadastro");
+/* =========================
+   CADASTRO
+========================= */
+
+async function cadastrar() {
+
+  const nome =
+    document.getElementById("cadNome").value.trim();
+
+  const cpf =
+    document.getElementById("cadCpf").value.trim();
+
+  const email =
+    document.getElementById("cadEmail").value.trim();
+
+  const senha =
+    document.getElementById("cadSenha").value;
+
+  const codigo =
+    document.getElementById("cadCodigo").value.trim();
+
+  const erro =
+    document.getElementById("erroCadastro");
 
   erro.textContent = "";
 
-  // Código de indicação é OPCIONAL.
-  // Somente nome, CPF, e-mail e senha são obrigatórios.
+
   if (!nome || !cpf || !email || !senha) {
-    erro.textContent = "Preencha todos os campos obrigatórios.";
+
+    erro.textContent =
+      "Preencha todos os campos obrigatórios.";
+
     return;
   }
 
+
   if (senha.length < 6) {
-    erro.textContent = "A senha deve ter pelo menos 6 caracteres.";
+
+    erro.textContent =
+      "A senha deve ter pelo menos 6 caracteres.";
+
     return;
   }
+
 
   try {
 
-    const resposta = await fetch("/api/cadastro", {
-      method: "POST",
+    const resposta =
+      await fetch("/api/cadastro", {
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+        method: "POST",
 
-      body: JSON.stringify({
-        nome,
-        cpf,
-        email,
-        senha,
-        codigo
-      })
-    });
+        headers: {
+          "Content-Type": "application/json"
+        },
 
-    const dados = await resposta.json();
+        body: JSON.stringify({
+          nome,
+          cpf,
+          email,
+          senha,
+          codigo
+        })
+
+      });
+
+
+    const dados =
+      await resposta.json();
+
 
     if (!resposta.ok) {
+
       erro.textContent =
-        dados.erro || "Não foi possível cadastrar.";
+        dados.erro ||
+        "Não foi possível cadastrar.";
+
       return;
     }
 
-    alert("Cadastro realizado com sucesso!");
+
+    let mensagem =
+      "Cadastro realizado com sucesso!";
+
+
+    if (dados.codigoIndicacao) {
+
+      mensagem +=
+        `\n\nSeu código de indicação é: ${dados.codigoIndicacao}`;
+
+    }
+
+
+    alert(mensagem);
+
 
     document.getElementById("cadNome").value = "";
     document.getElementById("cadCpf").value = "";
@@ -233,7 +228,9 @@ async function cadastrar() {
     document.getElementById("cadSenha").value = "";
     document.getElementById("cadCodigo").value = "";
 
+
     mostrarLogin();
+
 
   } catch (e) {
 
@@ -242,6 +239,11 @@ async function cadastrar() {
 
   }
 }
+
+
+/* =========================
+   LOGIN
+========================= */
 
 async function fazerLogin() {
 
@@ -256,53 +258,79 @@ async function fazerLogin() {
 
   erro.textContent = "";
 
+
   if (!email || !senha) {
+
     erro.textContent =
       "Digite o e-mail e a senha.";
+
     return;
   }
 
+
   try {
 
-    const resposta = await fetch("/api/login", {
+    const resposta =
+      await fetch("/api/login", {
 
-      method: "POST",
+        method: "POST",
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+        headers: {
+          "Content-Type": "application/json"
+        },
 
-      body: JSON.stringify({
-        email,
-        senha
-      })
+        body: JSON.stringify({
+          email,
+          senha
+        })
 
-    });
+      });
 
-    const dados = await resposta.json();
+
+    const dados =
+      await resposta.json();
+
 
     if (!resposta.ok) {
 
       erro.textContent =
-        dados.erro || "Login inválido.";
+        dados.erro ||
+        "Login inválido.";
 
       return;
     }
 
-    usuarioAtual = dados.usuario;
+
+    usuarioAtual =
+      dados.usuario;
+
 
     pontos =
-      Number(usuarioAtual.pontos || 0);
+      Number(
+        usuarioAtual.pontos || 0
+      );
+
 
     saldo =
-      Number(usuarioAtual.saldo || pontos);
+      Number(
+        usuarioAtual.saldo || pontos
+      );
 
-    document.getElementById("nomeUsuario").textContent =
+
+    document.getElementById(
+      "nomeUsuario"
+    ).textContent =
       usuarioAtual.nome;
+
 
     atualizarTela();
 
+
+    atualizarDadosIndicacao();
+
+
     mostrarTela("telaJogo");
+
 
   } catch (e) {
 
@@ -312,9 +340,425 @@ async function fazerLogin() {
   }
 }
 
+
+/* =========================
+   INDICAÇÕES
+========================= */
+
+function atualizarDadosIndicacao() {
+
+  if (!usuarioAtual) {
+    return;
+  }
+
+
+  const codigo =
+    usuarioAtual.codigoIndicacao ||
+    "--------";
+
+
+  const elementoCodigo =
+    document.getElementById(
+      "meuCodigoIndicacao"
+    );
+
+
+  if (elementoCodigo) {
+
+    elementoCodigo.textContent =
+      codigo;
+
+  }
+
+
+  const plano =
+    usuarioAtual.plano ||
+    "GRATUITO";
+
+
+  const elementoPlano =
+    document.getElementById(
+      "planoAtual"
+    );
+
+
+  if (elementoPlano) {
+
+    elementoPlano.textContent =
+      plano;
+
+  }
+
+
+  const premiumPlano =
+    document.getElementById(
+      "premiumPlano"
+    );
+
+
+  if (premiumPlano) {
+
+    premiumPlano.textContent =
+      plano;
+
+  }
+
+
+  carregarIndicacoes();
+}
+
+
+async function carregarIndicacoes() {
+
+  if (!usuarioAtual) {
+    return;
+  }
+
+
+  try {
+
+    const resposta =
+      await fetch("/api/indicacoes", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+          email:
+            usuarioAtual.email
+
+        })
+
+      });
+
+
+    const dados =
+      await resposta.json();
+
+
+    if (!resposta.ok) {
+      return;
+    }
+
+
+    usuarioAtual.codigoIndicacao =
+      dados.codigoIndicacao ||
+      usuarioAtual.codigoIndicacao;
+
+
+    pontos =
+      Number(
+        dados.pontos ||
+        usuarioAtual.pontos ||
+        0
+      );
+
+
+    saldo =
+      Number(
+        dados.saldo ||
+        usuarioAtual.saldo ||
+        0
+      );
+
+
+    usuarioAtual.indicacoes =
+      dados.indicacoes || [];
+
+
+    atualizarTela();
+
+
+    renderizarIndicacoes();
+
+
+  } catch (e) {
+
+    console.log(
+      "Não foi possível carregar as indicações."
+    );
+
+  }
+}
+
+
+function renderizarIndicacoes() {
+
+  const lista =
+    document.getElementById(
+      "listaIndicacoes"
+    );
+
+
+  if (!lista) {
+    return;
+  }
+
+
+  const indicacoes =
+    usuarioAtual &&
+    Array.isArray(
+      usuarioAtual.indicacoes
+    )
+      ? usuarioAtual.indicacoes
+      : [];
+
+
+  lista.innerHTML = "";
+
+
+  if (indicacoes.length === 0) {
+
+    lista.innerHTML = `
+      <p>
+        Você ainda não possui indicações.
+      </p>
+    `;
+
+    return;
+  }
+
+
+  indicacoes.forEach(indicacao => {
+
+    const pontosIndicacao =
+      Math.min(
+        Number(indicacao.pontos || 0),
+        300
+      );
+
+
+    const percentual =
+      Math.min(
+        100,
+        Math.round(
+          (pontosIndicacao / 300) * 100
+        )
+      );
+
+
+    const concluido =
+      indicacao.status === "CONCLUÍDO" ||
+      indicacao.bonusPago === true ||
+      pontosIndicacao >= 300;
+
+
+    const statusTexto =
+      concluido
+        ? "🟢 CONCLUÍDO"
+        : "🟡 EM ANDAMENTO";
+
+
+    const item =
+      document.createElement("div");
+
+
+    item.className =
+      "indicacao-item";
+
+
+    item.innerHTML = `
+
+      <div>
+
+        <strong>
+          👤 ${escaparHTML(indicacao.nome)}
+        </strong>
+
+      </div>
+
+      <p>
+        Progresso:
+        <strong>
+          ${pontosIndicacao} / 300 pontos
+        </strong>
+      </p>
+
+      <div
+        style="
+          width:100%;
+          height:10px;
+          background:#ddd;
+          border-radius:10px;
+          overflow:hidden;
+          margin:8px 0;
+        "
+      >
+
+        <div
+          style="
+            width:${percentual}%;
+            height:100%;
+            background:#4caf50;
+            border-radius:10px;
+          "
+        ></div>
+
+      </div>
+
+      <p>
+        🎁 Bônus:
+        <strong>
+          50 pontos
+        </strong>
+      </p>
+
+      <p>
+        ${statusTexto}
+      </p>
+
+    `;
+
+
+    lista.appendChild(item);
+
+  });
+
+}
+
+
+function escaparHTML(texto) {
+
+  return String(texto || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+async function copiarCodigoIndicacao() {
+
+  if (!usuarioAtual) {
+    return;
+  }
+
+
+  const codigo =
+    usuarioAtual.codigoIndicacao;
+
+
+  if (!codigo) {
+
+    alert(
+      "Seu código de indicação ainda não está disponível."
+    );
+
+    return;
+  }
+
+
+  try {
+
+    await navigator.clipboard.writeText(
+      codigo
+    );
+
+
+    alert(
+      `Código ${codigo} copiado!`
+    );
+
+
+  } catch (e) {
+
+    alert(
+      `Seu código de indicação é: ${codigo}`
+    );
+
+  }
+}
+
+
+/* =========================
+   PREMIUM
+========================= */
+
+function mostrarPremium() {
+
+  const resultado =
+    document.getElementById(
+      "resultadoPremium"
+    );
+
+
+  if (resultado) {
+
+    resultado.textContent = "";
+
+  }
+
+
+  const plano =
+    usuarioAtual &&
+    usuarioAtual.plano
+      ? usuarioAtual.plano
+      : "GRATUITO";
+
+
+  const premiumPlano =
+    document.getElementById(
+      "premiumPlano"
+    );
+
+
+  if (premiumPlano) {
+
+    premiumPlano.textContent =
+      plano;
+
+  }
+
+
+  mostrarTela("telaPremium");
+}
+
+
+function assinarPremium() {
+
+  /*
+   * A tela do Premium já está
+   * preparada.
+   *
+   * Não vamos marcar a assinatura
+   * como paga automaticamente.
+   *
+   * O preço e a forma de pagamento
+   * serão conectados quando as regras
+   * originais do Premium forem
+   * confirmadas.
+   */
+
+  const resultado =
+    document.getElementById(
+      "resultadoPremium"
+    );
+
+
+  if (resultado) {
+
+    resultado.textContent =
+      "O plano Premium será ativado após a configuração do pagamento.";
+
+  }
+}
+
+
+/* =========================
+   DADO
+========================= */
+
 function sortearDado() {
 
-  const numero = Math.random();
+  const numero =
+    Math.random();
+
 
   if (numero < 0.18) return 1;
   if (numero < 0.36) return 2;
@@ -330,110 +774,187 @@ function sortearDado() {
   return 10;
 }
 
+
 function girarDado() {
 
   if (perguntaAtiva) {
     return;
   }
 
+
   const dado =
     document.getElementById("dado");
+
 
   const botao =
     document.getElementById("botaoGirar");
 
+
   botao.disabled = true;
+
 
   dado.classList.add("girando");
 
-  const numero = sortearDado();
+
+  const numero =
+    sortearDado();
+
 
   setTimeout(() => {
 
     dado.classList.remove("girando");
 
-    dado.textContent = numero;
 
-    pontosDaRodada = numero;
+    dado.textContent =
+      numero;
 
-    document.getElementById("pontosRodada").textContent =
+
+    pontosDaRodada =
+      numero;
+
+
+    document.getElementById(
+      "pontosRodada"
+    ).textContent =
       `Valendo ${numero} ponto${numero > 1 ? "s" : ""}!`;
+
 
     carregarPergunta();
 
   }, 800);
+
 }
+
+
+/* =========================
+   PERGUNTAS
+========================= */
 
 function carregarPergunta() {
 
   const pergunta =
     perguntas[
       Math.floor(
-        Math.random() * perguntas.length
+        Math.random() *
+        perguntas.length
       )
     ];
+
 
   respostaCorreta =
     pergunta.correta;
 
-  perguntaAtiva = true;
 
-  document.getElementById("nivel").textContent =
+  perguntaAtiva =
+    true;
+
+
+  document.getElementById(
+    "nivel"
+  ).textContent =
     pergunta.nivel;
 
-  document.getElementById("pergunta").textContent =
+
+  document.getElementById(
+    "pergunta"
+  ).textContent =
     pergunta.pergunta;
 
+
   const respostas =
-    document.getElementById("respostas");
+    document.getElementById(
+      "respostas"
+    );
+
 
   respostas.innerHTML = "";
 
-  pergunta.opcoes.forEach((opcao, indice) => {
 
-    const botao =
-      document.createElement("button");
+  pergunta.opcoes.forEach(
+    (opcao, indice) => {
 
-    botao.textContent = opcao;
+      const botao =
+        document.createElement(
+          "button"
+        );
 
-    botao.onclick = () =>
-      responder(indice);
 
-    respostas.appendChild(botao);
+      botao.textContent =
+        opcao;
 
-  });
 
-  document.getElementById("resultado").textContent = "";
+      botao.onclick =
+        () => responder(indice);
+
+
+      respostas.appendChild(
+        botao
+      );
+
+    }
+  );
+
+
+  document.getElementById(
+    "resultado"
+  ).textContent = "";
+
 
   iniciarTimer();
+
 }
+
+
+/* =========================
+   TIMER
+========================= */
 
 function iniciarTimer() {
 
-  clearInterval(timerInterval);
+  clearInterval(
+    timerInterval
+  );
 
-  tempoRestante = 5;
 
-  document.getElementById("timer").textContent =
+  tempoRestante =
+    5;
+
+
+  document.getElementById(
+    "timer"
+  ).textContent =
     tempoRestante;
 
-  timerInterval = setInterval(() => {
 
-    tempoRestante--;
+  timerInterval =
+    setInterval(() => {
 
-    document.getElementById("timer").textContent =
-      tempoRestante;
+      tempoRestante--;
 
-    if (tempoRestante <= 0) {
 
-      clearInterval(timerInterval);
+      document.getElementById(
+        "timer"
+      ).textContent =
+        tempoRestante;
 
-      tempoEsgotado();
 
-    }
+      if (
+        tempoRestante <= 0
+      ) {
 
-  }, 1000);
+        clearInterval(
+          timerInterval
+        );
+
+
+        tempoEsgotado();
+
+      }
+
+    }, 1000);
+
 }
+
 
 function tempoEsgotado() {
 
@@ -441,17 +962,32 @@ function tempoEsgotado() {
     return;
   }
 
-  perguntaAtiva = false;
 
-  pontosDaRodada = 0;
+  perguntaAtiva =
+    false;
 
-  document.getElementById("resultado").textContent =
+
+  pontosDaRodada =
+    0;
+
+
+  document.getElementById(
+    "resultado"
+  ).textContent =
     "⏰ Tempo esgotado! Você não ganhou os pontos.";
+
 
   bloquearRespostas();
 
+
   finalizarRodada();
+
 }
+
+
+/* =========================
+   RESPONDER
+========================= */
 
 function responder(indice) {
 
@@ -459,90 +995,188 @@ function responder(indice) {
     return;
   }
 
-  perguntaAtiva = false;
 
-  clearInterval(timerInterval);
+  perguntaAtiva =
+    false;
+
+
+  clearInterval(
+    timerInterval
+  );
+
 
   const botoes =
     document.querySelectorAll(
       "#respostas button"
     );
 
-  botoes.forEach((botao, i) => {
 
-    botao.disabled = true;
+  botoes.forEach(
+    (botao, i) => {
 
-    if (i === respostaCorreta) {
-      botao.classList.add("correta");
+      botao.disabled =
+        true;
+
+
+      if (
+        i === respostaCorreta
+      ) {
+
+        botao.classList.add(
+          "correta"
+        );
+
+      }
+
     }
+  );
 
-  });
 
-  if (indice === respostaCorreta) {
+  if (
+    indice === respostaCorreta
+  ) {
 
-    pontos += pontosDaRodada;
+    pontos +=
+      pontosDaRodada;
 
-    saldo += pontosDaRodada;
 
-    document.getElementById("resultado").textContent =
+    saldo +=
+      pontosDaRodada;
+
+
+    document.getElementById(
+      "resultado"
+    ).textContent =
       `✅ Acertou! +${pontosDaRodada} ponto${pontosDaRodada > 1 ? "s" : ""}.`;
 
   } else {
 
-    botoes[indice].classList.add("errada");
+    botoes[indice].classList.add(
+      "errada"
+    );
 
-    document.getElementById("resultado").textContent =
+
+    document.getElementById(
+      "resultado"
+    ).textContent =
       `❌ Errou! Você não ganhou os ${pontosDaRodada} pontos.`;
 
-    pontosDaRodada = 0;
+
+    pontosDaRodada =
+      0;
 
   }
 
+
   atualizarTela();
+
 
   salvarPontuacao();
 
+
   finalizarRodada();
+
 }
+
+
+/* =========================
+   RESPOSTAS
+========================= */
 
 function bloquearRespostas() {
 
   document
-    .querySelectorAll("#respostas button")
-    .forEach(botao => {
+    .querySelectorAll(
+      "#respostas button"
+    )
+    .forEach(
+      botao => {
 
-      botao.disabled = true;
+        botao.disabled =
+          true;
 
-    });
+      }
+    );
+
 }
+
+
+/* =========================
+   FINALIZAR RODADA
+========================= */
 
 function finalizarRodada() {
 
   document.getElementById(
     "botaoGirar"
-  ).disabled = false;
+  ).disabled =
+    false;
+
 
   rodada++;
 
+
   document.getElementById(
     "rodada"
-  ).textContent = rodada;
+  ).textContent =
+    rodada;
+
 }
+
+
+/* =========================
+   ATUALIZAR TELA
+========================= */
 
 function atualizarTela() {
 
-  document.getElementById(
-    "pontos"
-  ).textContent = pontos;
+  const elementoPontos =
+    document.getElementById(
+      "pontos"
+    );
 
-  document.getElementById(
-    "saldo"
-  ).textContent = saldo;
 
-  document.getElementById(
-    "saldoSaque"
-  ).textContent = saldo;
+  const elementoSaldo =
+    document.getElementById(
+      "saldo"
+    );
+
+
+  const elementoSaque =
+    document.getElementById(
+      "saldoSaque"
+    );
+
+
+  if (elementoPontos) {
+
+    elementoPontos.textContent =
+      pontos;
+
+  }
+
+
+  if (elementoSaldo) {
+
+    elementoSaldo.textContent =
+      saldo;
+
+  }
+
+
+  if (elementoSaque) {
+
+    elementoSaque.textContent =
+      saldo;
+
+  }
+
 }
+
+
+/* =========================
+   SALVAR PONTUAÇÃO
+========================= */
 
 async function salvarPontuacao() {
 
@@ -550,27 +1184,58 @@ async function salvarPontuacao() {
     return;
   }
 
+
   try {
 
-    await fetch("/api/pontuacao", {
+    const resposta =
+      await fetch(
+        "/api/pontuacao",
+        {
 
-      method: "POST",
+          method: "POST",
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-      body: JSON.stringify({
+          body:
+            JSON.stringify({
 
-        email: usuarioAtual.email,
+              email:
+                usuarioAtual.email,
 
-        pontos,
+              pontos,
 
-        saldo
+              saldo
 
-      })
+            })
 
-    });
+        }
+      );
+
+
+    const dados =
+      await resposta.json();
+
+
+    if (resposta.ok) {
+
+      /*
+       * O servidor pode ter
+       * liberado um bônus para
+       * o indicador deste jogador.
+       */
+
+      if (
+        dados.bonusIndicacaoPago
+      ) {
+
+        carregarIndicacoes();
+
+      }
+
+    }
 
   } catch (e) {
 
@@ -579,18 +1244,30 @@ async function salvarPontuacao() {
     );
 
   }
+
 }
+
+
+/* =========================
+   SAQUE
+========================= */
 
 function mostrarSaque() {
 
   atualizarTela();
 
+
   document.getElementById(
     "resultadoSaque"
   ).textContent = "";
 
-  mostrarTela("telaSaque");
+
+  mostrarTela(
+    "telaSaque"
+  );
+
 }
+
 
 async function solicitarSaque() {
 
@@ -601,22 +1278,27 @@ async function solicitarSaque() {
       ).value
     );
 
+
   const tipo =
     document.getElementById(
       "tipoSaque"
     ).value;
+
 
   const destino =
     document.getElementById(
       "destinoSaque"
     ).value.trim();
 
+
   const resultado =
     document.getElementById(
       "resultadoSaque"
     );
 
+
   resultado.textContent = "";
+
 
   if (!valor || valor <= 0) {
 
@@ -626,6 +1308,7 @@ async function solicitarSaque() {
     return;
   }
 
+
   if (valor < 1000) {
 
     resultado.textContent =
@@ -633,6 +1316,7 @@ async function solicitarSaque() {
 
     return;
   }
+
 
   if (valor > saldo) {
 
@@ -642,6 +1326,7 @@ async function solicitarSaque() {
     return;
   }
 
+
   if (!destino) {
 
     resultado.textContent =
@@ -650,33 +1335,43 @@ async function solicitarSaque() {
     return;
   }
 
+
   try {
 
     const resposta =
-      await fetch("/api/saque", {
+      await fetch(
+        "/api/saque",
+        {
 
-        method: "POST",
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-        body: JSON.stringify({
+          body:
+            JSON.stringify({
 
-          email: usuarioAtual.email,
+              email:
+                usuarioAtual.email,
 
-          pontos: valor,
+              pontos:
+                valor,
 
-          tipo,
+              tipo,
 
-          destino
+              destino
 
-        })
+            })
 
-      });
+        }
+      );
+
 
     const dados =
       await resposta.json();
+
 
     if (!resposta.ok) {
 
@@ -687,20 +1382,29 @@ async function solicitarSaque() {
       return;
     }
 
-    saldo -= valor;
+
+    saldo =
+      Number(
+        dados.saldo
+      );
+
 
     atualizarTela();
 
+
     resultado.textContent =
       "✅ Solicitação de saque enviada!";
+
 
     document.getElementById(
       "valorSaque"
     ).value = "";
 
+
     document.getElementById(
       "destinoSaque"
     ).value = "";
+
 
   } catch (e) {
 
@@ -708,7 +1412,13 @@ async function solicitarSaque() {
       "Erro de conexão com o servidor.";
 
   }
+
 }
+
+
+/* =========================
+   SAC
+========================= */
 
 function mostrarSAC() {
 
@@ -716,8 +1426,13 @@ function mostrarSAC() {
     "resultadoSAC"
   ).textContent = "";
 
-  mostrarTela("telaSAC");
+
+  mostrarTela(
+    "telaSAC"
+  );
+
 }
+
 
 async function enviarSAC() {
 
@@ -726,10 +1441,12 @@ async function enviarSAC() {
       "mensagemSAC"
     ).value.trim();
 
+
   const resultado =
     document.getElementById(
       "resultadoSAC"
     );
+
 
   if (!mensagem) {
 
@@ -739,29 +1456,38 @@ async function enviarSAC() {
     return;
   }
 
+
   try {
 
     const resposta =
-      await fetch("/api/sac", {
+      await fetch(
+        "/api/sac",
+        {
 
-        method: "POST",
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-        body: JSON.stringify({
+          body:
+            JSON.stringify({
 
-          email: usuarioAtual.email,
+              email:
+                usuarioAtual.email,
 
-          mensagem
+              mensagem
 
-        })
+            })
 
-      });
+        }
+      );
+
 
     const dados =
       await resposta.json();
+
 
     if (!resposta.ok) {
 
@@ -772,12 +1498,15 @@ async function enviarSAC() {
       return;
     }
 
+
     resultado.textContent =
       "✅ Mensagem enviada com sucesso.";
+
 
     document.getElementById(
       "mensagemSAC"
     ).value = "";
+
 
   } catch (e) {
 
@@ -785,31 +1514,55 @@ async function enviarSAC() {
       "Erro de conexão com o servidor.";
 
   }
+
 }
+
+
+/* =========================
+   SAIR
+========================= */
 
 function sair() {
 
-  clearInterval(timerInterval);
+  clearInterval(
+    timerInterval
+  );
 
-  usuarioAtual = null;
 
-  pontos = 0;
+  usuarioAtual =
+    null;
 
-  saldo = 0;
 
-  rodada = 1;
+  pontos =
+    0;
 
-  pontosDaRodada = 0;
 
-  perguntaAtiva = false;
+  saldo =
+    0;
+
+
+  rodada =
+    1;
+
+
+  pontosDaRodada =
+    0;
+
+
+  perguntaAtiva =
+    false;
+
 
   document.getElementById(
     "loginEmail"
   ).value = "";
 
+
   document.getElementById(
     "loginSenha"
   ).value = "";
 
+
   mostrarLogin();
-}
+
+  }
