@@ -22,13 +22,12 @@ const tiposArquivo = {
 };
 
 
-/*
- * =========================
- * RESPOSTA JSON
- * =========================
- */
+/* =========================================================
+   RESPOSTA JSON
+========================================================= */
 
 function responder(res, status, dados) {
+
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Origin": "*"
@@ -38,13 +37,12 @@ function responder(res, status, dados) {
 }
 
 
-/*
- * =========================
- * RECEBER JSON
- * =========================
- */
+/* =========================================================
+   RECEBER JSON
+========================================================= */
 
 function receberDados(req) {
+
   return new Promise((resolve, reject) => {
 
     let corpo = "";
@@ -74,141 +72,100 @@ function receberDados(req) {
     req.on("error", reject);
 
   });
-}
-
-
-/*
- * =========================
- * ARQUIVOS
- * =========================
- */
-
-function enviarArquivo(res, arquivo) {
-
-  fs.readFile(arquivo, (erro, dados) => {
-
-    if (erro) {
-
-      res.writeHead(404, {
-        "Content-Type":
-          "text/plain; charset=utf-8"
-      });
-
-      res.end(
-        "Página não encontrada."
-      );
-
-      return;
-    }
-
-    const extensao =
-      path.extname(arquivo).toLowerCase();
-
-    res.writeHead(200, {
-      "Content-Type":
-        tiposArquivo[extensao] ||
-        "application/octet-stream"
-    });
-
-    res.end(dados);
-
-  });
 
 }
 
 
-/*
- * =========================
- * GERAR CÓDIGO DE INDICAÇÃO
- * =========================
- *
- * 8 caracteres.
- *
- * Usa alguns caracteres do nome
- * e do e-mail, mas embaralhados.
- *
- * Não mostra o nome completo
- * nem o e-mail.
- *
- */
+/* =========================================================
+   GERADOR DO CÓDIGO DE INDICAÇÃO
+=========================================================
+
+   O código possui exatamente 8 caracteres.
+
+   Ele usa pequenos trechos do nome e do e-mail,
+   mas embaralhados.
+
+   O e-mail completo NUNCA é mostrado.
+
+   Exemplo:
+   Nome: Leidiane
+   E-mail: annycastro035@gmail.com
+
+   Resultado possível:
+   LNYAOC35
+========================================================= */
 
 function gerarCodigoIndicacao(nome, email) {
 
-  const letrasNome =
+  const nomeLimpo =
     String(nome || "")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z]/g, "")
       .toUpperCase();
 
-  const dadosEmail =
+  const emailParte =
     String(email || "")
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "");
+      .split("@")[0]
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .toUpperCase();
 
-
-  let caracteres = [];
+  let caracteres = "";
 
 
   /*
-   * Pega alguns caracteres
-   * do nome.
+   * Pegamos alguns caracteres do nome
    */
 
   for (
     let i = 0;
-    i < letrasNome.length &&
-    caracteres.length < 4;
+    i < nomeLimpo.length && caracteres.length < 4;
     i += 2
   ) {
 
-    caracteres.push(
-      letrasNome[i]
-    );
+    caracteres +=
+      nomeLimpo[i];
 
   }
 
 
   /*
-   * Pega alguns caracteres
-   * do e-mail.
+   * Pegamos alguns caracteres
+   * do início do e-mail.
    */
 
   for (
     let i = 0;
-    i < dadosEmail.length &&
-    caracteres.length < 8;
-    i += 3
+    i < emailParte.length && caracteres.length < 8;
+    i += 2
   ) {
 
-    caracteres.push(
-      dadosEmail[i]
-    );
+    caracteres +=
+      emailParte[i];
 
   }
 
 
   /*
-   * Completa caso não tenha
-   * caracteres suficientes.
+   * Se ainda não tiver 8 caracteres,
+   * completa com caracteres aleatórios.
    */
 
-  const base =
+  const aleatorio =
     "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-  let indice = 0;
 
-  while (caracteres.length < 8) {
+  while (
+    caracteres.length < 8
+  ) {
 
-    caracteres.push(
-      base[
+    caracteres +=
+      aleatorio[
         Math.floor(
-          Math.random() * base.length
+          Math.random() *
+          aleatorio.length
         )
-      ]
-    );
-
-    indice++;
+      ];
 
   }
 
@@ -217,193 +174,117 @@ function gerarCodigoIndicacao(nome, email) {
    * Embaralha tudo.
    */
 
+  const lista =
+    caracteres
+      .substring(0, 8)
+      .split("");
+
   for (
-    let i = caracteres.length - 1;
+    let i = lista.length - 1;
     i > 0;
     i--
   ) {
 
     const j =
       Math.floor(
-        Math.random() * (i + 1)
+        Math.random() *
+        (i + 1)
       );
 
     [
-      caracteres[i],
-      caracteres[j]
+      lista[i],
+      lista[j]
     ] =
     [
-      caracteres[j],
-      caracteres[i]
+      lista[j],
+      lista[i]
     ];
 
   }
 
 
-  return caracteres
-    .slice(0, 8)
-    .join("");
-
-}
+  const codigo =
+    lista.join("");
 
 
-/*
- * =========================
- * GARANTIR CÓDIGO ÚNICO
- * =========================
- */
+  /*
+   * Garante que não exista outro igual.
+   */
 
-function criarCodigoUnico(nome, email) {
-
-  let codigo;
-
-  do {
-
-    codigo =
-      gerarCodigoIndicacao(
-        nome,
-        email
-      );
-
-  } while (
+  const existe =
     usuarios.some(
       usuario =>
         usuario.codigoIndicacao === codigo
-    )
-  );
-
-  return codigo;
-}
-
-
-/*
- * =========================
- * BUSCAR INDICAÇÕES
- * =========================
- */
-
-function obterIndicacoesDoUsuario(usuarioId) {
-
-  return usuarios
-    .filter(
-      usuario =>
-        usuario.indicadoPor === usuarioId
-    )
-    .map(usuario => {
-
-      const pontosIndicacao =
-        Math.min(
-          Number(usuario.pontos || 0),
-          300
-        );
-
-      return {
-
-        id:
-          usuario.id,
-
-        nome:
-          usuario.nome,
-
-        pontos:
-          pontosIndicacao,
-
-        meta:
-          300,
-
-        bonus:
-          50,
-
-        status:
-          usuario.bonusIndicacaoPago
-            ? "CONCLUÍDO"
-            : "EM ANDAMENTO",
-
-        bonusPago:
-          Boolean(
-            usuario.bonusIndicacaoPago
-          )
-
-      };
-
-    });
-
-}
-
-
-/*
- * =========================
- * VERIFICAR BÔNUS
- * =========================
- *
- * Quando a pessoa indicada
- * chegar a 300 pontos:
- *
- * +50 pontos para quem indicou.
- *
- * O bônus só pode ser pago
- * uma única vez.
- *
- */
-
-function verificarBonusIndicacao(usuario) {
-
-  if (!usuario) {
-    return;
-  }
-
-  if (!usuario.indicadoPor) {
-    return;
-  }
-
-  if (usuario.bonusIndicacaoPago) {
-    return;
-  }
-
-  if (Number(usuario.pontos || 0) < 300) {
-    return;
-  }
-
-
-  const indicador =
-    usuarios.find(
-      item =>
-        item.id === usuario.indicadoPor
     );
 
 
-  if (!indicador) {
-    return;
+  if (existe) {
+
+    return gerarCodigoIndicacao(
+      nome,
+      email
+    );
+
   }
 
 
-  /*
-   * Adiciona os 50 pontos
-   * ao saldo do indicador.
-   */
-
-  indicador.pontos =
-    Number(indicador.pontos || 0) + 50;
-
-  indicador.saldo =
-    Number(indicador.saldo || 0) + 50;
-
-
-  /*
-   * Marca para nunca pagar
-   * novamente.
-   */
-
-  usuario.bonusIndicacaoPago = true;
+  return codigo;
 
 }
 
 
-/*
- * =========================
- * CRIAR SERVIDOR
- * =========================
- */
+/* =========================================================
+   ARQUIVOS
+========================================================= */
+
+function enviarArquivo(res, arquivo) {
+
+  fs.readFile(
+    arquivo,
+    (erro, dados) => {
+
+      if (erro) {
+
+        res.writeHead(404, {
+          "Content-Type":
+            "text/plain; charset=utf-8"
+        });
+
+        res.end(
+          "Página não encontrada."
+        );
+
+        return;
+
+      }
+
+
+      const extensao =
+        path.extname(
+          arquivo
+        ).toLowerCase();
+
+
+      res.writeHead(200, {
+
+        "Content-Type":
+          tiposArquivo[extensao] ||
+          "application/octet-stream"
+
+      });
+
+
+      res.end(dados);
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SERVIDOR
+========================================================= */
 
 const servidor =
   http.createServer(
@@ -415,15 +296,14 @@ const servidor =
           `http://${req.headers.host}`
         );
 
+
       const caminho =
         url.pathname;
 
 
-      /*
-       * =========================
-       * CADASTRO
-       * =========================
-       */
+      /* ===================================================
+         CADASTRO
+      =================================================== */
 
       if (
         caminho === "/api/cadastro" &&
@@ -452,8 +332,8 @@ const servidor =
             String(
               dados.email || ""
             )
-            .trim()
-            .toLowerCase();
+              .trim()
+              .toLowerCase();
 
 
           const senha =
@@ -463,18 +343,15 @@ const servidor =
 
 
           /*
-           * Código digitado pelo
-           * novo jogador.
-           *
-           * Continua OPCIONAL.
+           * Código de indicação é opcional.
            */
 
-          const codigo =
+          const codigoRecebido =
             String(
               dados.codigo || ""
             )
-            .trim()
-            .toUpperCase();
+              .trim()
+              .toUpperCase();
 
 
           if (
@@ -484,89 +361,104 @@ const servidor =
             !senha
           ) {
 
-            responder(res, 400, {
-
-              erro:
-                "Preencha todos os campos obrigatórios."
-
-            });
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Preencha todos os campos obrigatórios."
+              }
+            );
 
             return;
+
           }
 
 
-          if (senha.length < 6) {
+          if (
+            senha.length < 6
+          ) {
 
-            responder(res, 400, {
-
-              erro:
-                "A senha deve ter pelo menos 6 caracteres."
-
-            });
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "A senha deve ter pelo menos 6 caracteres."
+              }
+            );
 
             return;
+
           }
 
 
-          const existe =
+          const existeEmail =
             usuarios.find(
               usuario =>
                 usuario.email === email
             );
 
 
-          if (existe) {
+          if (existeEmail) {
 
-            responder(res, 400, {
-
-              erro:
-                "Este e-mail já está cadastrado."
-
-            });
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Este e-mail já está cadastrado."
+              }
+            );
 
             return;
+
           }
 
 
           /*
-           * Se foi informado um código,
-           * procura o jogador que indicou.
+           * Se foi informado código,
+           * encontramos o indicador.
            */
 
           let indicador = null;
 
 
-          if (codigo) {
+          if (codigoRecebido) {
 
             indicador =
               usuarios.find(
                 usuario =>
-                  usuario.codigoIndicacao === codigo
+                  usuario.codigoIndicacao ===
+                  codigoRecebido
               );
 
 
             if (!indicador) {
 
-              responder(res, 400, {
-
-                erro:
-                  "Código de indicação inválido."
-
-              });
+              responder(
+                res,
+                400,
+                {
+                  erro:
+                    "Código de indicação inválido."
+                }
+              );
 
               return;
+
             }
 
           }
 
 
           /*
-           * Cada jogador recebe
-           * seu próprio código.
+           * Cria o código próprio
+           * do novo jogador.
            */
 
           const codigoIndicacao =
-            criarCodigoUnico(
+            gerarCodigoIndicacao(
               nome,
               email
             );
@@ -588,58 +480,44 @@ const servidor =
 
             senha,
 
-
             /*
-             * Código usado para
-             * entrar por indicação.
-             */
-
-            codigoRecebido:
-              codigo,
-
-
-            /*
-             * Quem indicou este jogador.
-             */
-
-            indicadoPor:
-              indicador
-                ? indicador.id
-                : null,
-
-
-            /*
-             * Código próprio
-             * deste jogador.
+             * Código próprio.
              */
 
             codigoIndicacao,
 
+            /*
+             * Código usado no cadastro.
+             */
+
+            codigoUsado:
+              codigoRecebido || "",
+
+            /*
+             * ID de quem indicou.
+             */
+
+            indicadoPorId:
+              indicador
+                ? indicador.id
+                : null,
+
+            /*
+             * Dados das indicações.
+             */
+
+            indicacoes: [],
+
+            /*
+             * Plano atual.
+             */
+
+            plano:
+              "GRATUITO",
 
             pontos: 0,
 
             saldo: 0,
-
-
-            /*
-             * Controle do bônus
-             * de 50 pontos.
-             */
-
-            bonusIndicacaoPago:
-              false,
-
-
-            /*
-             * Premium será tratado
-             * na próxima etapa,
-             * preservando a estrutura.
-             */
-
-            premium: false,
-
-            plano: "GRATUITO",
-
 
             saquesHoje: 0,
 
@@ -652,42 +530,80 @@ const servidor =
           usuarios.push(usuario);
 
 
-          responder(res, 201, {
+          /*
+           * Registra a nova indicação
+           * na conta de quem indicou.
+           */
 
-            mensagem:
-              "Cadastro realizado com sucesso.",
+          if (indicador) {
 
-            codigoIndicacao:
-              usuario.codigoIndicacao
+            indicador.indicacoes.push({
 
-          });
+              usuarioId:
+                usuario.id,
+
+              nome:
+                usuario.nome,
+
+              pontos:
+                0,
+
+              meta:
+                300,
+
+              bonus:
+                50,
+
+              bonusPago:
+                false,
+
+              status:
+                "EM ANDAMENTO",
+
+              data:
+                new Date().toISOString()
+
+            });
+
+          }
+
+
+          responder(
+            res,
+            201,
+            {
+
+              mensagem:
+                "Cadastro realizado com sucesso.",
+
+              codigoIndicacao:
+                usuario.codigoIndicacao
+
+            }
+          );
 
 
         } catch (erro) {
 
-          console.error(
-            "Erro no cadastro:",
-            erro
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Dados inválidos."
+            }
           );
-
-          responder(res, 400, {
-
-            erro:
-              "Dados inválidos."
-
-          });
 
         }
 
         return;
+
       }
 
 
-      /*
-       * =========================
-       * LOGIN
-       * =========================
-       */
+      /* ===================================================
+         LOGIN
+      =================================================== */
 
       if (
         caminho === "/api/login" &&
@@ -704,8 +620,8 @@ const servidor =
             String(
               dados.email || ""
             )
-            .trim()
-            .toLowerCase();
+              .trim()
+              .toLowerCase();
 
 
           const senha =
@@ -724,87 +640,91 @@ const servidor =
 
           if (!usuario) {
 
-            responder(res, 401, {
-
-              erro:
-                "E-mail ou senha incorretos."
-
-            });
+            responder(
+              res,
+              401,
+              {
+                erro:
+                  "E-mail ou senha incorretos."
+              }
+            );
 
             return;
+
           }
 
 
-          const indicacoes =
-            obterIndicacoesDoUsuario(
-              usuario.id
-            );
+          /*
+           * Atualiza as indicações antes
+           * de devolver os dados.
+           */
+
+          atualizarIndicacoesDoUsuario(
+            usuario
+          );
 
 
-          responder(res, 200, {
+          responder(
+            res,
+            200,
+            {
 
-            mensagem:
-              "Login realizado com sucesso.",
+              mensagem:
+                "Login realizado com sucesso.",
 
+              usuario: {
 
-            usuario: {
+                id:
+                  usuario.id,
 
-              id:
-                usuario.id,
+                nome:
+                  usuario.nome,
 
-              nome:
-                usuario.nome,
+                email:
+                  usuario.email,
 
-              email:
-                usuario.email,
+                pontos:
+                  usuario.pontos,
 
-              pontos:
-                usuario.pontos,
+                saldo:
+                  usuario.saldo,
 
-              saldo:
-                usuario.saldo,
+                codigoIndicacao:
+                  usuario.codigoIndicacao,
 
+                plano:
+                  usuario.plano,
 
-              codigoIndicacao:
-                usuario.codigoIndicacao,
+                indicacoes:
+                  usuario.indicacoes
 
-
-              indicacoes,
-
-
-              premium:
-                Boolean(
-                  usuario.premium
-                ),
-
-              plano:
-                usuario.plano
+              }
 
             }
-
-          });
+          );
 
 
         } catch (erro) {
 
-          responder(res, 400, {
-
-            erro:
-              "Dados inválidos."
-
-          });
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Dados inválidos."
+            }
+          );
 
         }
 
         return;
+
       }
 
 
-      /*
-       * =========================
-       * INDICAÇÕES
-       * =========================
-       */
+      /* ===================================================
+         INDICAÇÕES
+      =================================================== */
 
       if (
         caminho === "/api/indicacoes" &&
@@ -821,8 +741,8 @@ const servidor =
             String(
               dados.email || ""
             )
-            .trim()
-            .toLowerCase();
+              .trim()
+              .toLowerCase();
 
 
           const usuario =
@@ -834,75 +754,70 @@ const servidor =
 
           if (!usuario) {
 
-            responder(res, 404, {
-
-              erro:
-                "Usuário não encontrado."
-
-            });
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Usuário não encontrado."
+              }
+            );
 
             return;
+
           }
 
 
-          /*
-           * Antes de mostrar,
-           * verifica se alguma
-           * indicação chegou aos 300.
-           */
-
-          usuarios
-            .filter(
-              item =>
-                item.indicadoPor === usuario.id
-            )
-            .forEach(
-              indicado =>
-                verificarBonusIndicacao(
-                  indicado
-                )
-            );
+          atualizarIndicacoesDoUsuario(
+            usuario
+          );
 
 
-          responder(res, 200, {
+          responder(
+            res,
+            200,
+            {
 
-            codigoIndicacao:
-              usuario.codigoIndicacao,
+              codigoIndicacao:
+                usuario.codigoIndicacao,
 
-            indicacoes:
-              obterIndicacoesDoUsuario(
-                usuario.id
-              ),
+              pontos:
+                usuario.pontos,
 
-            pontos:
-              usuario.pontos,
+              saldo:
+                usuario.saldo,
 
-            saldo:
-              usuario.saldo
+              plano:
+                usuario.plano,
 
-          });
+              indicacoes:
+                usuario.indicacoes
+
+            }
+          );
 
 
         } catch (erro) {
 
-          responder(res, 400, {
-
-            erro:
-              "Não foi possível carregar as indicações."
-
-          });
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível carregar as indicações."
+            }
+          );
 
         }
 
         return;
+
       }
 
 
-      /*
-       * =========================
-       * ATUALIZAR PONTUAÇÃO
-       * =========================
-       */
+      /* ===================================================
+         ATUALIZAR PONTUAÇÃO
+      =================================================== */
 
       if (
         caminho === "/api/pontuacao" &&
@@ -919,17 +834,17 @@ const servidor =
             String(
               dados.email || ""
             )
-            .trim()
-            .toLowerCase();
+              .trim()
+              .toLowerCase();
 
 
-          const novosPontos =
+          const pontos =
             Number(
               dados.pontos || 0
             );
 
 
-          const novoSaldo =
+          const saldo =
             Number(
               dados.saldo || 0
             );
@@ -944,80 +859,87 @@ const servidor =
 
           if (!usuario) {
 
-            responder(res, 404, {
-
-              erro:
-                "Usuário não encontrado."
-
-            });
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Usuário não encontrado."
+              }
+            );
 
             return;
+
           }
 
 
           usuario.pontos =
-            novosPontos;
+            Math.max(
+              0,
+              pontos
+            );
+
 
           usuario.saldo =
-            novoSaldo;
+            Math.max(
+              0,
+              saldo
+            );
 
 
           /*
-           * Verifica se a pessoa
-           * indicada chegou aos
-           * 300 pontos.
+           * Verifica se alguma indicação
+           * chegou aos 300 pontos.
            */
 
-          verificarBonusIndicacao(
-            usuario
+          const resultadoIndicacao =
+            atualizarIndicacoesDoUsuario(
+              usuario
+            );
+
+
+          responder(
+            res,
+            200,
+            {
+
+              mensagem:
+                "Pontuação salva.",
+
+              pontos:
+                usuario.pontos,
+
+              saldo:
+                usuario.saldo,
+
+              bonusIndicacaoPago:
+                resultadoIndicacao.bonusPago
+
+            }
           );
-
-
-          responder(res, 200, {
-
-            mensagem:
-              "Pontuação salva.",
-
-            pontos:
-              usuario.pontos,
-
-            saldo:
-              usuario.saldo,
-
-
-            bonusIndicacaoPago:
-              Boolean(
-                usuario.bonusIndicacaoPago
-              )
-
-          });
 
 
         } catch (erro) {
 
-          console.error(
-            "Erro ao salvar pontuação:",
-            erro
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível salvar a pontuação."
+            }
           );
-
-          responder(res, 400, {
-
-            erro:
-              "Não foi possível salvar a pontuação."
-
-          });
 
         }
 
         return;
+
       }
 
 
-      /*
-       * =========================
-       * SAQUE
-       * =========================
-       */
+      /* ===================================================
+         SAQUE
+      =================================================== */
 
       if (
         caminho === "/api/saque" &&
@@ -1034,8 +956,8 @@ const servidor =
             String(
               dados.email || ""
             )
-            .trim()
-            .toLowerCase();
+              .trim()
+              .toLowerCase();
 
 
           const quantidade =
@@ -1048,15 +970,14 @@ const servidor =
             String(
               dados.tipo || ""
             )
-            .trim()
-            .toLowerCase();
+              .trim()
+              .toLowerCase();
 
 
           const destino =
             String(
               dados.destino || ""
-            )
-            .trim();
+            ).trim();
 
 
           const usuario =
@@ -1068,43 +989,53 @@ const servidor =
 
           if (!usuario) {
 
-            responder(res, 404, {
-
-              erro:
-                "Usuário não encontrado."
-
-            });
-
-            return;
-          }
-
-
-          if (quantidade < 1000) {
-
-            responder(res, 400, {
-
-              erro:
-                "O saque mínimo é de 1.000 pontos."
-
-            });
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Usuário não encontrado."
+              }
+            );
 
             return;
+
           }
 
 
           if (
-            quantidade >
-            usuario.saldo
+            quantidade < 1000
           ) {
 
-            responder(res, 400, {
-
-              erro:
-                "Saldo insuficiente."
-
-            });
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "O saque mínimo é de 1.000 pontos."
+              }
+            );
 
             return;
+
+          }
+
+
+          if (
+            quantidade > usuario.saldo
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Saldo insuficiente."
+              }
+            );
+
+            return;
+
           }
 
 
@@ -1113,36 +1044,39 @@ const servidor =
             tipo !== "paypal"
           ) {
 
-            responder(res, 400, {
-
-              erro:
-                "Forma de pagamento inválida."
-
-            });
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Forma de pagamento inválida."
+              }
+            );
 
             return;
+
           }
 
 
           if (!destino) {
 
-            responder(res, 400, {
-
-              erro:
-                "Informe a chave PIX ou e-mail PayPal."
-
-            });
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Informe a chave PIX ou e-mail PayPal."
+              }
+            );
 
             return;
+
           }
 
 
-          /*
-           * Limite de 2 saques por dia.
-           */
-
           const hoje =
-            new Date().toDateString();
+            new Date()
+              .toDateString();
 
 
           if (
@@ -1162,14 +1096,17 @@ const servidor =
             usuario.saquesHoje >= 2
           ) {
 
-            responder(res, 400, {
-
-              erro:
-                "Você já realizou 2 solicitações de saque hoje."
-
-            });
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Você já realizou 2 solicitações de saque hoje."
+              }
+            );
 
             return;
+
           }
 
 
@@ -1209,59 +1146,65 @@ const servidor =
           usuario.saldo -=
             quantidade;
 
+
           usuario.saquesHoje++;
 
 
-          responder(res, 200, {
+          responder(
+            res,
+            200,
+            {
 
-            mensagem:
-              "Solicitação de saque enviada.",
+              mensagem:
+                "Solicitação de saque enviada.",
 
-            saque: {
+              saque: {
 
-              id:
-                saque.id,
+                id:
+                  saque.id,
 
-              pontos:
-                saque.pontos,
+                pontos:
+                  saque.pontos,
 
-              valor:
-                saque.valor,
+                valor:
+                  saque.valor,
 
-              tipo:
-                saque.tipo,
+                tipo:
+                  saque.tipo,
 
-              status:
-                saque.status
+                status:
+                  saque.status
 
-            },
+              },
 
-            saldo:
-              usuario.saldo
+              saldo:
+                usuario.saldo
 
-          });
+            }
+          );
 
 
         } catch (erro) {
 
-          responder(res, 400, {
-
-            erro:
-              "Não foi possível solicitar o saque."
-
-          });
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível solicitar o saque."
+            }
+          );
 
         }
 
         return;
+
       }
 
 
-      /*
-       * =========================
-       * SAC
-       * =========================
-       */
+      /* ===================================================
+         SAC
+      =================================================== */
 
       if (
         caminho === "/api/sac" &&
@@ -1278,15 +1221,14 @@ const servidor =
             String(
               dados.email || ""
             )
-            .trim()
-            .toLowerCase();
+              .trim()
+              .toLowerCase();
 
 
           const mensagem =
             String(
               dados.mensagem || ""
-            )
-            .trim();
+            ).trim();
 
 
           if (
@@ -1294,14 +1236,17 @@ const servidor =
             !mensagem
           ) {
 
-            responder(res, 400, {
-
-              erro:
-                "Informe o e-mail e a mensagem."
-
-            });
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Informe o e-mail e a mensagem."
+              }
+            );
 
             return;
+
           }
 
 
@@ -1320,65 +1265,79 @@ const servidor =
           });
 
 
-          responder(res, 200, {
-
-            mensagem:
-              "Mensagem enviada com sucesso."
-
-          });
+          responder(
+            res,
+            200,
+            {
+              mensagem:
+                "Mensagem enviada com sucesso."
+            }
+          );
 
 
         } catch (erro) {
 
-          responder(res, 400, {
-
-            erro:
-              "Não foi possível enviar a mensagem."
-
-          });
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível enviar a mensagem."
+            }
+          );
 
         }
 
         return;
+
       }
 
 
-      /*
-       * =========================
-       * STATUS
-       * =========================
-       */
+      /* ===================================================
+         STATUS
+      =================================================== */
 
       if (
         caminho === "/api/status" &&
         req.method === "GET"
       ) {
 
-        responder(res, 200, {
+        responder(
+          res,
+          200,
+          {
 
-          status:
-            "online",
+            status:
+              "online",
 
-          mensagem:
-            "QuizUp funcionando!",
+            mensagem:
+              "QuizUp funcionando!",
 
-          usuarios:
-            usuarios.length,
+            usuarios:
+              usuarios.length,
 
-          saques:
-            saques.length
+            saques:
+              saques.length,
 
-        });
+            indicacoes:
+              usuarios.reduce(
+                (total, usuario) =>
+                  total +
+                  usuario.indicacoes.length,
+                0
+              )
+
+          }
+        );
 
         return;
+
       }
 
 
-      /*
-       * =========================
-       * ARQUIVOS DO SITE
-       * =========================
-       */
+      /* ===================================================
+         ARQUIVOS DO SITE
+      =================================================== */
 
       let arquivo =
         caminho;
@@ -1401,10 +1360,6 @@ const servidor =
         );
 
 
-      /*
-       * Segurança.
-       */
-
       const pastaProjeto =
         path.resolve(
           __dirname
@@ -1423,18 +1378,20 @@ const servidor =
         )
       ) {
 
-        res.writeHead(403, {
-
-          "Content-Type":
-            "text/plain; charset=utf-8"
-
-        });
+        res.writeHead(
+          403,
+          {
+            "Content-Type":
+              "text/plain; charset=utf-8"
+          }
+        );
 
         res.end(
           "Acesso negado."
         );
 
         return;
+
       }
 
 
@@ -1446,6 +1403,131 @@ const servidor =
     }
   );
 
+
+/* =========================================================
+   ATUALIZA INDICAÇÕES
+=========================================================
+
+   Exemplo:
+
+   Vinicius indicou Vera.
+
+   Vera = 250 pontos
+   → Vinicius vê 250 / 300
+   → continua EM ANDAMENTO
+
+   Vera = 300 pontos
+   → Vinicius recebe +50 pontos
+   → indicação vira CONCLUÍDO
+   → não paga novamente.
+========================================================= */
+
+function atualizarIndicacoesDoUsuario(
+  usuario
+) {
+
+  let bonusPago =
+    false;
+
+
+  if (
+    !usuario.indicacoes
+  ) {
+
+    usuario.indicacoes =
+      [];
+
+  }
+
+
+  usuario.indicacoes.forEach(
+    indicacao => {
+
+      const indicado =
+        usuarios.find(
+          item =>
+            item.id ===
+            indicacao.usuarioId
+        );
+
+
+      if (!indicado) {
+        return;
+      }
+
+
+      const pontosIndicada =
+        Number(
+          indicado.pontos || 0
+        );
+
+
+      indicacao.pontos =
+        Math.min(
+          pontosIndicada,
+          300
+        );
+
+
+      /*
+       * Chegou aos 300?
+       */
+
+      if (
+        pontosIndicada >= 300 &&
+        !indicacao.bonusPago
+      ) {
+
+        /*
+         * Libera os 50 pontos
+         * para quem indicou.
+         */
+
+        usuario.pontos +=
+          50;
+
+        usuario.saldo +=
+          50;
+
+
+        indicacao.bonusPago =
+          true;
+
+
+        indicacao.status =
+          "CONCLUÍDO";
+
+
+        indicacao.dataConclusao =
+          new Date().toISOString();
+
+
+        bonusPago =
+          true;
+
+      } else if (
+        !indicacao.bonusPago
+      ) {
+
+        indicacao.status =
+          "EM ANDAMENTO";
+
+      }
+
+    }
+  );
+
+
+  return {
+    bonusPago
+  };
+
+}
+
+
+/* =========================================================
+   INICIAR SERVIDOR
+========================================================= */
 
 servidor.listen(
   PORT,
