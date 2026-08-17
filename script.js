@@ -2065,4 +2065,553 @@ function mostrarAnuncioVideo(callback) {
         request.adTagUrl =
           HILLTOP_VAST_URL;
 
-        request
+        request.linearAdSlotWidth =
+          video.clientWidth ||
+          640;
+
+        request.linearAdSlotHeight =
+          video.clientHeight ||
+          360;
+
+        request.nonLinearAdSlotWidth =
+          video.clientWidth ||
+          640;
+
+        request.nonLinearAdSlotHeight =
+          180;
+
+        request.forceNonLinearFullSlot =
+          false;
+
+        if (status) {
+          status.textContent =
+            "Buscando publicidade...";
+        }
+
+        adsLoader.requestAds(
+          request
+        );
+
+      } catch (e) {
+
+        console.log(
+          "Erro na integração VAST:",
+          e
+        );
+
+        if (status) {
+          status.textContent =
+            "Publicidade indisponível.";
+        }
+
+        fecharAnuncio();
+      }
+
+    }
+  );
+}
+
+/* =========================
+ATUALIZAR TELA
+========================= */
+
+function atualizarTela() {
+
+  const elementoPontos =
+    document.getElementById(
+      "pontos"
+    );
+
+  const elementoSaldo =
+    document.getElementById(
+      "saldo"
+    );
+
+  const elementoRodada =
+    document.getElementById(
+      "rodada"
+    );
+
+  const nomeUsuario =
+    document.getElementById(
+      "nomeUsuario"
+    );
+
+  if (elementoPontos) {
+    elementoPontos.textContent =
+      pontos;
+  }
+
+  if (elementoSaldo) {
+    elementoSaldo.textContent =
+      saldo;
+  }
+
+  if (elementoRodada) {
+    elementoRodada.textContent =
+      rodada;
+  }
+
+  if (
+    nomeUsuario &&
+    usuarioAtual
+  ) {
+
+    nomeUsuario.textContent =
+      usuarioAtual.nome || "";
+  }
+}
+
+/* =========================
+SALVAR PONTUAÇÃO
+========================= */
+
+async function salvarPontuacao() {
+
+  if (!usuarioAtual) {
+    return;
+  }
+
+  try {
+
+    const resposta =
+      await fetch(
+        "/api/pontuacao",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              email:
+                usuarioAtual.email,
+
+              pontos:
+                pontos,
+
+              saldo:
+                saldo
+            })
+        }
+      );
+
+    if (!resposta.ok) {
+      console.log(
+        "Não foi possível salvar a pontuação no servidor."
+      );
+
+      return;
+    }
+
+    let dados = {};
+
+    try {
+      dados = await resposta.json();
+    } catch (e) {
+      dados = {};
+    }
+
+    if (dados.usuario) {
+
+      usuarioAtual =
+        {
+          ...usuarioAtual,
+          ...dados.usuario
+        };
+
+      pontos =
+        Number(
+          usuarioAtual.pontos ??
+          pontos
+        );
+
+      saldo =
+        Number(
+          usuarioAtual.saldo ??
+          saldo
+        );
+
+      usuarioAtual.pontos =
+        pontos;
+
+      usuarioAtual.saldo =
+        saldo;
+
+      salvarSessaoLocal();
+
+      atualizarTela();
+    }
+
+  } catch (e) {
+
+    console.log(
+      "Erro ao salvar pontuação:",
+      e
+    );
+  }
+}
+
+/* =========================
+MENU
+========================= */
+
+function ativarMenuPorIndice(indice) {
+
+  const botoes =
+    document.querySelectorAll(
+      ".menu-item"
+    );
+
+  botoes.forEach(
+    function(botao, i) {
+
+      botao.classList.toggle(
+        "ativo",
+        i === indice
+      );
+
+    }
+  );
+}
+
+function mostrarIndicacoes() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para acessar suas indicações."
+    );
+
+    return;
+  }
+
+  mostrarTela(
+    "conteudoIndicacoes"
+  );
+
+  ativarMenuPorIndice(1);
+
+  atualizarDadosIndicacao();
+}
+
+function mostrarSaque() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para acessar o saque."
+    );
+
+    return;
+  }
+
+  mostrarTela(
+    "telaSaque"
+  );
+
+  ativarMenuPorIndice(3);
+
+  atualizarTela();
+}
+
+function mostrarSAC() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para acessar o SAC."
+    );
+
+    return;
+  }
+
+  mostrarTela(
+    "telaSAC"
+  );
+
+  ativarMenuPorIndice(4);
+}
+
+/* =========================
+SAQUE
+========================= */
+
+async function solicitarSaque() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para solicitar um saque."
+    );
+
+    return;
+  }
+
+  const tipoElemento =
+    document.getElementById(
+      "tipoSaque"
+    );
+
+  const chaveElemento =
+    document.getElementById(
+      "chaveSaque"
+    );
+
+  const quantidadeElemento =
+    document.getElementById(
+      "quantidadeSaque"
+    );
+
+  const resultado =
+    document.getElementById(
+      "resultadoSaque"
+    );
+
+  const tipo =
+    tipoElemento
+      ? tipoElemento.value
+      : "";
+
+  const chave =
+    chaveElemento
+      ? chaveElemento.value.trim()
+      : "";
+
+  const quantidade =
+    quantidadeElemento
+      ? Number(
+          quantidadeElemento.value
+        )
+      : 0;
+
+  if (resultado) {
+    resultado.textContent = "";
+  }
+
+  if (!tipo || !chave || !quantidade) {
+
+    if (resultado) {
+      resultado.textContent =
+        "Preencha os dados do saque.";
+    }
+
+    return;
+  }
+
+  try {
+
+    const resposta =
+      await fetch(
+        "/api/saque",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              email:
+                usuarioAtual.email,
+
+              tipo,
+              chave,
+
+              pontos:
+                quantidade
+            })
+        }
+      );
+
+    let dados = {};
+
+    try {
+      dados =
+        await resposta.json();
+    } catch (e) {
+      dados = {};
+    }
+
+    if (!resposta.ok) {
+
+      if (resultado) {
+        resultado.textContent =
+          dados.erro ||
+          "Não foi possível solicitar o saque.";
+      }
+
+      return;
+    }
+
+    if (resultado) {
+      resultado.textContent =
+        dados.mensagem ||
+        "Saque enviado para análise.";
+    }
+
+    if (
+      dados.usuario
+    ) {
+
+      usuarioAtual =
+        {
+          ...usuarioAtual,
+          ...dados.usuario
+        };
+
+      pontos =
+        Number(
+          usuarioAtual.pontos ??
+          pontos
+        );
+
+      saldo =
+        Number(
+          usuarioAtual.saldo ??
+          saldo
+        );
+
+      salvarSessaoLocal();
+
+      atualizarTela();
+    }
+
+  } catch (e) {
+
+    if (resultado) {
+      resultado.textContent =
+        "Erro de conexão com o servidor.";
+    }
+
+    console.error(e);
+  }
+}
+
+/* =========================
+SAC
+========================= */
+
+async function enviarMensagemSAC() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para utilizar o SAC."
+    );
+
+    return;
+  }
+
+  const campo =
+    document.getElementById(
+      "mensagemSAC"
+    );
+
+  const resultado =
+    document.getElementById(
+      "resultadoSAC"
+    );
+
+  const mensagem =
+    campo
+      ? campo.value.trim()
+      : "";
+
+  if (resultado) {
+    resultado.textContent = "";
+  }
+
+  if (!mensagem) {
+
+    if (resultado) {
+      resultado.textContent =
+        "Digite sua mensagem.";
+    }
+
+    return;
+  }
+
+  try {
+
+    const resposta =
+      await fetch(
+        "/api/sac",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              email:
+                usuarioAtual.email,
+
+              mensagem
+            })
+        }
+      );
+
+    let dados = {};
+
+    try {
+      dados =
+        await resposta.json();
+    } catch (e) {
+      dados = {};
+    }
+
+    if (!resposta.ok) {
+
+      if (resultado) {
+        resultado.textContent =
+          dados.erro ||
+          "Não foi possível enviar sua mensagem.";
+      }
+
+      return;
+    }
+
+    if (resultado) {
+      resultado.textContent =
+        dados.mensagem ||
+        "Mensagem enviada com sucesso!";
+    }
+
+    if (campo) {
+      campo.value = "";
+    }
+
+  } catch (e) {
+
+    if (resultado) {
+      resultado.textContent =
+        "Erro de conexão com o servidor.";
+    }
+
+    console.error(e);
+  }
+}
+
+/* =========================
+INICIALIZAÇÃO
+========================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function() {
+
+    atualizarTela();
+
+    carregarSessaoLocal();
+
+  }
+);
