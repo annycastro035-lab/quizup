@@ -1439,171 +1439,29 @@ function finalizarRodada() {
   );
 }
 
-/* =========================
-YTRGT
-========================= */
 
-const YTRGT_PUBLISHER_ID =
-  "3f4eb03345194e7a912e6645b56ab9fc";
+/* =========================================================
+HILLTOPADS - VAST
+ZONA #7330581
+========================================================= */
 
-const YTRGT_SCRIPT_URL =
-  "https://static.servestatic.net/js/ytrgt.js";
+/*
+  VAST recebido da HilltopAds.
 
-const YTRGT_ENDPOINT =
-  "https://collect.rtb.events/hb";
+  NÃO é um script JavaScript.
+  É um endereço de feed VAST para ser
+  reproduzido por um player de vídeo.
+*/
 
-let ytrgtScriptCarregado = false;
-let ytrgtScriptCarregando = false;
-let ytrgtCallbacks = [];
+const HILLTOP_VAST_URL =
+  "https://funny-tooth.com/dhm/F.zcdoGCNZvrZkGLUo/oeVme9/u-ZoU/l/koP/TyctzbMPzwAc1jOuDDEEtuNyzoMAzMMlDsU/4YNPQO";
 
-/* =========================
-CARREGAR SCRIPT YTRGT
-========================= */
+const HILLTOP_ZONE_ID =
+  "7330581";
 
-function carregarScriptYTRGT(callback) {
-
-  if (
-    typeof window.ytrgt === "function"
-  ) {
-
-    if (callback) {
-      callback(true);
-    }
-
-    return;
-  }
-
-  if (ytrgtScriptCarregado) {
-
-    if (callback) {
-      callback(
-        typeof window.ytrgt === "function"
-      );
-    }
-
-    return;
-  }
-
-  if (callback) {
-    ytrgtCallbacks.push(callback);
-  }
-
-  if (ytrgtScriptCarregando) {
-    return;
-  }
-
-  ytrgtScriptCarregando = true;
-
-  const scriptExistente =
-    document.querySelector(
-      'script[src="' +
-      YTRGT_SCRIPT_URL +
-      '"]'
-    );
-
-  if (scriptExistente) {
-
-    scriptExistente.addEventListener(
-      "load",
-      finalizarCarregamentoYTRGT,
-      {
-        once: true
-      }
-    );
-
-    scriptExistente.addEventListener(
-      "error",
-      finalizarErroYTRGT,
-      {
-        once: true
-      }
-    );
-
-    return;
-  }
-
-  const script =
-    document.createElement(
-      "script"
-    );
-
-  script.async = true;
-
-  script.src =
-    YTRGT_SCRIPT_URL;
-
-  script.onload =
-    finalizarCarregamentoYTRGT;
-
-  script.onerror =
-    finalizarErroYTRGT;
-
-  document.head.appendChild(
-    script
-  );
-}
-
-function finalizarCarregamentoYTRGT() {
-
-  ytrgtScriptCarregado = true;
-  ytrgtScriptCarregando = false;
-
-  const callbacks =
-    ytrgtCallbacks.slice();
-
-  ytrgtCallbacks = [];
-
-  callbacks.forEach(
-    function(callback) {
-
-      try {
-
-        callback(
-          typeof window.ytrgt ===
-          "function"
-        );
-
-      } catch (e) {
-
-        console.log(
-          "Erro no callback YTRGT:",
-          e
-        );
-      }
-
-    }
-  );
-}
-
-function finalizarErroYTRGT() {
-
-  ytrgtScriptCarregado = false;
-  ytrgtScriptCarregando = false;
-
-  const callbacks =
-    ytrgtCallbacks.slice();
-
-  ytrgtCallbacks = [];
-
-  callbacks.forEach(
-    function(callback) {
-
-      try {
-        callback(false);
-      } catch (e) {
-        console.log(e);
-      }
-
-    }
-  );
-
-  console.log(
-    "Não foi possível carregar o script YTRGT."
-  );
-}
 
 /* =========================
-ANÚNCIO EM VÍDEO
+CRIAR PLAYER VAST
 ========================= */
 
 function mostrarAnuncioVideo(callback) {
@@ -1650,9 +1508,6 @@ function mostrarAnuncioVideo(callback) {
     z-index:10;
   `;
 
-  const containerId =
-    "ytrgt-3f4eb03345194e7a912e6645b56ab9fc";
-
   card.innerHTML = `
 
     <div style="
@@ -1665,21 +1520,38 @@ function mostrarAnuncioVideo(callback) {
     </div>
 
     <div
-      id="${containerId}"
+      id="quizupVastContainer"
       style="
         width:100%;
-        min-height:180px;
+        min-height:200px;
         display:flex;
         align-items:center;
         justify-content:center;
         overflow:hidden;
         border-radius:12px;
-        background:#f7f7f7;
+        background:#111;
       "
-    ></div>
+    >
+      <video
+        id="quizupVastVideo"
+        playsinline
+        controls
+        muted
+        preload="auto"
+        style="
+          width:100%;
+          max-width:640px;
+          height:auto;
+          max-height:360px;
+          display:block;
+          background:#000;
+          border-radius:12px;
+        "
+      ></video>
+    </div>
 
     <div
-      id="ytrgtStatus"
+      id="hilltopVastStatus"
       style="
         font-size:12px;
         color:#999;
@@ -1687,6 +1559,16 @@ function mostrarAnuncioVideo(callback) {
       "
     >
       Carregando publicidade...
+    </div>
+
+    <div
+      style="
+        font-size:10px;
+        color:#aaa;
+        margin-top:5px;
+      "
+    >
+      Zona ${HILLTOP_ZONE_ID}
     </div>
 
   `;
@@ -1712,25 +1594,18 @@ function mostrarAnuncioVideo(callback) {
   }
 
   /*
-  Nunca deixa o anúncio travar
-  o QuizUp por mais de 5 segundos.
+    Segurança:
+    o anúncio nunca deve travar
+    o QuizUp indefinidamente.
   */
 
-  setTimeout(
-    function() {
-      liberarJogo();
-    },
-    5000
-  );
-
-  carregarScriptYTRGT(
-    function(sucesso) {
-
-      if (!sucesso) {
+  const timeoutAnuncio =
+    setTimeout(
+      function() {
 
         const status =
           document.getElementById(
-            "ytrgtStatus"
+            "hilltopVastStatus"
           );
 
         if (status) {
@@ -1740,97 +1615,160 @@ function mostrarAnuncioVideo(callback) {
 
         liberarJogo();
 
-        return;
+      },
+      8000
+    );
+
+
+  const video =
+    document.getElementById(
+      "quizupVastVideo"
+    );
+
+  const status =
+    document.getElementById(
+      "hilltopVastStatus"
+    );
+
+
+  if (!video) {
+
+    clearTimeout(
+      timeoutAnuncio
+    );
+
+    liberarJogo();
+
+    return;
+  }
+
+
+  /* =========================
+  FINALIZAÇÃO DO VÍDEO
+  ========================= */
+
+  video.addEventListener(
+    "ended",
+    function() {
+
+      clearTimeout(
+        timeoutAnuncio
+      );
+
+      if (status) {
+        status.textContent =
+          "Publicidade encerrada.";
       }
 
-      try {
+      setTimeout(
+        function() {
 
-        if (
-          typeof window.ytrgt !==
-          "function"
-        ) {
+          if (card.parentNode) {
+            card.remove();
+          }
 
           liberarJogo();
 
-          return;
-        }
-
-        window.ytrgt(
-          "hb:load",
-          "#" + containerId,
-          {
-            endpoint:
-              YTRGT_ENDPOINT,
-
-            publisherId:
-              YTRGT_PUBLISHER_ID,
-
-            video: {
-              mimes: [
-                "video/mp4"
-              ],
-
-              protocols: [
-                2,
-                3,
-                5,
-                6
-              ]
-            },
-
-            videoOptions: {
-              muted:
-                "auto",
-
-              skipDelay:
-                5,
-
-              replay:
-                true
-            },
-
-            tmax:
-              1000,
-
-            showAdMark:
-              true
-          }
-        );
-
-        const status =
-          document.getElementById(
-            "ytrgtStatus"
-          );
-
-        if (status) {
-          status.textContent =
-            "Publicidade";
-        }
-
-      } catch (e) {
-
-        console.log(
-          "Erro ao iniciar YTRGT:",
-          e
-        );
-
-        const status =
-          document.getElementById(
-            "ytrgtStatus"
-          );
-
-        if (status) {
-
-          status.textContent =
-            "Publicidade indisponível no momento.";
-        }
-
-        liberarJogo();
-      }
+        },
+        500
+      );
 
     }
   );
+
+
+  /* =========================
+  ERRO DO PLAYER
+  ========================= */
+
+  video.addEventListener(
+    "error",
+    function() {
+
+      clearTimeout(
+        timeoutAnuncio
+      );
+
+      console.log(
+        "Erro ao reproduzir anúncio VAST."
+      );
+
+      if (status) {
+        status.textContent =
+          "Publicidade indisponível no momento.";
+      }
+
+      setTimeout(
+        function() {
+
+          if (card.parentNode) {
+            card.remove();
+          }
+
+          liberarJogo();
+
+        },
+        500
+      );
+
+    }
+  );
+
+
+  /*
+    Alguns ambientes podem entregar
+    diretamente um arquivo de vídeo.
+  */
+
+  video.src =
+    HILLTOP_VAST_URL;
+
+
+  /*
+    Tentativa de reprodução.
+    Se o navegador bloquear autoplay,
+    o controle do vídeo continua disponível.
+  */
+
+  if (status) {
+    status.textContent =
+      "Publicidade carregando...";
+  }
+
+
+  video.load();
+
+
+  const promessa =
+    video.play();
+
+
+  if (
+    promessa &&
+    typeof promessa.catch === "function"
+  ) {
+
+    promessa.catch(
+      function() {
+
+        /*
+          Autoplay pode ser bloqueado pelo
+          navegador. Nesse caso o usuário
+          poderá iniciar pelo controle do player.
+        */
+
+        if (status) {
+          status.textContent =
+            "Toque no vídeo para iniciar a publicidade.";
+        }
+
+      }
+    );
+
+  }
+
 }
+
 
 /* =========================
 ATUALIZAR TELA
@@ -2331,12 +2269,6 @@ document.addEventListener(
   function() {
 
     atualizarTela();
-
-    /*
-    Tenta recuperar a sessão salva
-    sem obrigar o usuário a fazer login
-    novamente.
-    */
 
     carregarSessaoLocal();
 
