@@ -256,9 +256,7 @@ function mostrarTela(id) {
     )
     .forEach(function(item) {
 
-      item.classList.remove(
-        "ativa"
-      );
+      item.classList.remove("ativa");
 
     });
 
@@ -276,11 +274,7 @@ function mostrarTela(id) {
       );
 
     if (telaJogo) {
-
-      telaJogo.classList.add(
-        "ativa"
-      );
-
+      telaJogo.classList.add("ativa");
     }
 
     document
@@ -289,22 +283,16 @@ function mostrarTela(id) {
       )
       .forEach(function(item) {
 
-        item.classList.remove(
-          "ativa"
-        );
+        item.classList.remove("ativa");
 
       });
 
-    tela.classList.add(
-      "ativa"
-    );
+    tela.classList.add("ativa");
 
     return;
   }
 
-  tela.classList.add(
-    "ativa"
-  );
+  tela.classList.add("ativa");
 }
 
 /* =========================
@@ -330,18 +318,12 @@ function voltarJogo() {
 
   botoes.forEach(function(botao) {
 
-    botao.classList.remove(
-      "ativo"
-    );
+    botao.classList.remove("ativo");
 
   });
 
   if (botoes[0]) {
-
-    botoes[0].classList.add(
-      "ativo"
-    );
-
+    botoes[0].classList.add("ativo");
   }
 }
 
@@ -579,9 +561,7 @@ async function fazerLogin() {
       return;
     }
 
-    if (
-      !dados.usuario
-    ) {
+    if (!dados.usuario) {
 
       if (erro) {
         erro.textContent =
@@ -619,13 +599,11 @@ async function fazerLogin() {
       );
 
     if (nomeUsuario) {
-
       nomeUsuario.textContent =
         usuarioAtual.nome || "";
     }
 
     atualizarTela();
-
     atualizarDadosIndicacao();
 
     mostrarTela(
@@ -774,26 +752,11 @@ function escaparHTML(texto) {
   return String(
     texto || ""
   )
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function renderizarIndicacoes() {
@@ -899,12 +862,9 @@ function renderizarIndicacoes() {
         "indicacao-item";
 
       item.innerHTML = `
-
         <div>
           <strong>
-            👤 ${escaparHTML(
-              indicacao.nome
-            )}
+            👤 ${escaparHTML(indicacao.nome)}
           </strong>
         </div>
 
@@ -925,7 +885,6 @@ function renderizarIndicacoes() {
             margin:8px 0;
           "
         >
-
           <div
             style="
               width:${percentual}%;
@@ -934,20 +893,16 @@ function renderizarIndicacoes() {
               border-radius:10px;
             "
           ></div>
-
         </div>
 
         <p>
           🎁 Bônus:
-          <strong>
-            50 pontos
-          </strong>
+          <strong>50 pontos</strong>
         </p>
 
         <p>
           ${statusTexto}
         </p>
-
       `;
 
       lista.appendChild(item);
@@ -1253,7 +1208,6 @@ function iniciarTimer() {
     );
 
   if (timer) {
-
     timer.textContent =
       tempoRestante;
   }
@@ -1265,7 +1219,6 @@ function iniciarTimer() {
         tempoRestante--;
 
         if (timer) {
-
           timer.textContent =
             tempoRestante;
         }
@@ -1277,6 +1230,8 @@ function iniciarTimer() {
           clearInterval(
             timerInterval
           );
+
+          timerInterval = null;
 
           tempoEsgotado();
         }
@@ -1297,6 +1252,12 @@ function tempoEsgotado() {
   }
 
   perguntaAtiva = false;
+
+  clearInterval(
+    timerInterval
+  );
+
+  timerInterval = null;
 
   pontosDaRodada = 0;
 
@@ -1331,6 +1292,8 @@ function responder(indice) {
   clearInterval(
     timerInterval
   );
+
+  timerInterval = null;
 
   const botoes =
     document.querySelectorAll(
@@ -1402,11 +1365,14 @@ function responder(indice) {
     pontosDaRodada = 0;
   }
 
-  usuarioAtual.pontos =
-    pontos;
+  if (usuarioAtual) {
 
-  usuarioAtual.saldo =
-    saldo;
+    usuarioAtual.pontos =
+      pontos;
+
+    usuarioAtual.saldo =
+      saldo;
+  }
 
   salvarSessaoLocal();
 
@@ -1462,15 +1428,6 @@ function finalizarRodada() {
 
   pontosDaRodada = 0;
 
-  /*
-  O anúncio é exibido entre as rodadas.
-
-  IMPORTANTE:
-  O anúncio NÃO bloqueia o login.
-  O jogo também não fica travado
-  caso a publicidade não carregue.
-  */
-
   mostrarAnuncioVideo(
     function() {
 
@@ -1499,9 +1456,9 @@ let ytrgtScriptCarregado = false;
 let ytrgtScriptCarregando = false;
 let ytrgtCallbacks = [];
 
-/*
-Carrega o script da plataforma apenas uma vez.
-*/
+/* =========================
+CARREGAR SCRIPT YTRGT
+========================= */
 
 function carregarScriptYTRGT(callback) {
 
@@ -1651,10 +1608,6 @@ ANÚNCIO EM VÍDEO
 
 function mostrarAnuncioVideo(callback) {
 
-  /*
-  Remove publicidade anterior.
-  */
-
   const existente =
     document.getElementById(
       "quizupAnuncioVideo"
@@ -1663,11 +1616,6 @@ function mostrarAnuncioVideo(callback) {
   if (existente) {
     existente.remove();
   }
-
-  /*
-  Se não existir a área principal,
-  simplesmente continua o jogo.
-  */
 
   const conteudo =
     document.querySelector(
@@ -1682,10 +1630,6 @@ function mostrarAnuncioVideo(callback) {
 
     return;
   }
-
-  /*
-  Cria o cartão do anúncio.
-  */
 
   const card =
     document.createElement(
@@ -1705,11 +1649,6 @@ function mostrarAnuncioVideo(callback) {
     position:relative;
     z-index:10;
   `;
-
-  /*
-  ID exatamente igual ao fornecido
-  pela plataforma YTRGT.
-  */
 
   const containerId =
     "ytrgt-3f4eb03345194e7a912e6645b56ab9fc";
@@ -1752,22 +1691,10 @@ function mostrarAnuncioVideo(callback) {
 
   `;
 
-  /*
-  Coloca o anúncio no início do conteúdo.
-  */
-
   conteudo.insertBefore(
     card,
     conteudo.firstChild
   );
-
-  /*
-  Libera o botão após um tempo curto,
-  independentemente de o anúncio carregar.
-
-  Assim a publicidade nunca trava
-  o QuizUp.
-  */
 
   let finalizado = false;
 
@@ -1785,23 +1712,16 @@ function mostrarAnuncioVideo(callback) {
   }
 
   /*
-  O botão volta a funcionar depois de
-  no máximo 5 segundos.
+  Nunca deixa o anúncio travar
+  o QuizUp por mais de 5 segundos.
   */
 
-  const liberador =
-    setTimeout(
-      function() {
-
-        liberarJogo();
-
-      },
-      5000
-    );
-
-  /*
-  Carrega o YTRGT.
-  */
+  setTimeout(
+    function() {
+      liberarJogo();
+    },
+    5000
+  );
 
   carregarScriptYTRGT(
     function(sucesso) {
@@ -1814,11 +1734,11 @@ function mostrarAnuncioVideo(callback) {
           );
 
         if (status) {
-
           status.textContent =
             "Publicidade indisponível no momento.";
-
         }
+
+        liberarJogo();
 
         return;
       }
@@ -1830,13 +1750,10 @@ function mostrarAnuncioVideo(callback) {
           "function"
         ) {
 
+          liberarJogo();
+
           return;
         }
-
-        /*
-        CONFIGURAÇÃO YTRGT
-        EXATAMENTE COM OS DADOS FORNECIDOS.
-        */
 
         window.ytrgt(
           "hb:load",
@@ -1886,7 +1803,6 @@ function mostrarAnuncioVideo(callback) {
           );
 
         if (status) {
-
           status.textContent =
             "Publicidade";
         }
@@ -1906,4 +1822,523 @@ function mostrarAnuncioVideo(callback) {
         if (status) {
 
           status.textContent =
-            "
+            "Publicidade indisponível no momento.";
+        }
+
+        liberarJogo();
+      }
+
+    }
+  );
+}
+
+/* =========================
+ATUALIZAR TELA
+========================= */
+
+function atualizarTela() {
+
+  const elementoPontos =
+    document.getElementById(
+      "pontos"
+    );
+
+  const elementoSaldo =
+    document.getElementById(
+      "saldo"
+    );
+
+  const elementoRodada =
+    document.getElementById(
+      "rodada"
+    );
+
+  const nomeUsuario =
+    document.getElementById(
+      "nomeUsuario"
+    );
+
+  if (elementoPontos) {
+    elementoPontos.textContent =
+      pontos;
+  }
+
+  if (elementoSaldo) {
+    elementoSaldo.textContent =
+      saldo;
+  }
+
+  if (elementoRodada) {
+    elementoRodada.textContent =
+      rodada;
+  }
+
+  if (
+    nomeUsuario &&
+    usuarioAtual
+  ) {
+
+    nomeUsuario.textContent =
+      usuarioAtual.nome || "";
+  }
+}
+
+/* =========================
+SALVAR PONTUAÇÃO
+========================= */
+
+async function salvarPontuacao() {
+
+  if (!usuarioAtual) {
+    return;
+  }
+
+  try {
+
+    const resposta =
+      await fetch(
+        "/api/pontuacao",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              email:
+                usuarioAtual.email,
+
+              pontos:
+                pontos,
+
+              saldo:
+                saldo
+            })
+        }
+      );
+
+    if (!resposta.ok) {
+      console.log(
+        "Não foi possível salvar a pontuação no servidor."
+      );
+
+      return;
+    }
+
+    let dados = {};
+
+    try {
+      dados = await resposta.json();
+    } catch (e) {
+      dados = {};
+    }
+
+    if (dados.usuario) {
+
+      usuarioAtual =
+        {
+          ...usuarioAtual,
+          ...dados.usuario
+        };
+
+      pontos =
+        Number(
+          usuarioAtual.pontos ??
+          pontos
+        );
+
+      saldo =
+        Number(
+          usuarioAtual.saldo ??
+          saldo
+        );
+
+      usuarioAtual.pontos =
+        pontos;
+
+      usuarioAtual.saldo =
+        saldo;
+
+      salvarSessaoLocal();
+
+      atualizarTela();
+    }
+
+  } catch (e) {
+
+    console.log(
+      "Erro ao salvar pontuação:",
+      e
+    );
+  }
+}
+
+/* =========================
+MENU
+========================= */
+
+function ativarMenuPorIndice(indice) {
+
+  const botoes =
+    document.querySelectorAll(
+      ".menu-item"
+    );
+
+  botoes.forEach(
+    function(botao, i) {
+
+      botao.classList.toggle(
+        "ativo",
+        i === indice
+      );
+
+    }
+  );
+}
+
+function mostrarIndicacoes() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para acessar suas indicações."
+    );
+
+    return;
+  }
+
+  mostrarTela(
+    "conteudoIndicacoes"
+  );
+
+  ativarMenuPorIndice(1);
+
+  atualizarDadosIndicacao();
+}
+
+function mostrarSaque() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para acessar o saque."
+    );
+
+    return;
+  }
+
+  mostrarTela(
+    "telaSaque"
+  );
+
+  ativarMenuPorIndice(3);
+
+  atualizarTela();
+}
+
+function mostrarSAC() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para acessar o SAC."
+    );
+
+    return;
+  }
+
+  mostrarTela(
+    "telaSAC"
+  );
+
+  ativarMenuPorIndice(4);
+}
+
+/* =========================
+SAQUE
+========================= */
+
+async function solicitarSaque() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para solicitar um saque."
+    );
+
+    return;
+  }
+
+  const tipoElemento =
+    document.getElementById(
+      "tipoSaque"
+    );
+
+  const chaveElemento =
+    document.getElementById(
+      "chaveSaque"
+    );
+
+  const quantidadeElemento =
+    document.getElementById(
+      "quantidadeSaque"
+    );
+
+  const resultado =
+    document.getElementById(
+      "resultadoSaque"
+    );
+
+  const tipo =
+    tipoElemento
+      ? tipoElemento.value
+      : "";
+
+  const chave =
+    chaveElemento
+      ? chaveElemento.value.trim()
+      : "";
+
+  const quantidade =
+    quantidadeElemento
+      ? Number(
+          quantidadeElemento.value
+        )
+      : 0;
+
+  if (resultado) {
+    resultado.textContent = "";
+  }
+
+  if (!tipo || !chave || !quantidade) {
+
+    if (resultado) {
+      resultado.textContent =
+        "Preencha os dados do saque.";
+    }
+
+    return;
+  }
+
+  try {
+
+    const resposta =
+      await fetch(
+        "/api/saque",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              email:
+                usuarioAtual.email,
+
+              tipo,
+              chave,
+
+              pontos:
+                quantidade
+            })
+        }
+      );
+
+    let dados = {};
+
+    try {
+      dados =
+        await resposta.json();
+    } catch (e) {
+      dados = {};
+    }
+
+    if (!resposta.ok) {
+
+      if (resultado) {
+        resultado.textContent =
+          dados.erro ||
+          "Não foi possível solicitar o saque.";
+      }
+
+      return;
+    }
+
+    if (resultado) {
+      resultado.textContent =
+        dados.mensagem ||
+        "Saque enviado para análise.";
+    }
+
+    if (
+      dados.usuario
+    ) {
+
+      usuarioAtual =
+        {
+          ...usuarioAtual,
+          ...dados.usuario
+        };
+
+      pontos =
+        Number(
+          usuarioAtual.pontos ??
+          pontos
+        );
+
+      saldo =
+        Number(
+          usuarioAtual.saldo ??
+          saldo
+        );
+
+      salvarSessaoLocal();
+
+      atualizarTela();
+    }
+
+  } catch (e) {
+
+    if (resultado) {
+      resultado.textContent =
+        "Erro de conexão com o servidor.";
+    }
+
+    console.error(e);
+  }
+}
+
+/* =========================
+SAC
+========================= */
+
+async function enviarMensagemSAC() {
+
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para utilizar o SAC."
+    );
+
+    return;
+  }
+
+  const campo =
+    document.getElementById(
+      "mensagemSAC"
+    );
+
+  const resultado =
+    document.getElementById(
+      "resultadoSAC"
+    );
+
+  const mensagem =
+    campo
+      ? campo.value.trim()
+      : "";
+
+  if (resultado) {
+    resultado.textContent = "";
+  }
+
+  if (!mensagem) {
+
+    if (resultado) {
+      resultado.textContent =
+        "Digite sua mensagem.";
+    }
+
+    return;
+  }
+
+  try {
+
+    const resposta =
+      await fetch(
+        "/api/sac",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              email:
+                usuarioAtual.email,
+
+              mensagem
+            })
+        }
+      );
+
+    let dados = {};
+
+    try {
+      dados =
+        await resposta.json();
+    } catch (e) {
+      dados = {};
+    }
+
+    if (!resposta.ok) {
+
+      if (resultado) {
+        resultado.textContent =
+          dados.erro ||
+          "Não foi possível enviar sua mensagem.";
+      }
+
+      return;
+    }
+
+    if (resultado) {
+      resultado.textContent =
+        dados.mensagem ||
+        "Mensagem enviada com sucesso!";
+    }
+
+    if (campo) {
+      campo.value = "";
+    }
+
+  } catch (e) {
+
+    if (resultado) {
+      resultado.textContent =
+        "Erro de conexão com o servidor.";
+    }
+
+    console.error(e);
+  }
+}
+
+/* =========================
+INICIALIZAÇÃO
+========================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function() {
+
+    atualizarTela();
+
+    /*
+    Tenta recuperar a sessão salva
+    sem obrigar o usuário a fazer login
+    novamente.
+    */
+
+    carregarSessaoLocal();
+
+  }
+);
