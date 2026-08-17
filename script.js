@@ -12,20 +12,15 @@ let tempoRestante = 5;
 let perguntaAtiva = false;
 
 /* =========================
-   SESSÃO LOCAL
+SESSÃO LOCAL
 ========================= */
 
 const CHAVE_SESSAO = "quizup_sessao_v1";
 
-
 function salvarSessaoLocal() {
-
-  if (!usuarioAtual) {
-    return;
-  }
+  if (!usuarioAtual) return;
 
   try {
-
     localStorage.setItem(
       CHAVE_SESSAO,
       JSON.stringify({
@@ -34,89 +29,59 @@ function salvarSessaoLocal() {
         saldo: saldo
       })
     );
-
   } catch (e) {
-
-    console.log(
-      "Não foi possível salvar a sessão local."
-    );
-
+    console.log("Não foi possível salvar a sessão local.", e);
   }
-
 }
 
-
 function carregarSessaoLocal() {
-
   try {
-
-    const dadosSalvos =
-      localStorage.getItem(
-        CHAVE_SESSAO
-      );
+    const dadosSalvos = localStorage.getItem(CHAVE_SESSAO);
 
     if (!dadosSalvos) {
       return false;
     }
 
-    const dados =
-      JSON.parse(dadosSalvos);
+    const dados = JSON.parse(dadosSalvos);
 
     if (
       !dados ||
       !dados.usuario ||
       !dados.usuario.email
     ) {
-
-      localStorage.removeItem(
-        CHAVE_SESSAO
-      );
-
+      localStorage.removeItem(CHAVE_SESSAO);
       return false;
     }
 
-    usuarioAtual =
-      dados.usuario;
+    usuarioAtual = dados.usuario;
 
-    pontos =
-      Number(
-        dados.pontos ??
-        usuarioAtual.pontos ??
-        0
-      );
+    pontos = Number(
+      dados.pontos ??
+      usuarioAtual.pontos ??
+      0
+    );
 
-    saldo =
-      Number(
-        dados.saldo ??
-        usuarioAtual.saldo ??
-        pontos
-      );
+    saldo = Number(
+      dados.saldo ??
+      usuarioAtual.saldo ??
+      pontos
+    );
 
-    usuarioAtual.pontos =
-      pontos;
-
-    usuarioAtual.saldo =
-      saldo;
+    usuarioAtual.pontos = pontos;
+    usuarioAtual.saldo = saldo;
 
     const nomeUsuario =
-      document.getElementById(
-        "nomeUsuario"
-      );
+      document.getElementById("nomeUsuario");
 
     if (nomeUsuario) {
-
       nomeUsuario.textContent =
         usuarioAtual.nome || "";
-
     }
 
     atualizarTela();
-
     atualizarDadosIndicacao();
 
-    mostrarTela(
-      "conteudoJogo"
-    );
+    mostrarTela("conteudoJogo");
 
     return true;
 
@@ -132,18 +97,17 @@ function carregarSessaoLocal() {
 
     return false;
   }
-
 }
 
-
 /* =========================
-   PERGUNTAS
+PERGUNTAS
 ========================= */
 
 const perguntas = [
 
   {
-    pergunta: "Qual é a capital do Brasil?",
+    pergunta:
+      "Qual é a capital do Brasil?",
     opcoes: [
       "São Paulo",
       "Brasília",
@@ -154,7 +118,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Quanto é 2 + 2?",
+    pergunta:
+      "Quanto é 2 + 2?",
     opcoes: [
       "3",
       "4",
@@ -165,7 +130,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
+    pergunta:
+      "Qual planeta é conhecido como Planeta Vermelho?",
     opcoes: [
       "Terra",
       "Marte",
@@ -176,7 +142,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Quantos dias tem uma semana?",
+    pergunta:
+      "Quantos dias tem uma semana?",
     opcoes: [
       "5",
       "6",
@@ -187,7 +154,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Qual animal é conhecido como rei da selva?",
+    pergunta:
+      "Qual animal é conhecido como rei da selva?",
     opcoes: [
       "Tigre",
       "Leão",
@@ -198,7 +166,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Qual é o maior planeta do Sistema Solar?",
+    pergunta:
+      "Qual é o maior planeta do Sistema Solar?",
     opcoes: [
       "Terra",
       "Marte",
@@ -209,7 +178,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Qual é o maior oceano do mundo?",
+    pergunta:
+      "Qual é o maior oceano do mundo?",
     opcoes: [
       "Atlântico",
       "Índico",
@@ -220,7 +190,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Quem escreveu Dom Casmurro?",
+    pergunta:
+      "Quem escreveu Dom Casmurro?",
     opcoes: [
       "Machado de Assis",
       "José de Alencar",
@@ -231,7 +202,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Qual é o elemento químico representado pela letra O?",
+    pergunta:
+      "Qual é o elemento químico representado pela letra O?",
     opcoes: [
       "Ouro",
       "Oxigênio",
@@ -242,7 +214,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Qual é a raiz quadrada de 144?",
+    pergunta:
+      "Qual é a raiz quadrada de 144?",
     opcoes: [
       "10",
       "11",
@@ -253,7 +226,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Qual é a velocidade aproximada da luz no vácuo?",
+    pergunta:
+      "Qual é a velocidade aproximada da luz no vácuo?",
     opcoes: [
       "30 mil km/s",
       "300 mil km/s",
@@ -264,7 +238,8 @@ const perguntas = [
   },
 
   {
-    pergunta: "Qual é o maior órgão do corpo humano?",
+    pergunta:
+      "Qual é o maior órgão do corpo humano?",
     opcoes: [
       "Coração",
       "Fígado",
@@ -276,9 +251,8 @@ const perguntas = [
 
 ];
 
-
 /* =========================
-   TELAS
+TELAS
 ========================= */
 
 function mostrarTela(id) {
@@ -290,15 +264,17 @@ function mostrarTela(id) {
     return;
   }
 
-  document.querySelectorAll(
-    "body > .app > .tela"
-  ).forEach(function(item) {
+  document
+    .querySelectorAll(
+      "body > .app > .tela"
+    )
+    .forEach(function(item) {
 
-    item.classList.remove(
-      "ativa"
-    );
+      item.classList.remove(
+        "ativa"
+      );
 
-  });
+    });
 
   if (
     id === "telaPremium" ||
@@ -321,33 +297,32 @@ function mostrarTela(id) {
 
     }
 
-    document.querySelectorAll(
-      "#telaJogo .conteudo > .tela"
-    ).forEach(function(item) {
+    document
+      .querySelectorAll(
+        "#telaJogo .conteudo > .tela"
+      )
+      .forEach(function(item) {
 
-      item.classList.remove(
-        "ativa"
-      );
+        item.classList.remove(
+          "ativa"
+        );
 
-    });
+      });
 
     tela.classList.add(
       "ativa"
     );
 
     return;
-
   }
 
   tela.classList.add(
     "ativa"
   );
-
 }
 
-
 /* =========================
-   LOGIN / CADASTRO
+LOGIN / CADASTRO
 ========================= */
 
 function mostrarLogin() {
@@ -358,7 +333,6 @@ function mostrarLogin() {
 
 }
 
-
 function mostrarCadastro() {
 
   mostrarTela(
@@ -366,7 +340,6 @@ function mostrarCadastro() {
   );
 
 }
-
 
 function voltarJogo() {
 
@@ -397,32 +370,34 @@ function voltarJogo() {
 
 }
 
-
 /* =========================
-   CADASTRO
+CADASTRO
 ========================= */
 
 async function cadastrar() {
 
   const nome =
-    document.getElementById(
-      "cadNome"
-    ).value.trim();
+    document
+      .getElementById("cadNome")
+      .value
+      .trim();
 
   const cpf =
-    document.getElementById(
-      "cadCpf"
-    ).value.trim();
+    document
+      .getElementById("cadCpf")
+      .value
+      .trim();
 
   const email =
-    document.getElementById(
-      "cadEmail"
-    ).value.trim();
+    document
+      .getElementById("cadEmail")
+      .value
+      .trim();
 
   const senha =
-    document.getElementById(
-      "cadSenha"
-    ).value;
+    document
+      .getElementById("cadSenha")
+      .value;
 
   const campoCodigo =
     document.getElementById(
@@ -439,7 +414,11 @@ async function cadastrar() {
       "erroCadastro"
     );
 
-  erro.textContent = "";
+  if (erro) {
+
+    erro.textContent = "";
+
+  }
 
   if (
     !nome ||
@@ -448,16 +427,24 @@ async function cadastrar() {
     !senha
   ) {
 
-    erro.textContent =
-      "Preencha todos os campos obrigatórios.";
+    if (erro) {
+
+      erro.textContent =
+        "Preencha todos os campos obrigatórios.";
+
+    }
 
     return;
   }
 
   if (senha.length < 6) {
 
-    erro.textContent =
-      "A senha deve ter pelo menos 6 caracteres.";
+    if (erro) {
+
+      erro.textContent =
+        "A senha deve ter pelo menos 6 caracteres.";
+
+    }
 
     return;
   }
@@ -468,7 +455,6 @@ async function cadastrar() {
       await fetch(
         "/api/cadastro",
         {
-
           method: "POST",
 
           headers: {
@@ -484,7 +470,6 @@ async function cadastrar() {
               senha,
               codigo
             })
-
         }
       );
 
@@ -493,9 +478,13 @@ async function cadastrar() {
 
     if (!resposta.ok) {
 
-      erro.textContent =
-        dados.erro ||
-        "Não foi possível cadastrar.";
+      if (erro) {
+
+        erro.textContent =
+          dados.erro ||
+          "Não foi possível cadastrar.";
+
+      }
 
       return;
     }
@@ -539,41 +528,58 @@ async function cadastrar() {
 
   } catch (e) {
 
-    erro.textContent =
-      "Erro de conexão com o servidor.";
+    if (erro) {
+
+      erro.textContent =
+        "Erro de conexão com o servidor.";
+
+    }
+
+    console.error(e);
 
   }
-
 }
 
-
 /* =========================
-   LOGIN
+LOGIN
 ========================= */
 
 async function fazerLogin() {
 
   const email =
-    document.getElementById(
-      "loginEmail"
-    ).value.trim();
+    document
+      .getElementById(
+        "loginEmail"
+      )
+      .value
+      .trim();
 
   const senha =
-    document.getElementById(
-      "loginSenha"
-    ).value;
+    document
+      .getElementById(
+        "loginSenha"
+      )
+      .value;
 
   const erro =
     document.getElementById(
       "erroLogin"
     );
 
-  erro.textContent = "";
+  if (erro) {
+
+    erro.textContent = "";
+
+  }
 
   if (!email || !senha) {
 
-    erro.textContent =
-      "Digite o e-mail e a senha.";
+    if (erro) {
+
+      erro.textContent =
+        "Digite o e-mail e a senha.";
+
+    }
 
     return;
   }
@@ -606,9 +612,13 @@ async function fazerLogin() {
 
     if (!resposta.ok) {
 
-      erro.textContent =
-        dados.erro ||
-        "Login inválido.";
+      if (erro) {
+
+        erro.textContent =
+          dados.erro ||
+          "Login inválido.";
+
+      }
 
       return;
     }
@@ -643,7 +653,7 @@ async function fazerLogin() {
     if (nomeUsuario) {
 
       nomeUsuario.textContent =
-        usuarioAtual.nome;
+        usuarioAtual.nome || "";
 
     }
 
@@ -657,16 +667,20 @@ async function fazerLogin() {
 
   } catch (e) {
 
-    erro.textContent =
-      "Erro de conexão com o servidor.";
+    if (erro) {
+
+      erro.textContent =
+        "Erro de conexão com o servidor.";
+
+    }
+
+    console.error(e);
 
   }
-
 }
 
-
 /* =========================
-   INDICAÇÕES
+INDICAÇÕES
 ========================= */
 
 function atualizarDadosIndicacao() {
@@ -700,17 +714,17 @@ function atualizarDadosIndicacao() {
       "planoAtual"
     );
 
+  const premiumPlano =
+    document.getElementById(
+      "premiumPlano"
+    );
+
   if (elementoPlano) {
 
     elementoPlano.textContent =
       plano;
 
   }
-
-  const premiumPlano =
-    document.getElementById(
-      "premiumPlano"
-    );
 
   if (premiumPlano) {
 
@@ -722,7 +736,6 @@ function atualizarDadosIndicacao() {
   carregarIndicacoes();
 
 }
-
 
 async function carregarIndicacoes() {
 
@@ -800,9 +813,35 @@ async function carregarIndicacoes() {
     );
 
   }
-
 }
 
+function escaparHTML(texto) {
+
+  return String(
+    texto || ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
 
 function renderizarIndicacoes() {
 
@@ -868,11 +907,8 @@ function renderizarIndicacoes() {
 
   if (indicacoes.length === 0) {
 
-    lista.innerHTML = `
-      <p>
-        Você ainda não possui indicações.
-      </p>
-    `;
+    lista.innerHTML =
+      "<p>Você ainda não possui indicações.</p>";
 
     return;
   }
@@ -978,36 +1014,6 @@ function renderizarIndicacoes() {
 
 }
 
-
-function escaparHTML(texto) {
-
-  return String(
-    texto || ""
-  )
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-
-}
-
-
 async function copiarCodigoIndicacao() {
 
   if (!usuarioAtual) {
@@ -1049,9 +1055,8 @@ async function copiarCodigoIndicacao() {
 
 }
 
-
 /* =========================
-   PREMIUM
+PREMIUM
 ========================= */
 
 function mostrarPremium() {
@@ -1100,7 +1105,6 @@ function mostrarPremium() {
 
 }
 
-
 function assinarPremium() {
 
   if (!usuarioAtual) {
@@ -1117,9 +1121,8 @@ function assinarPremium() {
 
 }
 
-
 /* =========================
-   DADO
+DADO
 ========================= */
 
 function sortearDado() {
@@ -1131,7 +1134,6 @@ function sortearDado() {
   if (numero < 0.36) return 2;
   if (numero < 0.54) return 3;
   if (numero < 0.70) return 4;
-
   if (numero < 0.78) return 5;
   if (numero < 0.84) return 6;
   if (numero < 0.89) return 7;
@@ -1139,9 +1141,7 @@ function sortearDado() {
   if (numero < 0.98) return 9;
 
   return 10;
-
 }
-
 
 function girarDado() {
 
@@ -1197,7 +1197,11 @@ function girarDado() {
           "Valendo " +
           numero +
           " ponto" +
-          (numero > 1 ? "s" : "") +
+          (
+            numero > 1
+              ? "s"
+              : ""
+          ) +
           "!";
 
       }
@@ -1210,9 +1214,8 @@ function girarDado() {
 
 }
 
-
 /* =========================
-   PERGUNTAS
+CARREGAR PERGUNTA
 ========================= */
 
 function carregarPergunta() {
@@ -1253,8 +1256,7 @@ function carregarPergunta() {
 
   if (nivel) {
 
-    nivel.textContent =
-      "";
+    nivel.textContent = "";
 
     nivel.style.display =
       "none";
@@ -1274,14 +1276,16 @@ function carregarPergunta() {
       false;
 
     return;
-
   }
 
   respostas.innerHTML =
     "";
 
   pergunta.opcoes.forEach(
-    function(opcao, indice) {
+    function(
+      opcao,
+      indice
+    ) {
 
       const botao =
         document.createElement(
@@ -1318,9 +1322,8 @@ function carregarPergunta() {
 
 }
 
-
 /* =========================
-   TIMER
+TIMER
 ========================= */
 
 function iniciarTimer() {
@@ -1357,7 +1360,9 @@ function iniciarTimer() {
 
         }
 
-        if (tempoRestante <= 0) {
+        if (
+          tempoRestante <= 0
+        ) {
 
           clearInterval(
             timerInterval
@@ -1373,9 +1378,8 @@ function iniciarTimer() {
 
 }
 
-
 /* =========================
-   TEMPO ESGOTADO
+TEMPO ESGOTADO
 ========================= */
 
 function tempoEsgotado() {
@@ -1408,9 +1412,8 @@ function tempoEsgotado() {
 
 }
 
-
 /* =========================
-   RESPONDER
+RESPONDER
 ========================= */
 
 function responder(indice) {
@@ -1432,7 +1435,10 @@ function responder(indice) {
     );
 
   botoes.forEach(
-    function(botao, i) {
+    function(
+      botao,
+      i
+    ) {
 
       botao.disabled =
         true;
@@ -1520,9 +1526,8 @@ function responder(indice) {
 
 }
 
-
 /* =========================
-   RESPOSTAS
+BLOQUEAR RESPOSTAS
 ========================= */
 
 function bloquearRespostas() {
@@ -1542,9 +1547,8 @@ function bloquearRespostas() {
 
 }
 
-
 /* =========================
-   FINALIZAR RODADA
+FINALIZAR RODADA
 ========================= */
 
 function finalizarRodada() {
@@ -1572,15 +1576,9 @@ function finalizarRodada() {
     0;
 
   /*
-   * ANÚNCIO EM TODA RODADA
-   *
-   * O anúncio aparece sempre depois
-   * da resposta, independentemente
-   * de acertar, errar ou esgotar o tempo.
-   *
-   * Somente depois do anúncio o botão
-   * de girar o dado é liberado.
-   */
+  O anúncio YTRGT aparece
+  entre as rodadas.
+  */
 
   mostrarAnuncioVideo(
     function() {
@@ -1597,9 +1595,8 @@ function finalizarRodada() {
 
 }
 
-
 /* =========================
-   ANÚNCIO YTRGT
+ANÚNCIO YTRGT
 ========================= */
 
 function mostrarAnuncioVideo(
@@ -1675,34 +1672,37 @@ function mostrarAnuncioVideo(
       ".conteudo"
     );
 
-  if (conteudo) {
-
-    conteudo.insertBefore(
-      card,
-      conteudo.firstChild
-    );
-
-  }
-
-  const anuncio =
-    document.getElementById(
-      "ytrgt-3f4eb03345194e7a912e6645b56ab9fc"
-    );
-
-  if (!anuncio) {
+  if (!conteudo) {
 
     if (callback) {
       callback();
     }
 
     return;
+  }
 
+  conteudo.insertBefore(
+    card,
+    conteudo.firstChild
+  );
+
+  const container =
+    document.getElementById(
+      "ytrgt-3f4eb03345194e7a912e6645b56ab9fc"
+    );
+
+  if (!container) {
+
+    if (callback) {
+      callback();
+    }
+
+    return;
   }
 
   /*
-   * Carrega o player publicitário
-   * fornecido pelo anunciante.
-   */
+  CÓDIGO YTRGT DA PLATAFORMA
+  */
 
   const script =
     document.createElement(
@@ -1721,7 +1721,8 @@ function mostrarAnuncioVideo(
       try {
 
         if (
-          typeof ytrgt === "function"
+          typeof ytrgt ===
+          "function"
         ) {
 
           ytrgt(
@@ -1735,6 +1736,7 @@ function mostrarAnuncioVideo(
                 "3f4eb03345194e7a912e6645b56ab9fc",
 
               video: {
+
                 mimes: [
                   "video/mp4"
                 ],
@@ -1745,19 +1747,35 @@ function mostrarAnuncioVideo(
                   5,
                   6
                 ]
+
               },
 
               videoOptions: {
-                muted: "auto",
-                skipDelay: 5,
-                replay: true
+
+                muted:
+                  "auto",
+
+                skipDelay:
+                  5,
+
+                replay:
+                  true
+
               },
 
-              tmax: 1000,
+              tmax:
+                1000,
 
-              showAdMark: true
+              showAdMark:
+                true
 
             }
+          );
+
+        } else {
+
+          console.log(
+            "YTRGT carregou, mas a função ytrgt não está disponível."
           );
 
         }
@@ -1765,25 +1783,24 @@ function mostrarAnuncioVideo(
       } catch (e) {
 
         console.log(
-          "Erro ao carregar o anúncio:",
+          "Erro ao carregar o anúncio YTRGT:",
           e
         );
 
       }
 
       /*
-       * Aguarda 5 segundos antes de
-       * liberar a próxima rodada.
-       *
-       * Isso evita que o jogador pule
-       * imediatamente para outra rodada.
-       */
+      Aguarda 5 segundos.
+      Depois libera a próxima rodada.
+      */
 
       setTimeout(
         function() {
 
           if (callback) {
+
             callback();
+
           }
 
         },
@@ -1796,16 +1813,18 @@ function mostrarAnuncioVideo(
     function() {
 
       console.log(
-        "Não foi possível carregar o anúncio."
+        "Não foi possível carregar o script YTRGT."
       );
 
       /*
-       * Se o anúncio não carregar,
-       * o jogo não fica travado.
-       */
+      Se o anúncio falhar,
+      o jogo não fica travado.
+      */
 
       if (callback) {
+
         callback();
+
       }
 
     };
@@ -1816,9 +1835,8 @@ function mostrarAnuncioVideo(
 
 }
 
-
 /* =========================
-   ATUALIZAR TELA
+ATUALIZAR TELA
 ========================= */
 
 function atualizarTela() {
@@ -1861,9 +1879,8 @@ function atualizarTela() {
 
 }
 
-
 /* =========================
-   SALVAR PONTUAÇÃO
+SALVAR PONTUAÇÃO
 ========================= */
 
 async function salvarPontuacao() {
@@ -1906,7 +1923,9 @@ async function salvarPontuacao() {
     const dados =
       await resposta.json();
 
-    if (resposta.ok) {
+    if (
+      resposta.ok
+    ) {
 
       if (
         dados.bonusIndicacaoPago
@@ -1928,9 +1947,8 @@ async function salvarPontuacao() {
 
 }
 
-
 /* =========================
-   SAQUE
+SAQUE
 ========================= */
 
 function mostrarSaque() {
@@ -1966,7 +1984,6 @@ function mostrarSaque() {
 
 }
 
-
 function preencherSaque(
   valor
 ) {
@@ -1986,7 +2003,6 @@ function preencherSaque(
   mostrarSaque();
 
 }
-
 
 async function solicitarSaque() {
 
@@ -2029,7 +2045,8 @@ async function solicitarSaque() {
   const tipo =
     campoTipo
       ? String(
-          campoTipo.value || ""
+          campoTipo.value ||
+          ""
         ).toLowerCase()
       : "pix";
 
@@ -2207,9 +2224,8 @@ async function solicitarSaque() {
 
 }
 
-
 /* =========================
-   SAC
+SAC
 ========================= */
 
 function mostrarSAC() {
@@ -2242,7 +2258,6 @@ function mostrarSAC() {
   ativarMenuPorIndice(4);
 
 }
-
 
 async function enviarSAC() {
 
@@ -2355,9 +2370,8 @@ async function enviarSAC() {
 
 }
 
-
 /* =========================
-   MENU
+MENU
 ========================= */
 
 function ativarMenu(
@@ -2388,7 +2402,6 @@ function ativarMenu(
 
 }
 
-
 function ativarMenuPorIndice(
   indice
 ) {
@@ -2417,7 +2430,6 @@ function ativarMenuPorIndice(
   }
 
 }
-
 
 function abrirTelaMenu(
   nome,
@@ -2453,9 +2465,8 @@ function abrirTelaMenu(
 
 }
 
-
 /* =========================
-   SAIR
+SAIR
 ========================= */
 
 async function sair() {
@@ -2574,9 +2585,8 @@ async function sair() {
 
 }
 
-
 /* =========================
-   INICIALIZAÇÃO
+INICIALIZAÇÃO
 ========================= */
 
 document.addEventListener(
