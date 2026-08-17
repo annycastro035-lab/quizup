@@ -1439,40 +1439,163 @@ function finalizarRodada() {
   );
 }
 
-
 /* =========================================================
 HILLTOPADS - VAST
 ZONA #7330581
 ========================================================= */
 
-/*
-  VAST recebido da HilltopAds.
-
-  NÃO é um script JavaScript.
-  É um endereço de feed VAST para ser
-  reproduzido por um player de vídeo.
-*/
-
 const HILLTOP_VAST_URL =
-  "https://funny-tooth.com/dhm/F.zcdoGCNZvrZkGLUo/oeVme9/u-ZoU/l/koP/TyctzbMPzwAc1jOuDDEEtuNyzoMAzMMlDsU/4YNPQO";
+  "https://funny-tooth.com/d.m/F/zUdFGMNovxZ_GGUG/beDm/9BuUZbU/lxkRPTTIchzyMvzTAG1/OyDKEbtsN/zlMMzXMAD/UE4gNCQy";
 
-const HILLTOP_ZONE_ID =
-  "7330581";
+const HILLTOP_IMA_SCRIPT =
+  "https://imasdk.googleapis.com/js/sdkloader/ima3.js";
 
+let hilltopImaCarregado = false;
+let hilltopImaCarregando = false;
+let hilltopCallbacks = [];
 
 /* =========================
-CRIAR PLAYER VAST
+CARREGAR GOOGLE IMA SDK
+========================= */
+
+function carregarHilltopIMA(callback) {
+
+  if (
+    typeof window.google !== "undefined" &&
+    window.google.ima
+  ) {
+
+    hilltopImaCarregado = true;
+
+    if (callback) {
+      callback(true);
+    }
+
+    return;
+  }
+
+  if (callback) {
+    hilltopCallbacks.push(callback);
+  }
+
+  if (hilltopImaCarregando) {
+    return;
+  }
+
+  hilltopImaCarregando = true;
+
+  const existente =
+    document.querySelector(
+      'script[src="' +
+      HILLTOP_IMA_SCRIPT +
+      '"]'
+    );
+
+  if (existente) {
+
+    existente.addEventListener(
+      "load",
+      finalizarCarregamentoIMA,
+      { once: true }
+    );
+
+    existente.addEventListener(
+      "error",
+      finalizarErroIMA,
+      { once: true }
+    );
+
+    return;
+  }
+
+  const script =
+    document.createElement(
+      "script"
+    );
+
+  script.src =
+    HILLTOP_IMA_SCRIPT;
+
+  script.async = true;
+
+  script.onload =
+    finalizarCarregamentoIMA;
+
+  script.onerror =
+    finalizarErroIMA;
+
+  document.head.appendChild(
+    script
+  );
+}
+
+function finalizarCarregamentoIMA() {
+
+  hilltopImaCarregado = true;
+  hilltopImaCarregando = false;
+
+  const callbacks =
+    hilltopCallbacks.slice();
+
+  hilltopCallbacks = [];
+
+  callbacks.forEach(
+    function(callback) {
+
+      try {
+        callback(
+          typeof window.google !==
+            "undefined" &&
+          !!window.google.ima
+        );
+      } catch (e) {
+        console.log(e);
+      }
+
+    }
+  );
+}
+
+function finalizarErroIMA() {
+
+  hilltopImaCarregado = false;
+  hilltopImaCarregando = false;
+
+  const callbacks =
+    hilltopCallbacks.slice();
+
+  hilltopCallbacks = [];
+
+  callbacks.forEach(
+    function(callback) {
+
+      try {
+        callback(false);
+      } catch (e) {
+        console.log(e);
+      }
+
+    }
+  );
+
+  console.log(
+    "Não foi possível carregar o Google IMA SDK."
+  );
+}
+
+/* =========================
+ANÚNCIO VAST HILLTOPADS
 ========================= */
 
 function mostrarAnuncioVideo(callback) {
 
-  const existente =
+  const antigo =
     document.getElementById(
       "quizupAnuncioVideo"
     );
 
-  if (existente) {
-    existente.remove();
+  if (antigo) {
+    antigo.remove();
   }
 
   const conteudo =
@@ -1505,8 +1628,16 @@ function mostrarAnuncioVideo(callback) {
     text-align:center;
     box-shadow:0 4px 15px rgba(0,0,0,.08);
     position:relative;
-    z-index:10;
+    z-index:9999;
   `;
+
+  const areaId =
+    "quizupVastArea_" +
+    Date.now();
+
+  const videoId =
+    "quizupVastVideo_" +
+    Date.now();
 
   card.innerHTML = `
 
@@ -1520,38 +1651,47 @@ function mostrarAnuncioVideo(callback) {
     </div>
 
     <div
-      id="quizupVastContainer"
+      id="${areaId}"
       style="
+        position:relative;
         width:100%;
-        min-height:200px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        overflow:hidden;
-        border-radius:12px;
+        max-width:640px;
+        margin:auto;
+        min-height:180px;
         background:#111;
+        border-radius:12px;
+        overflow:hidden;
       "
     >
+
       <video
-        id="quizupVastVideo"
+        id="${videoId}"
         playsinline
-        controls
+        webkit-playsinline
         muted
         preload="auto"
         style="
-          width:100%;
-          max-width:640px;
-          height:auto;
-          max-height:360px;
           display:block;
-          background:#000;
-          border-radius:12px;
+          width:100%;
+          height:auto;
+          min-height:180px;
+          background:#111;
         "
       ></video>
+
+      <div
+        id="${areaId}_ad"
+        style="
+          position:absolute;
+          inset:0;
+          z-index:5;
+        "
+      ></div>
+
     </div>
 
     <div
-      id="hilltopVastStatus"
+      id="${areaId}_status"
       style="
         font-size:12px;
         color:#999;
@@ -1561,15 +1701,19 @@ function mostrarAnuncioVideo(callback) {
       Carregando publicidade...
     </div>
 
-    <div
+    <button
+      id="${areaId}_fechar"
       style="
-        font-size:10px;
-        color:#aaa;
-        margin-top:5px;
+        display:none;
+        margin-top:10px;
+        padding:8px 18px;
+        border:0;
+        border-radius:8px;
+        cursor:pointer;
       "
     >
-      Zona ${HILLTOP_ZONE_ID}
-    </div>
+      Continuar
+    </button>
 
   `;
 
@@ -1577,6 +1721,26 @@ function mostrarAnuncioVideo(callback) {
     card,
     conteudo.firstChild
   );
+
+  const video =
+    document.getElementById(
+      videoId
+    );
+
+  const adContainer =
+    document.getElementById(
+      areaId + "_ad"
+    );
+
+  const status =
+    document.getElementById(
+      areaId + "_status"
+    );
+
+  const botaoFechar =
+    document.getElementById(
+      areaId + "_fechar"
+    );
 
   let finalizado = false;
 
@@ -1593,684 +1757,312 @@ function mostrarAnuncioVideo(callback) {
     }
   }
 
+  function fecharAnuncio() {
+
+    try {
+
+      if (video) {
+        video.pause();
+      }
+
+    } catch (e) {}
+
+    if (card) {
+      card.remove();
+    }
+
+    liberarJogo();
+  }
+
+  if (botaoFechar) {
+
+    botaoFechar.onclick =
+      function() {
+        fecharAnuncio();
+      };
+  }
+
   /*
-    Segurança:
-    o anúncio nunca deve travar
-    o QuizUp indefinidamente.
+  Segurança:
+  o anúncio não pode travar o QuizUp
+  indefinidamente.
   */
 
-  const timeoutAnuncio =
+  const tempoMaximo =
     setTimeout(
       function() {
-
-        const status =
-          document.getElementById(
-            "hilltopVastStatus"
-          );
 
         if (status) {
           status.textContent =
             "Publicidade indisponível no momento.";
         }
 
-        liberarJogo();
+        fecharAnuncio();
 
       },
-      8000
+      10000
     );
 
-
-  const video =
-    document.getElementById(
-      "quizupVastVideo"
-    );
-
-  const status =
-    document.getElementById(
-      "hilltopVastStatus"
-    );
-
-
-  if (!video) {
+  function finalizarComLimpeza() {
 
     clearTimeout(
-      timeoutAnuncio
+      tempoMaximo
     );
 
-    liberarJogo();
-
-    return;
+    if (botaoFechar) {
+      botaoFechar.style.display =
+        "inline-block";
+    }
   }
 
-
   /* =========================
-  FINALIZAÇÃO DO VÍDEO
+  CARREGAR IMA
   ========================= */
 
-  video.addEventListener(
-    "ended",
-    function() {
+  carregarHilltopIMA(
+    function(sucesso) {
 
-      clearTimeout(
-        timeoutAnuncio
-      );
-
-      if (status) {
-        status.textContent =
-          "Publicidade encerrada.";
-      }
-
-      setTimeout(
-        function() {
-
-          if (card.parentNode) {
-            card.remove();
-          }
-
-          liberarJogo();
-
-        },
-        500
-      );
-
-    }
-  );
-
-
-  /* =========================
-  ERRO DO PLAYER
-  ========================= */
-
-  video.addEventListener(
-    "error",
-    function() {
-
-      clearTimeout(
-        timeoutAnuncio
-      );
-
-      console.log(
-        "Erro ao reproduzir anúncio VAST."
-      );
-
-      if (status) {
-        status.textContent =
-          "Publicidade indisponível no momento.";
-      }
-
-      setTimeout(
-        function() {
-
-          if (card.parentNode) {
-            card.remove();
-          }
-
-          liberarJogo();
-
-        },
-        500
-      );
-
-    }
-  );
-
-
-  /*
-    Alguns ambientes podem entregar
-    diretamente um arquivo de vídeo.
-  */
-
-  video.src =
-    HILLTOP_VAST_URL;
-
-
-  /*
-    Tentativa de reprodução.
-    Se o navegador bloquear autoplay,
-    o controle do vídeo continua disponível.
-  */
-
-  if (status) {
-    status.textContent =
-      "Publicidade carregando...";
-  }
-
-
-  video.load();
-
-
-  const promessa =
-    video.play();
-
-
-  if (
-    promessa &&
-    typeof promessa.catch === "function"
-  ) {
-
-    promessa.catch(
-      function() {
-
-        /*
-          Autoplay pode ser bloqueado pelo
-          navegador. Nesse caso o usuário
-          poderá iniciar pelo controle do player.
-        */
+      if (!sucesso) {
 
         if (status) {
           status.textContent =
-            "Toque no vídeo para iniciar a publicidade.";
+            "Publicidade indisponível.";
         }
 
-      }
-    );
+        fecharAnuncio();
 
-  }
-
-}
-
-
-/* =========================
-ATUALIZAR TELA
-========================= */
-
-function atualizarTela() {
-
-  const elementoPontos =
-    document.getElementById(
-      "pontos"
-    );
-
-  const elementoSaldo =
-    document.getElementById(
-      "saldo"
-    );
-
-  const elementoRodada =
-    document.getElementById(
-      "rodada"
-    );
-
-  const nomeUsuario =
-    document.getElementById(
-      "nomeUsuario"
-    );
-
-  if (elementoPontos) {
-    elementoPontos.textContent =
-      pontos;
-  }
-
-  if (elementoSaldo) {
-    elementoSaldo.textContent =
-      saldo;
-  }
-
-  if (elementoRodada) {
-    elementoRodada.textContent =
-      rodada;
-  }
-
-  if (
-    nomeUsuario &&
-    usuarioAtual
-  ) {
-
-    nomeUsuario.textContent =
-      usuarioAtual.nome || "";
-  }
-}
-
-/* =========================
-SALVAR PONTUAÇÃO
-========================= */
-
-async function salvarPontuacao() {
-
-  if (!usuarioAtual) {
-    return;
-  }
-
-  try {
-
-    const resposta =
-      await fetch(
-        "/api/pontuacao",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body:
-            JSON.stringify({
-              email:
-                usuarioAtual.email,
-
-              pontos:
-                pontos,
-
-              saldo:
-                saldo
-            })
-        }
-      );
-
-    if (!resposta.ok) {
-      console.log(
-        "Não foi possível salvar a pontuação no servidor."
-      );
-
-      return;
-    }
-
-    let dados = {};
-
-    try {
-      dados = await resposta.json();
-    } catch (e) {
-      dados = {};
-    }
-
-    if (dados.usuario) {
-
-      usuarioAtual =
-        {
-          ...usuarioAtual,
-          ...dados.usuario
-        };
-
-      pontos =
-        Number(
-          usuarioAtual.pontos ??
-          pontos
-        );
-
-      saldo =
-        Number(
-          usuarioAtual.saldo ??
-          saldo
-        );
-
-      usuarioAtual.pontos =
-        pontos;
-
-      usuarioAtual.saldo =
-        saldo;
-
-      salvarSessaoLocal();
-
-      atualizarTela();
-    }
-
-  } catch (e) {
-
-    console.log(
-      "Erro ao salvar pontuação:",
-      e
-    );
-  }
-}
-
-/* =========================
-MENU
-========================= */
-
-function ativarMenuPorIndice(indice) {
-
-  const botoes =
-    document.querySelectorAll(
-      ".menu-item"
-    );
-
-  botoes.forEach(
-    function(botao, i) {
-
-      botao.classList.toggle(
-        "ativo",
-        i === indice
-      );
-
-    }
-  );
-}
-
-function mostrarIndicacoes() {
-
-  if (!usuarioAtual) {
-
-    alert(
-      "Faça login para acessar suas indicações."
-    );
-
-    return;
-  }
-
-  mostrarTela(
-    "conteudoIndicacoes"
-  );
-
-  ativarMenuPorIndice(1);
-
-  atualizarDadosIndicacao();
-}
-
-function mostrarSaque() {
-
-  if (!usuarioAtual) {
-
-    alert(
-      "Faça login para acessar o saque."
-    );
-
-    return;
-  }
-
-  mostrarTela(
-    "telaSaque"
-  );
-
-  ativarMenuPorIndice(3);
-
-  atualizarTela();
-}
-
-function mostrarSAC() {
-
-  if (!usuarioAtual) {
-
-    alert(
-      "Faça login para acessar o SAC."
-    );
-
-    return;
-  }
-
-  mostrarTela(
-    "telaSAC"
-  );
-
-  ativarMenuPorIndice(4);
-}
-
-/* =========================
-SAQUE
-========================= */
-
-async function solicitarSaque() {
-
-  if (!usuarioAtual) {
-
-    alert(
-      "Faça login para solicitar um saque."
-    );
-
-    return;
-  }
-
-  const tipoElemento =
-    document.getElementById(
-      "tipoSaque"
-    );
-
-  const chaveElemento =
-    document.getElementById(
-      "chaveSaque"
-    );
-
-  const quantidadeElemento =
-    document.getElementById(
-      "quantidadeSaque"
-    );
-
-  const resultado =
-    document.getElementById(
-      "resultadoSaque"
-    );
-
-  const tipo =
-    tipoElemento
-      ? tipoElemento.value
-      : "";
-
-  const chave =
-    chaveElemento
-      ? chaveElemento.value.trim()
-      : "";
-
-  const quantidade =
-    quantidadeElemento
-      ? Number(
-          quantidadeElemento.value
-        )
-      : 0;
-
-  if (resultado) {
-    resultado.textContent = "";
-  }
-
-  if (!tipo || !chave || !quantidade) {
-
-    if (resultado) {
-      resultado.textContent =
-        "Preencha os dados do saque.";
-    }
-
-    return;
-  }
-
-  try {
-
-    const resposta =
-      await fetch(
-        "/api/saque",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body:
-            JSON.stringify({
-              email:
-                usuarioAtual.email,
-
-              tipo,
-              chave,
-
-              pontos:
-                quantidade
-            })
-        }
-      );
-
-    let dados = {};
-
-    try {
-      dados =
-        await resposta.json();
-    } catch (e) {
-      dados = {};
-    }
-
-    if (!resposta.ok) {
-
-      if (resultado) {
-        resultado.textContent =
-          dados.erro ||
-          "Não foi possível solicitar o saque.";
+        return;
       }
 
-      return;
-    }
+      try {
 
-    if (resultado) {
-      resultado.textContent =
-        dados.mensagem ||
-        "Saque enviado para análise.";
-    }
+        const ima =
+          window.google.ima;
 
-    if (
-      dados.usuario
-    ) {
+        /*
+        Cria o display container do Google IMA.
+        */
 
-      usuarioAtual =
-        {
-          ...usuarioAtual,
-          ...dados.usuario
-        };
+        const displayContainer =
+          new ima.AdDisplayContainer(
+            adContainer,
+            video
+          );
 
-      pontos =
-        Number(
-          usuarioAtual.pontos ??
-          pontos
+        /*
+        Inicializa o container.
+        */
+
+        displayContainer.initialize();
+
+        const adsLoader =
+          new ima.AdsLoader(
+            displayContainer
+          );
+
+        /*
+        Eventos do carregamento do VAST.
+        */
+
+        adsLoader.addEventListener(
+          ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
+          function(event) {
+
+            try {
+
+              const adsRenderingSettings =
+                new ima.AdsRenderingSettings();
+
+              adsRenderingSettings.restoreCustomPlaybackStateOnAdBreakComplete =
+                false;
+
+              const adsManager =
+                event.getAdsManager(
+                  video,
+                  adsRenderingSettings
+                );
+
+              adsManager.addEventListener(
+                ima.AdErrorEvent.Type.AD_ERROR,
+                function(errorEvent) {
+
+                  console.log(
+                    "Erro no anúncio VAST:",
+                    errorEvent
+                  );
+
+                  if (status) {
+                    status.textContent =
+                      "Publicidade indisponível.";
+                  }
+
+                  fecharAnuncio();
+                }
+              );
+
+              adsManager.addEventListener(
+                ima.AdEvent.Type.STARTED,
+                function() {
+
+                  if (status) {
+                    status.textContent =
+                      "Publicidade em exibição...";
+                  }
+                }
+              );
+
+              adsManager.addEventListener(
+                ima.AdEvent.Type.COMPLETE,
+                function() {
+
+                  if (status) {
+                    status.textContent =
+                      "Publicidade concluída.";
+                  }
+
+                  finalizarComLimpeza();
+
+                  setTimeout(
+                    function() {
+                      fecharAnuncio();
+                    },
+                    500
+                  );
+                }
+              );
+
+              adsManager.addEventListener(
+                ima.AdEvent.Type.SKIPPED,
+                function() {
+
+                  if (status) {
+                    status.textContent =
+                      "Publicidade ignorada.";
+                  }
+
+                  finalizarComLimpeza();
+
+                  setTimeout(
+                    function() {
+                      fecharAnuncio();
+                    },
+                    300
+                  );
+                }
+              );
+
+              adsManager.addEventListener(
+                ima.AdEvent.Type.CLICK,
+                function() {
+
+                  console.log(
+                    "Clique no anúncio HilltopAds."
+                  );
+                }
+              );
+
+              /*
+              Tamanho inicial do player.
+              */
+
+              const largura =
+                video.clientWidth ||
+                640;
+
+              const altura =
+                video.clientHeight ||
+                360;
+
+              adsManager.init(
+                largura,
+                altura,
+                ima.ViewMode.NORMAL
+              );
+
+              /*
+              Começa a reprodução do anúncio.
+              */
+
+              try {
+
+                video.muted = true;
+
+                const promessa =
+                  video.play();
+
+                if (
+                  promessa &&
+                  typeof promessa.catch ===
+                    "function"
+                ) {
+
+                  promessa.catch(
+                    function() {
+                      console.log(
+                        "Autoplay bloqueado pelo navegador."
+                      );
+                    }
+                  );
+                }
+
+              } catch (e) {
+
+                console.log(
+                  "Não foi possível iniciar o vídeo:",
+                  e
+                );
+              }
+
+              adsManager.start();
+
+            } catch (e) {
+
+              console.log(
+                "Erro ao iniciar AdsManager:",
+                e
+              );
+
+              if (status) {
+                status.textContent =
+                  "Publicidade indisponível.";
+              }
+
+              fecharAnuncio();
+            }
+
+          }
         );
 
-      saldo =
-        Number(
-          usuarioAtual.saldo ??
-          saldo
+        /*
+        Erro geral do carregador.
+        */
+
+        adsLoader.addEventListener(
+          ima.AdErrorEvent.Type.AD_ERROR,
+          function(errorEvent) {
+
+            console.log(
+              "Erro no VAST HilltopAds:",
+              errorEvent
+            );
+
+            if (status) {
+              status.textContent =
+                "Nenhum anúncio disponível.";
+            }
+
+            fecharAnuncio();
+          }
         );
 
-      salvarSessaoLocal();
+        /*
+        Solicitação VAST.
+        */
 
-      atualizarTela();
-    }
+        const request =
+          new ima.AdsRequest();
 
-  } catch (e) {
+        request.adTagUrl =
+          HILLTOP_VAST_URL;
 
-    if (resultado) {
-      resultado.textContent =
-        "Erro de conexão com o servidor.";
-    }
-
-    console.error(e);
-  }
-}
-
-/* =========================
-SAC
-========================= */
-
-async function enviarMensagemSAC() {
-
-  if (!usuarioAtual) {
-
-    alert(
-      "Faça login para utilizar o SAC."
-    );
-
-    return;
-  }
-
-  const campo =
-    document.getElementById(
-      "mensagemSAC"
-    );
-
-  const resultado =
-    document.getElementById(
-      "resultadoSAC"
-    );
-
-  const mensagem =
-    campo
-      ? campo.value.trim()
-      : "";
-
-  if (resultado) {
-    resultado.textContent = "";
-  }
-
-  if (!mensagem) {
-
-    if (resultado) {
-      resultado.textContent =
-        "Digite sua mensagem.";
-    }
-
-    return;
-  }
-
-  try {
-
-    const resposta =
-      await fetch(
-        "/api/sac",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body:
-            JSON.stringify({
-              email:
-                usuarioAtual.email,
-
-              mensagem
-            })
-        }
-      );
-
-    let dados = {};
-
-    try {
-      dados =
-        await resposta.json();
-    } catch (e) {
-      dados = {};
-    }
-
-    if (!resposta.ok) {
-
-      if (resultado) {
-        resultado.textContent =
-          dados.erro ||
-          "Não foi possível enviar sua mensagem.";
-      }
-
-      return;
-    }
-
-    if (resultado) {
-      resultado.textContent =
-        dados.mensagem ||
-        "Mensagem enviada com sucesso!";
-    }
-
-    if (campo) {
-      campo.value = "";
-    }
-
-  } catch (e) {
-
-    if (resultado) {
-      resultado.textContent =
-        "Erro de conexão com o servidor.";
-    }
-
-    console.error(e);
-  }
-}
-
-/* =========================
-INICIALIZAÇÃO
-========================= */
-
-document.addEventListener(
-  "DOMContentLoaded",
-  function() {
-
-    atualizarTela();
-
-    carregarSessaoLocal();
-
-  }
-);
+        request
