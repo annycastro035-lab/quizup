@@ -34,6 +34,15 @@ function salvarSessaoLocal() {
   }
 }
 
+/*
+  IMPORTANTE:
+  Esta função NÃO é mais chamada automaticamente
+  quando o site abre.
+
+  Ela continua disponível caso você queira
+  recuperar a sessão manualmente no futuro.
+*/
+
 function carregarSessaoLocal() {
   try {
     const dadosSalvos = localStorage.getItem(CHAVE_SESSAO);
@@ -95,6 +104,97 @@ function carregarSessaoLocal() {
 
     return false;
   }
+}
+
+/* =========================
+SAIR DA CONTA
+========================= */
+
+function sairDaConta() {
+
+  /*
+    Para qualquer timer ativo.
+  */
+
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  perguntaAtiva = false;
+  pontosDaRodada = 0;
+  respostaCorreta = 0;
+
+  /*
+    Remove a sessão salva.
+  */
+
+  try {
+    localStorage.removeItem(
+      CHAVE_SESSAO
+    );
+  } catch (e) {
+    console.log(
+      "Não foi possível limpar a sessão local."
+    );
+  }
+
+  /*
+    Limpa os dados da conta atual.
+  */
+
+  usuarioAtual = null;
+  pontos = 0;
+  saldo = 0;
+  rodada = 1;
+
+  /*
+    Limpa campos do login.
+  */
+
+  const loginEmail =
+    document.getElementById("loginEmail");
+
+  const loginSenha =
+    document.getElementById("loginSenha");
+
+  const erroLogin =
+    document.getElementById("erroLogin");
+
+  if (loginEmail) {
+    loginEmail.value = "";
+  }
+
+  if (loginSenha) {
+    loginSenha.value = "";
+  }
+
+  if (erroLogin) {
+    erroLogin.textContent = "";
+  }
+
+  /*
+    Remove anúncio que esteja na tela.
+  */
+
+  const anuncio =
+    document.getElementById(
+      "quizupAnuncioVideo"
+    );
+
+  if (anuncio) {
+    anuncio.remove();
+  }
+
+  atualizarTela();
+
+  /*
+    Volta obrigatoriamente para o login.
+  */
+
+  mostrarTela("telaLogin");
+
+  console.log("Conta encerrada.");
 }
 
 /* =========================
@@ -308,6 +408,11 @@ function mostrarCadastro() {
 }
 
 function voltarJogo() {
+
+  if (!usuarioAtual) {
+    mostrarTela("telaLogin");
+    return;
+  }
 
   mostrarTela("conteudoJogo");
 
@@ -590,6 +695,11 @@ async function fazerLogin() {
 
     usuarioAtual.saldo =
       saldo;
+
+    /*
+      Salva a sessão somente depois
+      de um login realmente realizado.
+    */
 
     salvarSessaoLocal();
 
@@ -1037,6 +1147,11 @@ function girarDado() {
     return;
   }
 
+  if (!usuarioAtual) {
+    mostrarTela("telaLogin");
+    return;
+  }
+
   const dado =
     document.getElementById(
       "dado"
@@ -1104,6 +1219,10 @@ CARREGAR PERGUNTA
 ========================= */
 
 function carregarPergunta() {
+
+  if (!usuarioAtual) {
+    return;
+  }
 
   const pergunta =
     perguntas[
@@ -1782,12 +1901,6 @@ function mostrarAnuncioVideo(callback) {
       };
   }
 
-  /*
-  Segurança:
-  o anúncio não pode travar o QuizUp
-  indefinidamente.
-  */
-
   const tempoMaximo =
     setTimeout(
       function() {
@@ -1815,10 +1928,6 @@ function mostrarAnuncioVideo(callback) {
     }
   }
 
-  /* =========================
-  CARREGAR IMA
-  ========================= */
-
   carregarHilltopIMA(
     function(sucesso) {
 
@@ -1839,19 +1948,11 @@ function mostrarAnuncioVideo(callback) {
         const ima =
           window.google.ima;
 
-        /*
-        Cria o display container do Google IMA.
-        */
-
         const displayContainer =
           new ima.AdDisplayContainer(
             adContainer,
             video
           );
-
-        /*
-        Inicializa o container.
-        */
 
         displayContainer.initialize();
 
@@ -1859,10 +1960,6 @@ function mostrarAnuncioVideo(callback) {
           new ima.AdsLoader(
             displayContainer
           );
-
-        /*
-        Eventos do carregamento do VAST.
-        */
 
         adsLoader.addEventListener(
           ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
@@ -1961,10 +2058,6 @@ function mostrarAnuncioVideo(callback) {
                 }
               );
 
-              /*
-              Tamanho inicial do player.
-              */
-
               const largura =
                 video.clientWidth ||
                 640;
@@ -1978,10 +2071,6 @@ function mostrarAnuncioVideo(callback) {
                 altura,
                 ima.ViewMode.NORMAL
               );
-
-              /*
-              Começa a reprodução do anúncio.
-              */
 
               try {
 
@@ -2033,10 +2122,6 @@ function mostrarAnuncioVideo(callback) {
           }
         );
 
-        /*
-        Erro geral do carregador.
-        */
-
         adsLoader.addEventListener(
           ima.AdErrorEvent.Type.AD_ERROR,
           function(errorEvent) {
@@ -2054,10 +2139,6 @@ function mostrarAnuncioVideo(callback) {
             fecharAnuncio();
           }
         );
-
-        /*
-        Solicitação VAST.
-        */
 
         const request =
           new ima.AdsRequest();
@@ -2159,6 +2240,9 @@ function atualizarTela() {
 
     nomeUsuario.textContent =
       usuarioAtual.nome || "";
+  } else if (nomeUsuario) {
+
+    nomeUsuario.textContent = "";
   }
 }
 
@@ -2286,6 +2370,8 @@ function mostrarIndicacoes() {
       "Faça login para acessar suas indicações."
     );
 
+    mostrarTela("telaLogin");
+
     return;
   }
 
@@ -2306,6 +2392,8 @@ function mostrarSaque() {
       "Faça login para acessar o saque."
     );
 
+    mostrarTela("telaLogin");
+
     return;
   }
 
@@ -2325,6 +2413,8 @@ function mostrarSAC() {
     alert(
       "Faça login para acessar o SAC."
     );
+
+    mostrarTela("telaLogin");
 
     return;
   }
@@ -2347,6 +2437,8 @@ async function solicitarSaque() {
     alert(
       "Faça login para solicitar um saque."
     );
+
+    mostrarTela("telaLogin");
 
     return;
   }
@@ -2505,6 +2597,8 @@ async function enviarMensagemSAC() {
       "Faça login para utilizar o SAC."
     );
 
+    mostrarTela("telaLogin");
+
     return;
   }
 
@@ -2609,9 +2703,35 @@ document.addEventListener(
   "DOMContentLoaded",
   function() {
 
+    /*
+      CORREÇÃO PRINCIPAL:
+
+      NÃO chamamos mais:
+        carregarSessaoLocal();
+
+      Portanto, ao abrir/recarregar o QuizUp,
+      ele permanece na tela de LOGIN.
+
+      A sessão só é criada depois que o usuário
+      faz login novamente.
+    */
+
+    usuarioAtual = null;
+    pontos = 0;
+    saldo = 0;
+    rodada = 1;
+    pontosDaRodada = 0;
+    respostaCorreta = 0;
+    perguntaAtiva = false;
+
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
     atualizarTela();
 
-    carregarSessaoLocal();
+    mostrarTela("telaLogin");
 
   }
 );
