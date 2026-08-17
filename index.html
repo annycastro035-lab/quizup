@@ -10,10 +10,11 @@
   <meta name="adbnk-site-verification" content="adbnk-verify-3c2b9ad22b4de353c0f63208" />
 
   <!-- VERIFICAÇÃO HILLTOPADS -->
-  <meta name="90645dd79179b1c3afb9fe365e976feaeb73da69" content="90645dd79179b1c3afb9fe365e976feaeb73da69" />
+  <meta name="90645dd79179b1c3afb9fe365e976feaeb73da69"
+        content="90645dd79179b1c3afb9fe365e976feaeb73da69" />
 
   <!-- HILLTOPADS -->
-  <meta name="referrer" content="no-referrer-when-downgrade" />
+  <meta name="referrer" content="no-referrer-when-downgrade">
 
   <title>QuizUp - Gire. Responda. Pontue!</title>
 
@@ -192,6 +193,30 @@
       color: #555;
       font-size: 13px;
       margin-top: 4px;
+    }
+
+    /* =========================
+       PUBLICIDADE
+       ========================= */
+
+    .area-publicidade {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 5px 10px 15px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .area-publicidade > div {
+      max-width: 100%;
+    }
+
+    .publicidade-label {
+      font-size: 10px;
+      color: #999;
+      margin-bottom: 4px;
     }
 
     .menu {
@@ -515,6 +540,7 @@
     }
 
     @media (max-width: 350px) {
+
       .menu {
         gap: 4px;
       }
@@ -526,6 +552,7 @@
       .menu-item span {
         font-size: 18px;
       }
+
     }
   </style>
 </head>
@@ -534,7 +561,9 @@
 
 <div class="app">
 
-  <!-- LOGIN -->
+  <!-- =========================
+       LOGIN
+       ========================= -->
 
   <section id="telaLogin" class="tela ativa">
 
@@ -580,7 +609,16 @@
       </button>
 
       <!-- PUBLICIDADE ADSTERRA - BANNER 320x50 -->
-      <div style="width:320px; max-width:100%; margin:18px auto 0; text-align:center;">
+
+      <div
+        style="
+          width:320px;
+          max-width:100%;
+          margin:18px auto 0;
+          text-align:center;
+        "
+      >
+
         <script>
           atOptions = {
             'key' : '1038af95c5145869ee5257519d9480c4',
@@ -590,7 +628,11 @@
             'params' : {}
           };
         </script>
-        <script src="https://www.highperformanceformat.com/1038af95c5145869ee5257519d9480c4/invoke.js"></script>
+
+        <script
+          src="https://www.highperformanceformat.com/1038af95c5145869ee5257519d9480c4/invoke.js">
+        </script>
+
       </div>
 
     </div>
@@ -598,7 +640,9 @@
   </section>
 
 
-  <!-- CADASTRO -->
+  <!-- =========================
+       CADASTRO
+       ========================= -->
 
   <section id="telaCadastro" class="tela">
 
@@ -666,7 +710,9 @@
   </section>
 
 
-  <!-- APLICATIVO -->
+  <!-- =========================
+       APLICATIVO
+       ========================= -->
 
   <section id="telaJogo" class="tela">
 
@@ -693,7 +739,9 @@
     </header>
 
 
-    <!-- SALDO -->
+    <!-- =========================
+         SALDO
+         ========================= -->
 
     <div class="saldo-box">
 
@@ -714,7 +762,46 @@
     </div>
 
 
-    <!-- MENU -->
+    <!-- =========================
+         PUBLICIDADE FORA DO VÍDEO
+         ========================= -->
+
+    <div class="area-publicidade">
+
+      <div>
+
+        <div class="publicidade-label">
+          PUBLICIDADE
+        </div>
+
+        <script>
+          (function(hbuy){
+            var d = document,
+                s = d.createElement('script'),
+                l = d.scripts[d.scripts.length - 1];
+
+            s.settings = hbuy || {};
+
+            s.src = "//prizefamily.com/bGX.V/sidWGllO0DYJWkcA/ReBm/9/uNZIUsl/kRP/TxcUz/MQzUAx2vNjTgcitcNDzIMoz/M/DIY/2YMjQW";
+
+            s.async = true;
+
+            s.referrerPolicy =
+              'no-referrer-when-downgrade';
+
+            l.parentNode.insertBefore(s, l);
+
+          })({});
+        </script>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         MENU
+         ========================= -->
 
     <nav class="menu">
 
@@ -763,7 +850,10 @@
 
     <main class="conteudo">
 
-      <!-- JOGO -->
+
+      <!-- =========================
+           JOGO
+           ========================= -->
 
       <section
         id="conteudoJogo"
@@ -869,7 +959,9 @@
       </section>
 
 
-      <!-- INDICAÇÕES -->
+      <!-- =========================
+           INDICAÇÕES
+           ========================= -->
 
       <section
         id="conteudoIndicacoes"
@@ -982,7 +1074,9 @@
       </section>
 
 
-      <!-- PREMIUM -->
+      <!-- =========================
+           PREMIUM
+           ========================= -->
 
       <section
         id="telaPremium"
@@ -1097,7 +1191,9 @@
       </section>
 
 
-      <!-- SAQUE -->
+      <!-- =========================
+           SAQUE
+           ========================= -->
 
       <section
         id="telaSaque"
@@ -1277,7 +1373,9 @@
       </section>
 
 
-      <!-- SAC -->
+      <!-- =========================
+           SAC
+           ========================= -->
 
       <section
         id="telaSAC"
@@ -1366,7 +1464,9 @@
       </section>
 
 
-      <!-- RODAPÉ -->
+      <!-- =========================
+           RODAPÉ
+           ========================= -->
 
       <div class="rodape">
 
@@ -1399,6 +1499,10 @@
 
 </div>
 
+
+<!-- =========================
+     FUNÇÕES DO INDEX
+     ========================= -->
 
 <script>
 
@@ -1502,6 +1606,8 @@
 
 </script>
 
+
+<!-- SCRIPT PRINCIPAL DO QUIZUP -->
 
 <script src="script.js"></script>
 
