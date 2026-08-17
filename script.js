@@ -11,49 +11,222 @@ let timerInterval = null;
 let tempoRestante = 5;
 let perguntaAtiva = false;
 
+/* =========================
+   SESSÃO LOCAL
+========================= */
+
+const CHAVE_SESSAO = "quizup_sessao_v1";
+
+
+function salvarSessaoLocal() {
+
+  if (!usuarioAtual) {
+    return;
+  }
+
+  try {
+
+    localStorage.setItem(
+      CHAVE_SESSAO,
+      JSON.stringify({
+        usuario: usuarioAtual,
+        pontos: pontos,
+        saldo: saldo
+      })
+    );
+
+  } catch (e) {
+
+    console.log(
+      "Não foi possível salvar a sessão local."
+    );
+
+  }
+
+}
+
+
+function carregarSessaoLocal() {
+
+  try {
+
+    const dadosSalvos =
+      localStorage.getItem(
+        CHAVE_SESSAO
+      );
+
+    if (!dadosSalvos) {
+      return false;
+    }
+
+    const dados =
+      JSON.parse(dadosSalvos);
+
+    if (
+      !dados ||
+      !dados.usuario ||
+      !dados.usuario.email
+    ) {
+
+      localStorage.removeItem(
+        CHAVE_SESSAO
+      );
+
+      return false;
+    }
+
+    usuarioAtual =
+      dados.usuario;
+
+    pontos =
+      Number(
+        dados.pontos ??
+        usuarioAtual.pontos ??
+        0
+      );
+
+    saldo =
+      Number(
+        dados.saldo ??
+        usuarioAtual.saldo ??
+        pontos
+      );
+
+    usuarioAtual.pontos =
+      pontos;
+
+    usuarioAtual.saldo =
+      saldo;
+
+    const nomeUsuario =
+      document.getElementById(
+        "nomeUsuario"
+      );
+
+    if (nomeUsuario) {
+
+      nomeUsuario.textContent =
+        usuarioAtual.nome || "";
+
+    }
+
+    atualizarTela();
+
+    atualizarDadosIndicacao();
+
+    mostrarTela(
+      "conteudoJogo"
+    );
+
+    return true;
+
+  } catch (e) {
+
+    console.log(
+      "Sessão local inválida."
+    );
+
+    localStorage.removeItem(
+      CHAVE_SESSAO
+    );
+
+    return false;
+  }
+
+}
+
 
 /* =========================
    PERGUNTAS
 ========================= */
 
 const perguntas = [
+
   {
     pergunta: "Qual é a capital do Brasil?",
-    opcoes: ["São Paulo", "Brasília", "Rio de Janeiro", "Salvador"],
+    opcoes: [
+      "São Paulo",
+      "Brasília",
+      "Rio de Janeiro",
+      "Salvador"
+    ],
     correta: 1
   },
+
   {
     pergunta: "Quanto é 2 + 2?",
-    opcoes: ["3", "4", "5", "6"],
+    opcoes: [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
     correta: 1
   },
+
   {
-    pergunta: "Qual planeta é conhecido como Planeta Vermelho?",
-    opcoes: ["Terra", "Marte", "Júpiter", "Saturno"],
+    pergunta:
+      "Qual planeta é conhecido como Planeta Vermelho?",
+    opcoes: [
+      "Terra",
+      "Marte",
+      "Júpiter",
+      "Saturno"
+    ],
     correta: 1
   },
+
   {
-    pergunta: "Quantos dias tem uma semana?",
-    opcoes: ["5", "6", "7", "8"],
+    pergunta:
+      "Quantos dias tem uma semana?",
+    opcoes: [
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
     correta: 2
   },
+
   {
-    pergunta: "Qual animal é conhecido como rei da selva?",
-    opcoes: ["Tigre", "Leão", "Elefante", "Lobo"],
+    pergunta:
+      "Qual animal é conhecido como rei da selva?",
+    opcoes: [
+      "Tigre",
+      "Leão",
+      "Elefante",
+      "Lobo"
+    ],
     correta: 1
   },
+
   {
-    pergunta: "Qual é o maior planeta do Sistema Solar?",
-    opcoes: ["Terra", "Marte", "Júpiter", "Netuno"],
+    pergunta:
+      "Qual é o maior planeta do Sistema Solar?",
+    opcoes: [
+      "Terra",
+      "Marte",
+      "Júpiter",
+      "Netuno"
+    ],
     correta: 2
   },
+
   {
-    pergunta: "Qual é o maior oceano do mundo?",
-    opcoes: ["Atlântico", "Índico", "Pacífico", "Ártico"],
+    pergunta:
+      "Qual é o maior oceano do mundo?",
+    opcoes: [
+      "Atlântico",
+      "Índico",
+      "Pacífico",
+      "Ártico"
+    ],
     correta: 2
   },
+
   {
-    pergunta: "Quem escreveu Dom Casmurro?",
+    pergunta:
+      "Quem escreveu Dom Casmurro?",
     opcoes: [
       "Machado de Assis",
       "José de Alencar",
@@ -62,18 +235,34 @@ const perguntas = [
     ],
     correta: 0
   },
+
   {
-    pergunta: "Qual é o elemento químico representado pela letra O?",
-    opcoes: ["Ouro", "Oxigênio", "Ósmio", "Ozônio"],
+    pergunta:
+      "Qual é o elemento químico representado pela letra O?",
+    opcoes: [
+      "Ouro",
+      "Oxigênio",
+      "Ósmio",
+      "Ozônio"
+    ],
     correta: 1
   },
+
   {
-    pergunta: "Qual é a raiz quadrada de 144?",
-    opcoes: ["10", "11", "12", "14"],
+    pergunta:
+      "Qual é a raiz quadrada de 144?",
+    opcoes: [
+      "10",
+      "11",
+      "12",
+      "14"
+    ],
     correta: 2
   },
+
   {
-    pergunta: "Qual é a velocidade aproximada da luz no vácuo?",
+    pergunta:
+      "Qual é a velocidade aproximada da luz no vácuo?",
     opcoes: [
       "30 mil km/s",
       "300 mil km/s",
@@ -82,11 +271,19 @@ const perguntas = [
     ],
     correta: 1
   },
+
   {
-    pergunta: "Qual é o maior órgão do corpo humano?",
-    opcoes: ["Coração", "Fígado", "Pele", "Pulmão"],
+    pergunta:
+      "Qual é o maior órgão do corpo humano?",
+    opcoes: [
+      "Coração",
+      "Fígado",
+      "Pele",
+      "Pulmão"
+    ],
     correta: 2
   }
+
 ];
 
 
@@ -96,7 +293,8 @@ const perguntas = [
 
 function mostrarTela(id) {
 
-  const tela = document.getElementById(id);
+  const tela =
+    document.getElementById(id);
 
   if (!tela) {
     return;
@@ -106,7 +304,9 @@ function mostrarTela(id) {
     "body > .app > .tela"
   ).forEach(function(item) {
 
-    item.classList.remove("ativa");
+    item.classList.remove(
+      "ativa"
+    );
 
   });
 
@@ -119,26 +319,39 @@ function mostrarTela(id) {
   ) {
 
     const telaJogo =
-      document.getElementById("telaJogo");
+      document.getElementById(
+        "telaJogo"
+      );
 
     if (telaJogo) {
-      telaJogo.classList.add("ativa");
+
+      telaJogo.classList.add(
+        "ativa"
+      );
+
     }
 
     document.querySelectorAll(
       "#telaJogo .conteudo > .tela"
     ).forEach(function(item) {
 
-      item.classList.remove("ativa");
+      item.classList.remove(
+        "ativa"
+      );
 
     });
 
-    tela.classList.add("ativa");
+    tela.classList.add(
+      "ativa"
+    );
 
     return;
   }
 
-  tela.classList.add("ativa");
+  tela.classList.add(
+    "ativa"
+  );
+
 }
 
 
@@ -148,31 +361,47 @@ function mostrarTela(id) {
 
 function mostrarLogin() {
 
-  mostrarTela("telaLogin");
+  mostrarTela(
+    "telaLogin"
+  );
 
 }
 
 
 function mostrarCadastro() {
 
-  mostrarTela("telaCadastro");
+  mostrarTela(
+    "telaCadastro"
+  );
 
 }
 
 
 function voltarJogo() {
 
-  mostrarTela("conteudoJogo");
+  mostrarTela(
+    "conteudoJogo"
+  );
 
   const botoes =
-    document.querySelectorAll(".menu-item");
+    document.querySelectorAll(
+      ".menu-item"
+    );
 
   botoes.forEach(function(botao) {
-    botao.classList.remove("ativo");
+
+    botao.classList.remove(
+      "ativo"
+    );
+
   });
 
   if (botoes[0]) {
-    botoes[0].classList.add("ativo");
+
+    botoes[0].classList.add(
+      "ativo"
+    );
+
   }
 
 }
@@ -185,19 +414,29 @@ function voltarJogo() {
 async function cadastrar() {
 
   const nome =
-    document.getElementById("cadNome").value.trim();
+    document.getElementById(
+      "cadNome"
+    ).value.trim();
 
   const cpf =
-    document.getElementById("cadCpf").value.trim();
+    document.getElementById(
+      "cadCpf"
+    ).value.trim();
 
   const email =
-    document.getElementById("cadEmail").value.trim();
+    document.getElementById(
+      "cadEmail"
+    ).value.trim();
 
   const senha =
-    document.getElementById("cadSenha").value;
+    document.getElementById(
+      "cadSenha"
+    ).value;
 
   const campoCodigo =
-    document.getElementById("cadCodigo");
+    document.getElementById(
+      "cadCodigo"
+    );
 
   const codigo =
     campoCodigo
@@ -205,15 +444,18 @@ async function cadastrar() {
       : "";
 
   const erro =
-    document.getElementById("erroCadastro");
+    document.getElementById(
+      "erroCadastro"
+    );
 
   erro.textContent = "";
 
-  /*
-   * Código de indicação é OPCIONAL.
-   */
-
-  if (!nome || !cpf || !email || !senha) {
+  if (
+    !nome ||
+    !cpf ||
+    !email ||
+    !senha
+  ) {
 
     erro.textContent =
       "Preencha todos os campos obrigatórios.";
@@ -232,23 +474,28 @@ async function cadastrar() {
   try {
 
     const resposta =
-      await fetch("/api/cadastro", {
+      await fetch(
+        "/api/cadastro",
+        {
 
-        method: "POST",
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-        body: JSON.stringify({
-          nome,
-          cpf,
-          email,
-          senha,
-          codigo
-        })
+          body:
+            JSON.stringify({
+              nome,
+              cpf,
+              email,
+              senha,
+              codigo
+            })
 
-      });
+        }
+      );
 
     const dados =
       await resposta.json();
@@ -268,19 +515,33 @@ async function cadastrar() {
     if (dados.codigoIndicacao) {
 
       mensagem +=
-        `\n\nSeu código de indicação é: ${dados.codigoIndicacao}`;
+        "\n\nSeu código de indicação é: " +
+        dados.codigoIndicacao;
 
     }
 
     alert(mensagem);
 
-    document.getElementById("cadNome").value = "";
-    document.getElementById("cadCpf").value = "";
-    document.getElementById("cadEmail").value = "";
-    document.getElementById("cadSenha").value = "";
+    document.getElementById(
+      "cadNome"
+    ).value = "";
+
+    document.getElementById(
+      "cadCpf"
+    ).value = "";
+
+    document.getElementById(
+      "cadEmail"
+    ).value = "";
+
+    document.getElementById(
+      "cadSenha"
+    ).value = "";
 
     if (campoCodigo) {
+
       campoCodigo.value = "";
+
     }
 
     mostrarLogin();
@@ -302,13 +563,19 @@ async function cadastrar() {
 async function fazerLogin() {
 
   const email =
-    document.getElementById("loginEmail").value.trim();
+    document.getElementById(
+      "loginEmail"
+    ).value.trim();
 
   const senha =
-    document.getElementById("loginSenha").value;
+    document.getElementById(
+      "loginSenha"
+    ).value;
 
   const erro =
-    document.getElementById("erroLogin");
+    document.getElementById(
+      "erroLogin"
+    );
 
   erro.textContent = "";
 
@@ -323,20 +590,25 @@ async function fazerLogin() {
   try {
 
     const resposta =
-      await fetch("/api/login", {
+      await fetch(
+        "/api/login",
+        {
 
-        method: "POST",
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-        body: JSON.stringify({
-          email,
-          senha
-        })
+          body:
+            JSON.stringify({
+              email,
+              senha
+            })
 
-      });
+        }
+      );
 
     const dados =
       await resposta.json();
@@ -360,11 +632,29 @@ async function fazerLogin() {
 
     saldo =
       Number(
-        usuarioAtual.saldo ?? pontos
+        usuarioAtual.saldo ??
+        pontos
       );
 
+    usuarioAtual.pontos =
+      pontos;
+
+    usuarioAtual.saldo =
+      saldo;
+
+    /*
+     * SALVA A CONTA NO APARELHO.
+     *
+     * Assim o jogador não precisa
+     * cadastrar novamente amanhã.
+     */
+
+    salvarSessaoLocal();
+
     const nomeUsuario =
-      document.getElementById("nomeUsuario");
+      document.getElementById(
+        "nomeUsuario"
+      );
 
     if (nomeUsuario) {
 
@@ -377,7 +667,9 @@ async function fazerLogin() {
 
     atualizarDadosIndicacao();
 
-    mostrarTela("conteudoJogo");
+    mostrarTela(
+      "conteudoJogo"
+    );
 
   } catch (e) {
 
@@ -457,22 +749,25 @@ async function carregarIndicacoes() {
   try {
 
     const resposta =
-      await fetch("/api/indicacoes", {
+      await fetch(
+        "/api/indicacoes",
+        {
 
-        method: "POST",
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-        body: JSON.stringify({
+          body:
+            JSON.stringify({
+              email:
+                usuarioAtual.email
+            })
 
-          email:
-            usuarioAtual.email
-
-        })
-
-      });
+        }
+      );
 
     const dados =
       await resposta.json();
@@ -499,8 +794,16 @@ async function carregarIndicacoes() {
         0
       );
 
+    usuarioAtual.pontos =
+      pontos;
+
+    usuarioAtual.saldo =
+      saldo;
+
     usuarioAtual.indicacoes =
       dados.indicacoes || [];
+
+    salvarSessaoLocal();
 
     atualizarTela();
 
@@ -557,23 +860,25 @@ function renderizarIndicacoes() {
 
   let ganhos = 0;
 
-  indicacoes.forEach(function(indicacao) {
+  indicacoes.forEach(
+    function(indicacao) {
 
-    if (
-      indicacao.bonusPago === true ||
-      indicacao.status === "CONCLUÍDO"
-    ) {
+      if (
+        indicacao.bonusPago === true ||
+        indicacao.status === "CONCLUÍDO"
+      ) {
 
-      ganhos += 50;
+        ganhos += 50;
+
+      }
 
     }
-
-  });
+  );
 
   if (ganhosIndicacao) {
 
     ganhosIndicacao.textContent =
-      `${ganhos} pontos`;
+      ganhos + " pontos";
 
   }
 
@@ -588,105 +893,133 @@ function renderizarIndicacoes() {
     return;
   }
 
-  indicacoes.forEach(function(indicacao) {
+  indicacoes.forEach(
+    function(indicacao) {
 
-    const pontosIndicacao =
-      Math.min(
-        Number(indicacao.pontos || 0),
-        300
-      );
+      const pontosIndicacao =
+        Math.min(
+          Number(
+            indicacao.pontos || 0
+          ),
+          300
+        );
 
-    const percentual =
-      Math.min(
-        100,
-        Math.round(
-          (pontosIndicacao / 300) * 100
-        )
-      );
+      const percentual =
+        Math.min(
+          100,
+          Math.round(
+            (pontosIndicacao / 300) *
+            100
+          )
+        );
 
-    const concluido =
-      indicacao.status === "CONCLUÍDO" ||
-      indicacao.bonusPago === true ||
-      pontosIndicacao >= 300;
+      const concluido =
+        indicacao.status === "CONCLUÍDO" ||
+        indicacao.bonusPago === true ||
+        pontosIndicacao >= 300;
 
-    const statusTexto =
-      concluido
-        ? "🟢 CONCLUÍDO"
-        : "🟡 EM ANDAMENTO";
+      const statusTexto =
+        concluido
+          ? "🟢 CONCLUÍDO"
+          : "🟡 EM ANDAMENTO";
 
-    const item =
-      document.createElement("div");
+      const item =
+        document.createElement(
+          "div"
+        );
 
-    item.className =
-      "indicacao-item";
+      item.className =
+        "indicacao-item";
 
-    item.innerHTML = `
+      item.innerHTML = `
 
-      <div>
+        <div>
 
-        <strong>
-          👤 ${escaparHTML(indicacao.nome)}
-        </strong>
+          <strong>
+            👤 ${escaparHTML(
+              indicacao.nome
+            )}
+          </strong>
 
-      </div>
+        </div>
 
-      <p>
-        Progresso:
-        <strong>
-          ${pontosIndicacao} / 300 pontos
-        </strong>
-      </p>
-
-      <div
-        style="
-          width:100%;
-          height:10px;
-          background:#ddd;
-          border-radius:10px;
-          overflow:hidden;
-          margin:8px 0;
-        "
-      >
+        <p>
+          Progresso:
+          <strong>
+            ${pontosIndicacao} / 300 pontos
+          </strong>
+        </p>
 
         <div
           style="
-            width:${percentual}%;
-            height:100%;
-            background:#4caf50;
+            width:100%;
+            height:10px;
+            background:#ddd;
             border-radius:10px;
+            overflow:hidden;
+            margin:8px 0;
           "
-        ></div>
+        >
 
-      </div>
+          <div
+            style="
+              width:${percentual}%;
+              height:100%;
+              background:#4caf50;
+              border-radius:10px;
+            "
+          ></div>
 
-      <p>
-        🎁 Bônus:
-        <strong>
-          50 pontos
-        </strong>
-      </p>
+        </div>
 
-      <p>
-        ${statusTexto}
-      </p>
+        <p>
+          🎁 Bônus:
+          <strong>
+            50 pontos
+          </strong>
+        </p>
 
-    `;
+        <p>
+          ${statusTexto}
+        </p>
 
-    lista.appendChild(item);
+      `;
 
-  });
+      lista.appendChild(
+        item
+      );
+
+    }
+  );
 
 }
 
 
 function escaparHTML(texto) {
 
-  return String(texto || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return String(
+    texto || ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 
 }
 
@@ -716,13 +1049,16 @@ async function copiarCodigoIndicacao() {
     );
 
     alert(
-      `Código ${codigo} copiado!`
+      "Código " +
+      codigo +
+      " copiado!"
     );
 
   } catch (e) {
 
     alert(
-      `Seu código de indicação é: ${codigo}`
+      "Seu código de indicação é: " +
+      codigo
     );
 
   }
@@ -772,7 +1108,9 @@ function mostrarPremium() {
 
   }
 
-  mostrarTela("telaPremium");
+  mostrarTela(
+    "telaPremium"
+  );
 
   ativarMenuPorIndice(2);
 
@@ -781,17 +1119,24 @@ function mostrarPremium() {
 
 function assinarPremium() {
 
-  const resultado =
-    document.getElementById(
-      "resultadoPremium"
+  if (!usuarioAtual) {
+
+    alert(
+      "Faça login para assinar o Premium."
     );
 
-  if (resultado) {
-
-    resultado.textContent =
-      "O plano Premium será ativado após a configuração do pagamento.";
-
+    return;
   }
+
+  /*
+   * PAGAMENTO HOTMART
+   *
+   * O jogador é direcionado
+   * para o checkout da Hotmart.
+   */
+
+  window.location.href =
+    "https://pay.hotmart.com/Q107171429I";
 
 }
 
@@ -828,47 +1173,63 @@ function girarDado() {
   }
 
   const dado =
-    document.getElementById("dado");
+    document.getElementById(
+      "dado"
+    );
 
   const botao =
-    document.getElementById("botaoGirar");
+    document.getElementById(
+      "botaoGirar"
+    );
 
   if (!dado || !botao) {
     return;
   }
 
-  botao.disabled = true;
+  botao.disabled =
+    true;
 
-  dado.classList.add("girando");
+  dado.classList.add(
+    "girando"
+  );
 
   const numero =
     sortearDado();
 
-  setTimeout(function() {
+  setTimeout(
+    function() {
 
-    dado.classList.remove("girando");
-
-    dado.textContent =
-      numero;
-
-    pontosDaRodada =
-      numero;
-
-    const pontosRodada =
-      document.getElementById(
-        "pontosRodada"
+      dado.classList.remove(
+        "girando"
       );
 
-    if (pontosRodada) {
+      dado.textContent =
+        numero;
 
-      pontosRodada.textContent =
-        `Valendo ${numero} ponto${numero > 1 ? "s" : ""}!`;
+      pontosDaRodada =
+        numero;
 
-    }
+      const pontosRodada =
+        document.getElementById(
+          "pontosRodada"
+        );
 
-    carregarPergunta();
+      if (pontosRodada) {
 
-  }, 800);
+        pontosRodada.textContent =
+          "Valendo " +
+          numero +
+          " ponto" +
+          (numero > 1 ? "s" : "") +
+          "!";
+
+      }
+
+      carregarPergunta();
+
+    },
+    800
+  );
 
 }
 
@@ -893,29 +1254,33 @@ function carregarPergunta() {
   perguntaAtiva =
     true;
 
-  /*
-   * Os níveis foram retirados.
-   * O elemento "nivel" não recebe mais
-   * FÁCIL, MÉDIO ou DIFÍCIL.
-   */
-
   const nivel =
-    document.getElementById("nivel");
+    document.getElementById(
+      "nivel"
+    );
 
   const perguntaElemento =
-    document.getElementById("pergunta");
+    document.getElementById(
+      "pergunta"
+    );
 
   const respostas =
-    document.getElementById("respostas");
+    document.getElementById(
+      "respostas"
+    );
 
   const resultado =
-    document.getElementById("resultado");
+    document.getElementById(
+      "resultado"
+    );
 
   if (nivel) {
 
-    nivel.textContent = "";
+    nivel.textContent =
+      "";
 
-    nivel.style.display = "none";
+    nivel.style.display =
+      "none";
 
   }
 
@@ -928,13 +1293,15 @@ function carregarPergunta() {
 
   if (!respostas) {
 
-    perguntaAtiva = false;
+    perguntaAtiva =
+      false;
 
     return;
 
   }
 
-  respostas.innerHTML = "";
+  respostas.innerHTML =
+    "";
 
   pergunta.opcoes.forEach(
     function(opcao, indice) {
@@ -950,7 +1317,9 @@ function carregarPergunta() {
       botao.onclick =
         function() {
 
-          responder(indice);
+          responder(
+            indice
+          );
 
         };
 
@@ -963,7 +1332,8 @@ function carregarPergunta() {
 
   if (resultado) {
 
-    resultado.textContent = "";
+    resultado.textContent =
+      "";
 
   }
 
@@ -986,7 +1356,9 @@ function iniciarTimer() {
     5;
 
   const timer =
-    document.getElementById("timer");
+    document.getElementById(
+      "timer"
+    );
 
   if (timer) {
 
@@ -996,28 +1368,31 @@ function iniciarTimer() {
   }
 
   timerInterval =
-    setInterval(function() {
+    setInterval(
+      function() {
 
-      tempoRestante--;
+        tempoRestante--;
 
-      if (timer) {
+        if (timer) {
 
-        timer.textContent =
-          tempoRestante;
+          timer.textContent =
+            tempoRestante;
 
-      }
+        }
 
-      if (tempoRestante <= 0) {
+        if (tempoRestante <= 0) {
 
-        clearInterval(
-          timerInterval
-        );
+          clearInterval(
+            timerInterval
+          );
 
-        tempoEsgotado();
+          tempoEsgotado();
 
-      }
+        }
 
-    }, 1000);
+      },
+      1000
+    );
 
 }
 
@@ -1081,7 +1456,9 @@ function responder(indice) {
       botao.disabled =
         true;
 
-      if (i === respostaCorreta) {
+      if (
+        i === respostaCorreta
+      ) {
 
         botao.classList.add(
           "correta"
@@ -1097,7 +1474,9 @@ function responder(indice) {
       "resultado"
     );
 
-  if (indice === respostaCorreta) {
+  if (
+    indice === respostaCorreta
+  ) {
 
     pontos +=
       pontosDaRodada;
@@ -1108,7 +1487,15 @@ function responder(indice) {
     if (resultado) {
 
       resultado.textContent =
-        `✅ Acertou! +${pontosDaRodada} ponto${pontosDaRodada > 1 ? "s" : ""}.`;
+        "✅ Acertou! +" +
+        pontosDaRodada +
+        " ponto" +
+        (
+          pontosDaRodada > 1
+            ? "s"
+            : ""
+        ) +
+        ".";
 
     }
 
@@ -1125,7 +1512,9 @@ function responder(indice) {
     if (resultado) {
 
       resultado.textContent =
-        `❌ Errou! Você não ganhou os ${pontosDaRodada} pontos.`;
+        "❌ Errou! Você não ganhou os " +
+        pontosDaRodada +
+        " pontos.";
 
     }
 
@@ -1133,6 +1522,14 @@ function responder(indice) {
       0;
 
   }
+
+  usuarioAtual.pontos =
+    pontos;
+
+  usuarioAtual.saldo =
+    saldo;
+
+  salvarSessaoLocal();
 
   atualizarTela();
 
@@ -1166,7 +1563,7 @@ function bloquearRespostas() {
 
 
 /* =========================
-   FINALIZAR RODADA + EXOCLICK
+   FINALIZAR RODADA
 ========================= */
 
 function finalizarRodada() {
@@ -1200,10 +1597,11 @@ function finalizarRodada() {
    * Rodada 3 = sem vídeo
    * Rodada 4 = vídeo
    * Rodada 5 = sem vídeo
-   * E assim por diante.
    */
 
-  if (rodada % 2 === 0) {
+  if (
+    rodada % 2 === 0
+  ) {
 
     mostrarAnuncioVideo(
       function() {
@@ -1234,10 +1632,11 @@ function finalizarRodada() {
 
 /* =========================
    ANÚNCIO EXOCLICK
-   ZONA 6003854
 ========================= */
 
-function mostrarAnuncioVideo(callback) {
+function mostrarAnuncioVideo(
+  callback
+) {
 
   const existente =
     document.getElementById(
@@ -1323,18 +1722,12 @@ function mostrarAnuncioVideo(callback) {
   if (!anuncio) {
 
     if (callback) {
-
       callback();
-
     }
 
     return;
 
   }
-
-  /*
-   * Carrega o provedor ExoClick.
-   */
 
   const script =
     document.createElement(
@@ -1354,11 +1747,6 @@ function mostrarAnuncioVideo(callback) {
     script
   );
 
-  /*
-   * Zona ExoClick:
-   * 6003854
-   */
-
   const ins =
     document.createElement(
       "ins"
@@ -1376,10 +1764,6 @@ function mostrarAnuncioVideo(callback) {
     ins
   );
 
-  /*
-   * Comando de exibição.
-   */
-
   const scriptServe =
     document.createElement(
       "script"
@@ -1392,18 +1776,11 @@ function mostrarAnuncioVideo(callback) {
     scriptServe
   );
 
-  /*
-   * Aguarda alguns segundos
-   * antes de liberar o próximo giro.
-   */
-
   setTimeout(
     function() {
 
       if (callback) {
-
         callback();
-
       }
 
     },
@@ -1468,6 +1845,12 @@ async function salvarPontuacao() {
     return;
   }
 
+  /*
+   * Salva imediatamente no aparelho também.
+   */
+
+  salvarSessaoLocal();
+
   try {
 
     const resposta =
@@ -1515,7 +1898,7 @@ async function salvarPontuacao() {
   } catch (e) {
 
     console.log(
-      "Não foi possível salvar pontuação."
+      "Não foi possível salvar pontuação no servidor."
     );
 
   }
@@ -1547,18 +1930,23 @@ function mostrarSaque() {
 
   if (resultado) {
 
-    resultado.textContent = "";
+    resultado.textContent =
+      "";
 
   }
 
-  mostrarTela("telaSaque");
+  mostrarTela(
+    "telaSaque"
+  );
 
   ativarMenuPorIndice(3);
 
 }
 
 
-function preencherSaque(valor) {
+function preencherSaque(
+  valor
+) {
 
   const campo =
     document.getElementById(
@@ -1617,7 +2005,9 @@ async function solicitarSaque() {
 
   const tipo =
     campoTipo
-      ? String(campoTipo.value || "").toLowerCase()
+      ? String(
+          campoTipo.value || ""
+        ).toLowerCase()
       : "pix";
 
   const destino =
@@ -1627,22 +2017,27 @@ async function solicitarSaque() {
 
   if (resultado) {
 
-    resultado.textContent = "";
+    resultado.textContent =
+      "";
 
   }
 
   /*
-   * SOMENTE ESTES 3 SAQUES EXISTEM:
-   *
-   * 2.000 pontos = R$ 1,00
-   * 6.000 pontos = R$ 5,00
-   * 11.000 pontos = R$ 10,00
+   * SAQUES PERMITIDOS
    */
 
   const saquesPermitidos =
-    [2000, 6000, 11000];
+    [
+      2000,
+      6000,
+      11000
+    ];
 
-  if (!saquesPermitidos.includes(valor)) {
+  if (
+    !saquesPermitidos.includes(
+      valor
+    )
+  ) {
 
     if (resultado) {
 
@@ -1755,6 +2150,8 @@ async function solicitarSaque() {
     usuarioAtual.saldo =
       saldo;
 
+    salvarSessaoLocal();
+
     atualizarTela();
 
     if (resultado) {
@@ -1765,11 +2162,17 @@ async function solicitarSaque() {
     }
 
     if (campoValor) {
-      campoValor.value = "";
+
+      campoValor.value =
+        "";
+
     }
 
     if (campoDestino) {
-      campoDestino.value = "";
+
+      campoDestino.value =
+        "";
+
     }
 
   } catch (e) {
@@ -1808,11 +2211,14 @@ function mostrarSAC() {
 
   if (resultado) {
 
-    resultado.textContent = "";
+    resultado.textContent =
+      "";
 
   }
 
-  mostrarTela("telaSAC");
+  mostrarTela(
+    "telaSAC"
+  );
 
   ativarMenuPorIndice(4);
 
@@ -1912,7 +2318,8 @@ async function enviarSAC() {
 
     if (campo) {
 
-      campo.value = "";
+      campo.value =
+        "";
 
     }
 
@@ -1934,37 +2341,53 @@ async function enviarSAC() {
    MENU
 ========================= */
 
-function ativarMenu(botao) {
+function ativarMenu(
+  botao
+) {
 
   document
-    .querySelectorAll(".menu-item")
-    .forEach(function(item) {
+    .querySelectorAll(
+      ".menu-item"
+    )
+    .forEach(
+      function(item) {
 
-      item.classList.remove("ativo");
+        item.classList.remove(
+          "ativo"
+        );
 
-    });
+      }
+    );
 
   if (botao) {
 
-    botao.classList.add("ativo");
+    botao.classList.add(
+      "ativo"
+    );
 
   }
 
 }
 
 
-function ativarMenuPorIndice(indice) {
+function ativarMenuPorIndice(
+  indice
+) {
 
   const botoes =
     document.querySelectorAll(
       ".menu-item"
     );
 
-  botoes.forEach(function(botao) {
+  botoes.forEach(
+    function(botao) {
 
-    botao.classList.remove("ativo");
+      botao.classList.remove(
+        "ativo"
+      );
 
-  });
+    }
+  );
 
   if (botoes[indice]) {
 
@@ -1977,21 +2400,32 @@ function ativarMenuPorIndice(indice) {
 }
 
 
-function abrirTelaMenu(nome, botao) {
+function abrirTelaMenu(
+  nome,
+  botao
+) {
 
   if (nome === "jogo") {
 
-    mostrarTela("conteudoJogo");
+    mostrarTela(
+      "conteudoJogo"
+    );
 
-  } else if (nome === "indicacoes") {
+  } else if (
+    nome === "indicacoes"
+  ) {
 
-    mostrarTela("conteudoIndicacoes");
+    mostrarTela(
+      "conteudoIndicacoes"
+    );
 
     renderizarIndicacoes();
 
   }
 
-  ativarMenu(botao);
+  ativarMenu(
+    botao
+  );
 
   window.scrollTo({
     top: 0,
@@ -2012,8 +2446,13 @@ async function sair() {
   );
 
   /*
-   * Avisa o servidor que o jogador saiu.
-   * Os pontos continuam salvos.
+   * IMPORTANTE:
+   *
+   * Aqui é o único lugar em que
+   * apagamos a sessão local.
+   *
+   * Se o jogador simplesmente fechar
+   * o navegador/app, a sessão continua.
    */
 
   if (usuarioAtual) {
@@ -2055,6 +2494,25 @@ async function sair() {
 
   }
 
+  /*
+   * Apaga somente quando o jogador
+   * realmente escolhe SAIR DA CONTA.
+   */
+
+  try {
+
+    localStorage.removeItem(
+      CHAVE_SESSAO
+    );
+
+  } catch (e) {
+
+    console.log(
+      "Não foi possível limpar a sessão local."
+    );
+
+  }
+
   usuarioAtual =
     null;
 
@@ -2079,7 +2537,9 @@ async function sair() {
     );
 
   if (anuncio) {
+
     anuncio.remove();
+
   }
 
   const loginEmail =
@@ -2094,16 +2554,46 @@ async function sair() {
 
   if (loginEmail) {
 
-    loginEmail.value = "";
+    loginEmail.value =
+      "";
 
   }
 
   if (loginSenha) {
 
-    loginSenha.value = "";
+    loginSenha.value =
+      "";
 
   }
 
   mostrarLogin();
 
-     }
+}
+
+
+/* =========================
+   INICIALIZAÇÃO
+========================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function() {
+
+    /*
+     * Quando o jogador voltar ao QuizUp:
+     *
+     * 1. procura a conta salva no aparelho;
+     * 2. se encontrar, entra automaticamente;
+     * 3. se não encontrar, mostra o cadastro/login.
+     */
+
+    if (
+      !carregarSessaoLocal()
+    ) {
+
+      mostrarLogin();
+
+    }
+
+  }
+);
