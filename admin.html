@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>QuizUp - Painel Administrativo</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f3f4f6;
+      color: #222;
+      min-height: 100vh;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1200px;
+      margin: auto;
+      min-height: 100vh;
+    }
+
+    /* =========================
+       LOGIN ADMIN
+       ========================= */
+
+    #telaLoginAdmin {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #312e81,
+          #4f46e5,
+          #7c3aed
+        );
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 420px;
+
+      background: white;
+      border-radius: 24px;
+      padding: 30px 24px;
+
+      box-shadow:
+        0 20px 50px rgba(0,0,0,.25);
+
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 55px;
+      margin-bottom: 8px;
+    }
+
+    .login-box h1 {
+      color: #4f46e5;
+      font-size: 30px;
+      margin-bottom: 5px;
+    }
+
+    .login-box p {
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .campo {
+      width: 100%;
+      padding: 15px;
+
+      border: 1px solid #ddd;
+      border-radius: 12px;
+
+      font-size: 16px;
+      outline: none;
+
+      margin-bottom: 12px;
+    }
+
+    .campo:focus {
+      border-color: #4f46e5;
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+
+      padding: 14px;
+
+      font-size: 15px;
+      font-weight: bold;
+
+      cursor: pointer;
+
+      background: #4f46e5;
+      color: white;
+    }
+
+    .btn:hover {
+      opacity: .92;
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .erro {
+      min-height: 22px;
+      color: #dc2626;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    /* =========================
+       PAINEL
+       ========================= */
+
+    #painelAdmin {
+      display: none;
+    }
+
+    .topo {
+      background:
+        linear-gradient(
+          135deg,
+          #312e81,
+          #4f46e5,
+          #7c3aed
+        );
+
+      color: white;
+      padding: 20px;
+    }
+
+    .topo-conteudo {
+      max-width: 1150px;
+      margin: auto;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 15px;
+    }
+
+    .topo h1 {
+      font-size: 25px;
+    }
+
+    .topo p {
+      margin-top: 5px;
+      opacity: .9;
+      font-size: 13px;
+    }
+
+    .btn-sair {
+      border: none;
+      background: rgba(255,255,255,.18);
+      color: white;
+
+      padding: 10px 15px;
+      border-radius: 10px;
+
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* =========================
+       CONTEÚDO
+       ========================= */
+
+    .conteudo {
+      padding: 20px;
+    }
+
+    /* =========================
+       CARDS
+       ========================= */
+
+    .estatisticas {
+      display: grid;
+
+      grid-template-columns:
+        repeat(
+          auto-fit,
+          minmax(180px, 1fr)
+        );
+
+      gap: 15px;
+
+      margin-bottom: 20px;
+    }
+
+    .estatistica {
+      background: white;
+
+      border-radius: 16px;
+      padding: 20px;
+
+      box-shadow:
+        0 4px 15px rgba(0,0,0,.06);
+    }
+
+    .estatistica .icone {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .estatistica .numero {
+      font-size: 27px;
+      font-weight: bold;
+      color: #4f46e5;
+    }
+
+    .estatistica .titulo {
+      margin-top: 4px;
+      color: #777;
+      font-size: 13px;
+    }
+
+    /* =========================
+       NAVEGAÇÃO
+       ========================= */
+
+    .abas {
+      display: flex;
+      gap: 8px;
+
+      overflow-x: auto;
+
+      margin-bottom: 18px;
+      padding-bottom: 4px;
+    }
+
+    .aba {
+      border: none;
+      background: white;
+
+      padding: 12px 16px;
+
+      border-radius: 12px;
+
+      font-weight: bold;
+      cursor: pointer;
+
+      white-space: nowrap;
+
+      color: #555;
+    }
+
+    .aba.ativa {
+      background: #4f46e5;
+      color: white;
+    }
+
+    /* =========================
+       SEÇÕES
+       ========================= */
+
+    .secao {
+      display: none;
+    }
+
+    .secao.ativa {
+      display: block;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+
+      margin-bottom: 18px;
+
+      box-shadow:
+        0 4px 15px rgba(0,0,0,.06);
+    }
+
+    .card h2 {
+      color: #4f46e5;
+      margin-bottom: 8px;
+      font-size: 21px;
+    }
+
+    .card-subtitulo {
+      color: #777;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    /* =========================
+       SAQUES
+       ========================= */
+
+    .lista {
+      display: grid;
+      gap: 14px;
+    }
+
+    .saque {
+      border: 1px solid #e5e7eb;
+      border-radius: 15px;
+
+      padding: 16px;
+
+      background: #fff;
+    }
+
+    .saque-pendente {
+      border-left: 5px solid #f59e0b;
+    }
+
+    .saque-aprovado {
+      border-left: 5px solid #16a34a;
+    }
+
+    .saque-rejeitado {
+      border-left: 5px solid #dc2626;
+    }
+
+    .saque-topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 10px;
+
+      margin-bottom: 12px;
+    }
+
+    .saque-id {
+      font-size: 12px;
+      color: #777;
+      word-break: break-all;
+    }
+
+    .status {
+      display: inline-block;
+
+      padding: 6px 9px;
+
+      border-radius: 20px;
+
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .status-pendente {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-aprovado {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-rejeitado {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .dados-saque {
+      display: grid;
+
+      grid-template-columns:
+        repeat(
+          auto-fit,
+          minmax(180px, 1fr)
+        );
+
+      gap: 10px;
+
+      margin-bottom: 14px;
+    }
+
+    .dado-info {
+      background: #f9fafb;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .dado-info small {
+      display: block;
+      color: #888;
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    .dado-info strong {
+      word-break: break-word;
+    }
+
+    .valor-saque {
+      font-size: 25px;
+      font-weight: bold;
+      color: #16a34a;
+    }
+
+    .acoes {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-acao {
+      border: none;
+
+      padding: 11px 14px;
+
+      border-radius: 10px;
+
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-aprovar {
+      background: #16a34a;
+      color: white;
+    }
+
+    .btn-rejeitar {
+      background: #dc2626;
+      color: white;
+    }
+
+    .btn-detalhes {
+      background: #e5e7eb;
+      color: #333;
+    }
+
+    /* =========================
+       JOGADORES
+       ========================= */
+
+    .tabela-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 750px;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+    }
+
+    th {
+      background: #f9fafb;
+      color: #555;
+    }
+
+    td {
+      color: #444;
+    }
+
+    .ativo {
+      color: #16a34a;
+      font-weight: bold;
+    }
+
+    .inativo {
+      color: #dc2626;
+      font-weight: bold;
+    }
+
+    /* =========================
+       MENSAGENS
+       ========================= */
+
+    .mensagem {
+      border: 1px solid #eee;
+      border-radius: 14px;
+
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+
+    .mensagem-nova {
+      border-left: 5px solid #4f46e5;
+    }
+
+    .mensagem-topo {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .mensagem-texto {
+      white-space: pre-wrap;
+      line-height: 1.5;
+      color: #555;
+    }
+
+    /* =========================
+       MODAL
+       ========================= */
+
+    .modal {
+      display: none;
+
+      position: fixed;
+      z-index: 9999;
+
+      inset: 0;
+
+      background: rgba(0,0,0,.55);
+
+      align-items: center;
+      justify-content: center;
+
+      padding: 20px;
+    }
+
+    .modal.aberto {
+      display: flex;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 500px;
+
+      background: white;
+
+      border-radius: 18px;
+      padding: 22px;
+
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-box h2 {
+      color: #4f46e5;
+      margin-bottom: 15px;
+    }
+
+    .modal-botoes {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .modal-botoes button {
+      flex: 1;
+    }
+
+    /* =========================
+       AVISO
+       ========================= */
+
+    .aviso {
+      padding: 14px;
+
+      border-radius: 12px;
+
+      background: #eff6ff;
+      color: #1e40af;
+
+      font-size: 13px;
+
+      margin-bottom: 15px;
+    }
+
+    .vazio {
+      text-align: center;
+      padding: 30px 15px;
+
+      color: #888;
+    }
+
+    .carregando {
+      text-align: center;
+      padding: 25px;
+      color: #777;
+    }
+
+    /* =========================
+       RESPONSIVO
+       ========================= */
+
+    @media (max-width: 600px) {
+
+      .topo-conteudo {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-sair {
+        width: 100%;
+      }
+
+      .conteudo {
+        padding: 12px;
+      }
+
+      .card {
+        padding: 15px;
+      }
+
+      .acoes {
+        flex-direction: column;
+      }
+
+      .btn-acao {
+        width: 100%;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- =================================================
+       LOGIN DO ADMINISTRADOR
+       ================================================= -->
+
+  <section id="telaLoginAdmin">
+
+    <div class="login-box">
+
+      <div class="logo">
+        🔐
+      </div>
+
+      <h1>
+        QuizUp Admin
+      </h1>
+
+      <p>
+        Painel administrativo
+      </p>
+
+      <input
+        type="email"
+        id="adminEmail"
+        class="campo"
+        placeholder="E-mail do administrador"
+        autocomplete="username"
+      >
+
+      <input
+        type="password"
+        id="adminSenha"
+        class="campo"
+        placeholder="Senha do administrador"
+        autocomplete="current-password"
+      >
+
+      <div
+        id="erroAdmin"
+        class="erro"
+      ></div>
+
+      <button
+        class="btn"
+        id="btnLoginAdmin"
+        onclick="entrarAdmin()"
+      >
+        🔐 ENTRAR NO PAINEL
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- =================================================
+       PAINEL
+       ================================================= -->
+
+  <section id="painelAdmin">
+
+    <header class="topo">
+
+      <div class="topo-conteudo">
+
+        <div>
+
+          <h1>
+            🎯 QuizUp Admin
+          </h1>
+
+          <p>
+            Controle de jogadores, saques e atendimento
+          </p>
+
+        </div>
+
+        <button
+          class="btn-sair"
+          onclick="sairAdmin()"
+        >
+          🚪 SAIR
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <main class="conteudo">
+
+      <!-- =================================================
+           ESTATÍSTICAS
+           ================================================= -->
+
+      <section class="estatisticas">
+
+        <div class="estatistica">
+
+          <div class="icone">
+            👥
+          </div>
+
+          <div
+            class="numero"
+            id="totalUsuarios"
+          >
+            0
+          </div>
+
+          <div class="titulo">
+            Jogadores cadastrados
+          </div>
+
+        </div>
+
+
+        <div class="estatistica">
+
+          <div class="icone">
+            🟢
+          </div>
+
+          <div
+            class="numero"
+            id="jogadoresAtivos"
+          >
+            0
+          </div>
+
+          <div class="titulo">
+            Jogadores ativos
+          </div>
+
+        </div>
+
+
+        <div class="estatistica">
+
+          <div class="icone">
+            💰
+          </div>
+
+          <div
+            class="numero"
+            id="totalSaques"
+          >
+            0
+          </div>
+
+          <div class="titulo">
+            Solicitações de saque
+          </div>
+
+        </div>
+
+
+        <div class="estatistica">
+
+          <div class="icone">
+            ⏳
+          </div>
+
+          <div
+            class="numero"
+            id="saquesPendentes"
+          >
+            0
+          </div>
+
+          <div class="titulo">
+            Saques pendentes
+          </div>
+
+        </div>
+
+
+        <div class="estatistica">
+
+          <div class="icone">
+            🎧
+          </div>
+
+          <div
+            class="numero"
+            id="totalMensagens"
+          >
+            0
+          </div>
+
+          <div class="titulo">
+            Mensagens SAC
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================================
+           ABAS
+           ================================================= -->
+
+      <nav class="abas">
+
+        <button
+          class="aba ativa"
+          onclick="abrirAba('saques', this)"
+        >
+          💰 SAQUES
+        </button>
+
+        <button
+          class="aba"
+          onclick="abrirAba('jogadores', this)"
+        >
+          👥 JOGADORES
+        </button>
+
+        <button
+          class="aba"
+          onclick="abrirAba('mensagens', this)"
+        >
+          🎧 SAC
+        </button>
+
+        <button
+          class="aba"
+          onclick="atualizarTudo()"
+        >
+          🔄 ATUALIZAR
+        </button>
+
+      </nav>
+
+
+      <!-- =================================================
+           SAQUES
+           ================================================= -->
+
+      <section
+        id="secaoSaques"
+        class="secao ativa"
+      >
+
+        <div class="card">
+
+          <h2>
+            💰 Solicitações de saque
+          </h2>
+
+          <div class="card-subtitulo">
+            Analise cada solicitação antes de autorizar o pagamento.
+          </div>
+
+          <div class="aviso">
+
+            ⚠️
+            Um saque somente deve ser aprovado
+            depois de você verificar os dados
+            do jogador e confirmar que ele está
+            elegível para receber.
+
+          </div>
+
+          <div
+            id="listaSaques"
+            class="lista"
+          >
+
+            <div class="carregando">
+              Carregando saques...
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================================
+           JOGADORES
+           ================================================= -->
+
+      <section
+        id="secaoJogadores"
+        class="secao"
+      >
+
+        <div class="card">
+
+          <h2>
+            👥 Jogadores
+          </h2>
+
+          <div class="card-subtitulo">
+            Visualização dos jogadores cadastrados no QuizUp.
+          </div>
+
+          <div class="tabela-container">
+
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    ID
+                  </th>
+
+                  <th>
+                    Nome
+                  </th>
+
+                  <th>
+                    E-mail
+                  </th>
+
+                  <th>
+                    Pontos
+                  </th>
+
+                  <th>
+                    Plano
+                  </th>
+
+                  <th>
+                    Indicações
+                  </th>
+
+                  <th>
+                    Status
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody
+                id="tabelaJogadores"
+              >
+
+                <tr>
+
+                  <td
+                    colspan="7"
+                    class="vazio"
+                  >
+                    Carregando jogadores...
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================================
+           SAC
+           ================================================= -->
+
+      <section
+        id="secaoMensagens"
+        class="secao"
+      >
+
+        <div class="card">
+
+          <h2>
+            🎧 Mensagens do SAC
+          </h2>
+
+          <div class="card-subtitulo">
+            Mensagens enviadas pelos jogadores.
+          </div>
+
+          <div
+            id="listaMensagens"
+          >
+
+            <div class="carregando">
+              Carregando mensagens...
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  </section>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL DE DETALHES
+     ===================================================== -->
+
+<div
+  id="modal"
+  class="modal"
+  onclick="fecharModalFora(event)"
+>
+
+  <div class="modal-box">
+
+    <h2>
+      📋 Detalhes
+    </h2>
+
+    <div
+      id="conteudoModal"
+    ></div>
+
+    <div class="modal-botoes">
+
+      <button
+        class="btn btn-detalhes"
+        onclick="fecharModal()"
+      >
+        FECHAR
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+  /* =====================================================
+     CONFIGURAÇÃO
+     ===================================================== */
+
+  const API = "";
+
+
+  /*
+   * Token administrativo.
+   *
+   * Ele será fornecido pelo servidor depois
+   * que adicionarmos as rotas administrativas
+   * no servidor.js.
+   */
+
+  let tokenAdmin =
+    localStorage.getItem(
+      "quizup_admin_token"
+    ) || "";
+
+
+  let dadosSaques = [];
+
+  let dadosJogadores = [];
+
+  let dadosMensagens = [];
+
+
+  /* =====================================================
+     ELEMENTOS
+     ===================================================== */
+
+  const telaLogin =
+    document.getElementById(
+      "telaLoginAdmin"
+    );
+
+  const painel =
+    document.getElementById(
+      "painelAdmin"
+    );
+
+
+  /* =====================================================
+     INICIALIZAÇÃO
+     ===================================================== */
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+      if (tokenAdmin) {
+
+        mostrarPainel();
+
+      }
+
+    }
+  );
+
+
+  /* =====================================================
+     LOGIN
+     ===================================================== */
+
+  async function entrarAdmin() {
+
+    const email =
+      document
+        .getElementById("adminEmail")
+        .value
+        .trim()
+        .toLowerCase();
+
+
+    const senha =
+      document
+        .getElementById("adminSenha")
+        .value;
+
+
+    const erro =
+      document.getElementById(
+        "erroAdmin"
+      );
+
+
+    erro.textContent = "";
+
+
+    if (!email || !senha) {
+
+      erro.textContent =
+        "Informe o e-mail e a senha.";
+
+      return;
+
+    }
+
+
+    const botao =
+      document.getElementById(
+        "btnLoginAdmin"
+      );
+
+
+    botao.disabled = true;
+
+    botao.textContent =
+      "ENTRANDO...";
+
+
+    try {
+
+      const resposta =
+        await fetch(
+          API + "/api/admin/login",
+          {
+
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body:
+              JSON.stringify({
+                email: email,
+                senha: senha
+              })
+
+          }
+        );
+
+
+      const dados =
+        await resposta.json();
+
+
+      if (!resposta.ok) {
+
+        throw new Error(
+          dados.erro ||
+          "Não foi possível entrar."
+        );
+
+      }
+
+
+      if (!dados.token) {
+
+        throw new Error(
+          "O servidor não retornou o token administrativo."
+        );
+
+      }
+
+
+      tokenAdmin =
+        dados.token;
+
+
+      localStorage.setItem(
+        "quizup_admin_token",
+        tokenAdmin
+      );
+
+
+      mostrarPainel();
+
+
+    } catch (erroLogin) {
+
+      erro.textContent =
+        erroLogin.message ||
+        "Erro ao entrar no painel.";
+
+    } finally {
+
+      botao.disabled = false;
+
+      botao.textContent =
+        "🔐 ENTRAR NO PAINEL";
+
+    }
+
+  }
+
+
+  /* =====================================================
+     MOSTRAR PAINEL
+     ===================================================== */
+
+  function mostrarPainel() {
+
+    telaLogin.style.display =
+      "none";
+
+    painel.style.display =
+      "block";
+
+
+    atualizarTudo();
+
+  }
+
+
+  /* =====================================================
+     SAIR
+     ===================================================== */
+
+  function sairAdmin() {
+
+    tokenAdmin = "";
+
+    localStorage.removeItem(
+      "quizup_admin_token"
+    );
+
+
+    painel.style.display =
+      "none";
+
+    telaLogin.style.display =
+      "flex";
+
+
+    document
+      .getElementById("adminSenha")
+      .value = "";
+
+  }
+
+
+  /* =====================================================
+     CABEÇALHOS ADMIN
+     ===================================================== */
+
+  function headersAdmin() {
+
+    return {
+
+      "Content-Type":
+        "application/json",
+
+      "Authorization":
+        "Bearer " + tokenAdmin
+
+    };
+
+  }
+
+
+  /* =====================================================
+     ABRIR ABA
+     ===================================================== */
+
+  function abrirAba(
+    nome,
+    botao
+  ) {
+
+    document
+      .querySelectorAll(".secao")
+      .forEach(function(secao) {
+
+        secao.classList.remove(
+          "ativa"
+        );
+
+      });
+
+
+    document
+      .querySelectorAll(".aba")
+      .forEach(function(aba) {
+
+        aba.classList.remove(
+          "ativa"
+        );
+
+      });
+
+
+    if (nome === "saques") {
+
+      document
+        .getElementById("secaoSaques")
+        .classList.add("ativa");
+
+    }
+
+
+    if (nome === "jogadores") {
+
+      document
+        .getElementById("secaoJogadores")
+        .classList.add("ativa");
+
+    }
+
+
+    if (nome === "mensagens") {
+
+      document
+        .getElementById("secaoMensagens")
+        .classList.add("ativa");
+
+    }
+
+
+    if (botao) {
+
+      botao.classList.add(
+        "ativa"
+      );
+
+    }
+
+  }
+
+
+  /* =====================================================
+     ATUALIZAR TUDO
+     ===================================================== */
+
+  async function atualizarTudo() {
+
+    if (!tokenAdmin) {
+
+      return;
+
+    }
+
+
+    await Promise.all([
+
+      carregarResumo(),
+
+      carregarSaques(),
+
+      carregarJogadores(),
+
+      carregarMensagens()
+
+    ]);
+
+  }
+
+
+  /* =====================================================
+     RESUMO
+     ===================================================== */
+
+  async function carregarResumo() {
+
+    try {
+
+      const resposta =
+        await fetch(
+          API + "/api/admin/resumo",
+          {
+
+            method: "GET",
+
+            headers:
+              headersAdmin()
+
+          }
+        );
+
+
+      if (
+        resposta.status === 401 ||
+        resposta.status === 403
+      ) {
+
+        sairAdmin();
+
+        return;
+
+      }
+
+
+      const dados =
+        await resposta.json();
+
+
+      if (!resposta.ok) {
+
+        throw new Error(
+          dados.erro ||
+          "Erro ao carregar resumo."
+        );
+
+      }
+
+
+      document
+        .getElementById("totalUsuarios")
+        .textContent =
+          Number(
+            dados.usuarios || 0
+          );
+
+
+      document
+        .getElementById("jogadoresAtivos")
+        .textContent =
+          Number(
+            dados.jogadoresAtivos || 0
+          );
+
+
+      document
+        .getElementById("totalSaques")
+        .textContent =
+          Number(
+            dados.saques || 0
+          );
+
+
+      document
+        .getElementById("saquesPendentes")
+        .textContent =
+          Number(
+            dados.saquesPendentes || 0
+          );
+
+
+      document
+        .getElementById("totalMensagens")
+        .textContent =
+          Number(
+            dados.mensagens || 0
+          );
+
+
+    } catch (erro) {
+
+      console.log(
+        "Erro no resumo:",
+        erro
+      );
+
+    }
+
+  }
+
+
+  /* =====================================================
+     CARREGAR SAQUES
+     ===================================================== */
+
+  async function carregarSaques() {
+
+    const lista =
+      document.getElementById(
+        "listaSaques"
+      );
+
+
+    lista.innerHTML =
+      '<div class="carregando">Carregando saques...</div>';
+
+
+    try {
+
+      const resposta =
+        await fetch(
+          API + "/api/admin/saques",
+          {
+
+            method: "GET",
+
+            headers:
+              headersAdmin()
+
+          }
+        );
+
+
+      if (
+        resposta.status === 401 ||
+        resposta.status === 403
+      ) {
+
+        sairAdmin();
+
+        return;
+
+      }
+
+
+      const dados =
+        await resposta.json();
+
+
+      if (!resposta.ok) {
+
+        throw new Error(
+          dados.erro ||
+          "Erro ao carregar saques."
+        );
+
+      }
+
+
+      dadosSaques =
+        Array.isArray(
+          dados.saques
+        )
+          ? dados.saques
+          : [];
+
+
+      renderizarSaques();
+
+
+    } catch (erro) {
+
+      lista.innerHTML =
+
+        '<div class="vazio">' +
+        'Não foi possível carregar os saques.' +
+        '<br><br>' +
+        escapeHtml(
+          erro.message
+        ) +
+        '</div>';
+
+    }
+
+  }
+
+
+  /* =====================================================
+     RENDERIZAR SAQUES
+     ===================================================== */
+
+  function renderizarSaques() {
+
+    const lista =
+      document.getElementById(
+        "listaSaques"
+      );
+
+
+    if (!dadosSaques.length) {
+
+      lista.innerHTML =
+        '<div class="vazio">' +
+        '💰 Nenhuma solicitação de saque encontrada.' +
+        '</div>';
+
+      return;
+
+    }
+
+
+    lista.innerHTML =
+      dadosSaques
+        .map(
+          criarCardSaque
+        )
+        .join("");
+
+  }
+
+
+  /* =====================================================
+     CARD DE SAQUE
+     ===================================================== */
+
+  function criarCardSaque(
+    saque
+  ) {
+
+    const status =
+      String(
+        saque.status || "PENDENTE"
+      ).toUpperCase();
+
+
+    let classe =
+      "saque-pendente";
+
+
+    let classeStatus =
+      "status-pendente";
+
+
+    if (
+      status === "APROVADO"
+    ) {
+
+      classe =
+        "saque-aprovado";
+
+      classeStatus =
+        "status-aprovado";
+
+    }
+
+
+    if (
+      status === "REJEITADO"
+    ) {
+
+      classe =
+        "saque-rejeitado";
+
+      classeStatus =
+        "status-rejeitado";
+
+    }
+
+
+    const botoes =
+      status === "PENDENTE"
+
+        ? `
+
+          <button
+            class="btn-acao btn-aprovar"
+            onclick="aprovarSaque('${escapeAttr(saque.id)}')"
+          >
+            ✅ APROVAR
+          </button>
+
+          <button
+            class="btn-acao btn-rejeitar"
+            onclick="rejeitarSaque('${escapeAttr(saque.id)}')"
+          >
+            ❌ REJEITAR
+          </button>
+
+          <button
+            class="btn-acao btn-detalhes"
+            onclick="mostrarDetalhesSaque('${escapeAttr(saque.id)}')"
+          >
+            📋 DETALHES
+          </button>
+
+        `
+
+        : `
+
+          <button
+            class="btn-acao btn-detalhes"
+            onclick="mostrarDetalhesSaque('${escapeAttr(saque.id)}')"
+          >
+            📋 DETALHES
+          </button>
+
+        `;
+
+
+    return `
+
+      <div class="saque ${classe}">
+
+        <div class="saque-topo">
+
+          <div class="saque-id">
+            ${escapeHtml(
+              saque.id || ""
+            )}
+          </div>
+
+          <span class="status ${classeStatus}">
+            ${escapeHtml(status)}
+          </span>
+
+        </div>
+
+
+        <div class="dados-saque">
+
+          <div class="dado-info">
+
+            <small>
+              Jogador
+            </small>
+
+            <strong>
+              ${escapeHtml(
+                saque.nome || "-"
+              )}
+            </strong>
+
+          </div>
+
+
+          <div class="dado-info">
+
+            <small>
+              ID do jogador
+            </small>
+
+            <strong>
+              ${escapeHtml(
+                saque.idJogador || "-"
+              )}
+            </strong>
+
+          </div>
+
+
+          <div class="dado-info">
+
+            <small>
+              E-mail
+            </small>
+
+            <strong>
+              ${escapeHtml(
+                saque.email || "-"
+              )}
+            </strong>
+
+          </div>
+
+
+          <div class="dado-info">
+
+            <small>
+              Pontos solicitados
+            </small>
+
+            <strong>
+              ${formatarNumero(
+                saque.pontos
+              )}
+            </strong>
+
+          </div>
+
+
+          <div class="dado-info">
+
+            <small>
+              Valor para o jogador
+            </small>
+
+            <div class="valor-saque">
+              R$ ${formatarMoeda(
+                saque.valorJogador
+              )}
+            </div>
+
+          </div>
+
+
+          <div class="dado-info">
+
+            <small>
+              Forma de pagamento
+            </small>
+
+            <strong>
+              ${escapeHtml(
+                String(
+                  saque.tipo || ""
+                ).toUpperCase()
+              )}
+            </strong>
+
+          </div>
+
+
+          <div class="dado-info">
+
+            <small>
+              Destino
+            </small>
+
+            <strong>
+              ${escapeHtml(
+                saque.destino || "-"
+              )}
+            </strong>
+
+          </div>
+
+
+          <div class="dado-info">
+
+            <small>
+              Data
+            </small>
+
+            <strong>
+              ${formatarData(
+                saque.data
+              )}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="acoes">
+
+          ${botoes}
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+  /* =====================================================
+     APROVAR SAQUE
+     ===================================================== */
+
+  async function aprovarSaque(
+    id
+  ) {
+
+    const saque =
+      dadosSaques.find(
+        item =>
+          String(item.id) ===
+          String(id)
+      );
+
+
+    if (!saque) {
+
+      alert(
+        "Saque não encontrado."
+      );
+
+      return;
+
+    }
+
+
+    const confirmar =
+      confirm(
+        "Confirma a aprovação deste saque?\n\n" +
+        "Jogador: " +
+        (saque.nome || "") +
+        "\n" +
+        "Valor: R$ " +
+        formatarMoeda(
+          saque.valorJogador
+        ) +
+        "\n\n" +
+        "Depois da aprovação, o pagamento deverá ser realizado."
+      );
+
+
+    if (!confirmar) {
+
+      return;
+
+    }
+
+
+    try {
+
+      const resposta =
+        await fetch(
+          API + "/api/admin/saques/aprovar",
+          {
+
+            method: "POST",
+
+            headers:
+              headersAdmin(),
+
+            body:
+              JSON.stringify({
+                id: id
+              })
+
+          }
+        );
+
+
+      const dados =
+        await resposta.json();
+
+
+      if (!resposta.ok) {
+
+        throw new Error(
+          dados.erro ||
+          "Não foi possível aprovar o saque."
+        );
+
+      }
+
+
+      alert(
+        dados.mensagem ||
+        "Saque aprovado."
+      );
+
+
+      await atualizarTudo();
+
+
+    } catch (erro) {
+
+      alert(
+        erro.message
+      );
+
+    }
+
+  }
+
+
+  /* =====================================================
+     REJEITAR SAQUE
+     ===================================================== */
+
+  async function rejeitarSaque(
+    id
+  ) {
+
+    const saque =
+      dadosSaques.find(
+        item =>
+          String(item.id) ===
+          String(id)
+      );
+
+
+    if (!saque) {
+
+      alert(
+        "Saque não encontrado."
+      );
+
+      return;
+
+    }
+
+
+    const motivo =
+      prompt(
+        "Informe o motivo da rejeição:"
+      );
+
+
+    if (
+      motivo === null
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      !motivo.trim()
+    ) {
+
+      alert(
+        "Informe o motivo da rejeição."
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      const resposta =
+        await fetch(
+          API + "/api/admin/saques/rejeitar",
+          {
+
+            method: "POST",
+
+            headers:
+              headersAdmin(),
+
+            body:
+              JSON.stringify({
+
+                id: id,
+
+                motivo:
+                  motivo.trim()
+
+              })
+
+          }
+        );
+
+
+      const dados =
+        await resposta.json();
+
+
+      if (!resposta.ok) {
+
+        throw new Error(
+          dados.erro ||
+          "Não foi possível rejeitar o saque."
+        );
+
+      }
+
+
+      alert(
+        dados.mensagem ||
+        "Saque rejeitado."
+      );
+
+
+      await atualizarTudo();
+
+
+    } catch (erro) {
+
+      alert(
+        erro.message
+      );
+
+    }
+
+  }
+
+
+  /* =====================================================
+     DETALHES DO SAQUE
+     ===================================================== */
+
+  function mostrarDetalhesSaque(
+    id
+  ) {
+
+    const saque =
+      dadosSaques.find(
+        item =>
+          String(item.id) ===
+          String(id)
+      );
+
+
+    if (!saque) {
+
+      return;
+
+    }
+
+
+    const html = `
+
+      <div class="dados-saque">
+
+        <div class="dado-info">
+          <small>ID do saque</small>
+          <strong>
+            ${escapeHtml(
+              saque.id || "-"
+            )}
+          </strong>
+        </div>
+
+        <div class="dado-info">
+          <small>ID do jogador</small>
+          <strong>
+            ${escapeHtml(
+              saque.idJogador || "-"
+            )}
+          </strong>
+        </div>
+
+        <div class="dado-info">
+          <small>Nome</small>
+          <strong>
+            ${escapeHtml(
+              saque.nome || "-"
+            )}
+          </strong>
+        </div>
+
+        <div class="dado-info">
+          <small>E-mail</small>
+          <strong>
+            ${escapeHtml(
+              saque.email || "-"
+            )}
+          </strong>
+        </div>
+
+        <div class="
