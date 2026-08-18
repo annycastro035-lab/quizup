@@ -12,6 +12,78 @@ let tempoRestante = 5;
 let perguntaAtiva = false;
 
 /* =========================
+MÚSICA OFICIAL DO QUIZUP
+========================= */
+
+const QUIZUP_MUSICA =
+  "92271695364097-EEp6N4KazrX75LzpVPn8Bm.mp3";
+
+let musicaQuizUp = null;
+
+function iniciarMusicaQuizUp() {
+
+  if (!musicaQuizUp) {
+
+    musicaQuizUp =
+      new Audio(QUIZUP_MUSICA);
+
+    musicaQuizUp.loop = true;
+
+    musicaQuizUp.volume = 0.35;
+
+    musicaQuizUp.preload = "auto";
+  }
+
+  try {
+
+    const promessa =
+      musicaQuizUp.play();
+
+    if (
+      promessa &&
+      typeof promessa.catch === "function"
+    ) {
+
+      promessa.catch(function() {
+
+        console.log(
+          "O navegador bloqueou a reprodução automática da música."
+        );
+
+      });
+    }
+
+  } catch (e) {
+
+    console.log(
+      "Não foi possível iniciar a música.",
+      e
+    );
+  }
+}
+
+function pararMusicaQuizUp() {
+
+  if (!musicaQuizUp) {
+    return;
+  }
+
+  try {
+
+    musicaQuizUp.pause();
+
+    musicaQuizUp.currentTime = 0;
+
+  } catch (e) {
+
+    console.log(
+      "Não foi possível parar a música.",
+      e
+    );
+  }
+}
+
+/* =========================
 SESSÃO LOCAL
 ========================= */
 
@@ -92,6 +164,8 @@ function carregarSessaoLocal() {
 
     mostrarTela("conteudoJogo");
 
+    iniciarMusicaQuizUp();
+
     return true;
 
   } catch (e) {
@@ -124,6 +198,12 @@ function sairDaConta() {
   perguntaAtiva = false;
   pontosDaRodada = 0;
   respostaCorreta = 0;
+
+  /*
+    Para a música.
+  */
+
+  pararMusicaQuizUp();
 
   /*
     Remove a sessão salva.
@@ -720,6 +800,13 @@ async function fazerLogin() {
       "conteudoJogo"
     );
 
+    /*
+      Inicia a música oficial depois
+      que o usuário realizou o login.
+    */
+
+    iniciarMusicaQuizUp();
+
   } catch (e) {
 
     if (erro) {
@@ -1166,6 +1253,13 @@ function girarDado() {
     return;
   }
 
+  /*
+    Garante que a música esteja tocando
+    quando o jogador começar a jogar.
+  */
+
+  iniciarMusicaQuizUp();
+
   botao.disabled = true;
 
   dado.classList.add(
@@ -1554,6 +1648,13 @@ function finalizarRodada() {
         botao.disabled = false;
       }
 
+      /*
+        Mantém a música tocando depois
+        que o anúncio termina.
+      */
+
+      iniciarMusicaQuizUp();
+
     }
   );
 }
@@ -1729,6 +1830,18 @@ function mostrarAnuncioVideo(callback) {
     }
 
     return;
+  }
+
+  /*
+    Pausa a música durante o anúncio.
+  */
+
+  if (musicaQuizUp) {
+
+    try {
+      musicaQuizUp.pause();
+    } catch (e) {}
+
   }
 
   const card =
@@ -2728,6 +2841,8 @@ document.addEventListener(
       clearInterval(timerInterval);
       timerInterval = null;
     }
+
+    pararMusicaQuizUp();
 
     atualizarTela();
 
