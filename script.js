@@ -12,78 +12,6 @@ let tempoRestante = 5;
 let perguntaAtiva = false;
 
 /* =========================
-MÚSICA OFICIAL DO QUIZUP
-========================= */
-
-const QUIZUP_MUSICA =
-  "92271695364097-EEp6N4KazrX75LzpVPn8Bm.mp3";
-
-let musicaQuizUp = null;
-
-function iniciarMusicaQuizUp() {
-
-  if (!musicaQuizUp) {
-
-    musicaQuizUp =
-      new Audio(QUIZUP_MUSICA);
-
-    musicaQuizUp.loop = true;
-
-    musicaQuizUp.volume = 0.35;
-
-    musicaQuizUp.preload = "auto";
-  }
-
-  try {
-
-    const promessa =
-      musicaQuizUp.play();
-
-    if (
-      promessa &&
-      typeof promessa.catch === "function"
-    ) {
-
-      promessa.catch(function() {
-
-        console.log(
-          "O navegador bloqueou a reprodução automática da música."
-        );
-
-      });
-    }
-
-  } catch (e) {
-
-    console.log(
-      "Não foi possível iniciar a música.",
-      e
-    );
-  }
-}
-
-function pararMusicaQuizUp() {
-
-  if (!musicaQuizUp) {
-    return;
-  }
-
-  try {
-
-    musicaQuizUp.pause();
-
-    musicaQuizUp.currentTime = 0;
-
-  } catch (e) {
-
-    console.log(
-      "Não foi possível parar a música.",
-      e
-    );
-  }
-}
-
-/* =========================
 SESSÃO LOCAL
 ========================= */
 
@@ -105,15 +33,6 @@ function salvarSessaoLocal() {
     console.log("Não foi possível salvar a sessão local.", e);
   }
 }
-
-/*
-  IMPORTANTE:
-  Esta função NÃO é mais chamada automaticamente
-  quando o site abre.
-
-  Ela continua disponível caso você queira
-  recuperar a sessão manualmente no futuro.
-*/
 
 function carregarSessaoLocal() {
   try {
@@ -164,8 +83,6 @@ function carregarSessaoLocal() {
 
     mostrarTela("conteudoJogo");
 
-    iniciarMusicaQuizUp();
-
     return true;
 
   } catch (e) {
@@ -181,14 +98,98 @@ function carregarSessaoLocal() {
 }
 
 /* =========================
+MÚSICA DO QUIZUP
+========================= */
+
+const QUIZUP_MUSICA =
+  "92271695364097-EEp6N4KazrX75LzpVPn8Bm.mp3";
+
+let musicaQuizUp = null;
+
+function prepararMusicaQuizUp() {
+
+  if (musicaQuizUp) {
+    return musicaQuizUp;
+  }
+
+  musicaQuizUp =
+    document.createElement("audio");
+
+  musicaQuizUp.id =
+    "quizupMusica";
+
+  musicaQuizUp.src =
+    QUIZUP_MUSICA;
+
+  musicaQuizUp.loop = true;
+  musicaQuizUp.preload = "auto";
+  musicaQuizUp.volume = 0.35;
+
+  musicaQuizUp.style.display = "none";
+
+  document.body.appendChild(
+    musicaQuizUp
+  );
+
+  return musicaQuizUp;
+}
+
+function iniciarMusicaQuizUp() {
+
+  const audio =
+    prepararMusicaQuizUp();
+
+  if (!audio) {
+    return;
+  }
+
+  try {
+
+    const promessa =
+      audio.play();
+
+    if (
+      promessa &&
+      typeof promessa.catch === "function"
+    ) {
+
+      promessa.catch(function() {
+        console.log(
+          "O navegador bloqueou a reprodução automática da música."
+        );
+      });
+    }
+
+  } catch (e) {
+
+    console.log(
+      "Não foi possível iniciar a música.",
+      e
+    );
+  }
+}
+
+function pararMusicaQuizUp() {
+
+  if (!musicaQuizUp) {
+    return;
+  }
+
+  try {
+    musicaQuizUp.pause();
+    musicaQuizUp.currentTime = 0;
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+/* =========================
 SAIR DA CONTA
 ========================= */
 
 function sairDaConta() {
 
-  /*
-    Para qualquer timer ativo.
-  */
+  console.log("Saindo da conta...");
 
   if (timerInterval) {
     clearInterval(timerInterval);
@@ -199,47 +200,55 @@ function sairDaConta() {
   pontosDaRodada = 0;
   respostaCorreta = 0;
 
-  /*
-    Para a música.
-  */
-
+  /* Para a música */
   pararMusicaQuizUp();
 
-  /*
-    Remove a sessão salva.
-  */
-
+  /* Remove sessão salva */
   try {
+
     localStorage.removeItem(
       CHAVE_SESSAO
     );
+
   } catch (e) {
+
     console.log(
-      "Não foi possível limpar a sessão local."
+      "Não foi possível limpar a sessão local.",
+      e
     );
   }
 
-  /*
-    Limpa os dados da conta atual.
-  */
+  /* Remove anúncio */
+  const anuncio =
+    document.getElementById(
+      "quizupAnuncioVideo"
+    );
 
+  if (anuncio) {
+    anuncio.remove();
+  }
+
+  /* Limpa conta */
   usuarioAtual = null;
   pontos = 0;
   saldo = 0;
   rodada = 1;
 
-  /*
-    Limpa campos do login.
-  */
-
+  /* Limpa login */
   const loginEmail =
-    document.getElementById("loginEmail");
+    document.getElementById(
+      "loginEmail"
+    );
 
   const loginSenha =
-    document.getElementById("loginSenha");
+    document.getElementById(
+      "loginSenha"
+    );
 
   const erroLogin =
-    document.getElementById("erroLogin");
+    document.getElementById(
+      "erroLogin"
+    );
 
   if (loginEmail) {
     loginEmail.value = "";
@@ -253,28 +262,51 @@ function sairDaConta() {
     erroLogin.textContent = "";
   }
 
-  /*
-    Remove anúncio que esteja na tela.
-  */
-
-  const anuncio =
-    document.getElementById(
-      "quizupAnuncioVideo"
-    );
-
-  if (anuncio) {
-    anuncio.remove();
-  }
-
   atualizarTela();
 
-  /*
-    Volta obrigatoriamente para o login.
-  */
+  /* Remove menu ativo */
+  document
+    .querySelectorAll(
+      ".menu-item"
+    )
+    .forEach(function(botao) {
 
-  mostrarTela("telaLogin");
+      botao.classList.remove(
+        "ativo"
+      );
 
-  console.log("Conta encerrada.");
+    });
+
+  /* Esconde todas as telas */
+  document
+    .querySelectorAll(
+      "body > .app > .tela"
+    )
+    .forEach(function(tela) {
+
+      tela.classList.remove(
+        "ativa"
+      );
+
+    });
+
+  /* Mostra login */
+  const telaLogin =
+    document.getElementById(
+      "telaLogin"
+    );
+
+  if (telaLogin) {
+
+    telaLogin.classList.add(
+      "ativa"
+    );
+
+  }
+
+  console.log(
+    "Conta encerrada. Voltando para o login."
+  );
 }
 
 /* =========================
@@ -436,7 +468,9 @@ function mostrarTela(id) {
     )
     .forEach(function(item) {
 
-      item.classList.remove("ativa");
+      item.classList.remove(
+        "ativa"
+      );
 
     });
 
@@ -454,7 +488,11 @@ function mostrarTela(id) {
       );
 
     if (telaJogo) {
-      telaJogo.classList.add("ativa");
+
+      telaJogo.classList.add(
+        "ativa"
+      );
+
     }
 
     document
@@ -463,16 +501,22 @@ function mostrarTela(id) {
       )
       .forEach(function(item) {
 
-        item.classList.remove("ativa");
+        item.classList.remove(
+          "ativa"
+        );
 
       });
 
-    tela.classList.add("ativa");
+    tela.classList.add(
+      "ativa"
+    );
 
     return;
   }
 
-  tela.classList.add("ativa");
+  tela.classList.add(
+    "ativa"
+  );
 }
 
 /* =========================
@@ -494,7 +538,9 @@ function voltarJogo() {
     return;
   }
 
-  mostrarTela("conteudoJogo");
+  mostrarTela(
+    "conteudoJogo"
+  );
 
   const botoes =
     document.querySelectorAll(
@@ -503,12 +549,16 @@ function voltarJogo() {
 
   botoes.forEach(function(botao) {
 
-    botao.classList.remove("ativo");
+    botao.classList.remove(
+      "ativo"
+    );
 
   });
 
   if (botoes[0]) {
-    botoes[0].classList.add("ativo");
+    botoes[0].classList.add(
+      "ativo"
+    );
   }
 }
 
@@ -519,19 +569,29 @@ CADASTRO
 async function cadastrar() {
 
   const campoNome =
-    document.getElementById("cadNome");
+    document.getElementById(
+      "cadNome"
+    );
 
   const campoCpf =
-    document.getElementById("cadCpf");
+    document.getElementById(
+      "cadCpf"
+    );
 
   const campoEmail =
-    document.getElementById("cadEmail");
+    document.getElementById(
+      "cadEmail"
+    );
 
   const campoSenha =
-    document.getElementById("cadSenha");
+    document.getElementById(
+      "cadSenha"
+    );
 
   const campoCodigo =
-    document.getElementById("cadCodigo");
+    document.getElementById(
+      "cadCodigo"
+    );
 
   const nome =
     campoNome
@@ -575,8 +635,10 @@ async function cadastrar() {
   ) {
 
     if (erro) {
+
       erro.textContent =
         "Preencha todos os campos obrigatórios.";
+
     }
 
     return;
@@ -585,8 +647,10 @@ async function cadastrar() {
   if (senha.length < 6) {
 
     if (erro) {
+
       erro.textContent =
         "A senha deve ter pelo menos 6 caracteres.";
+
     }
 
     return;
@@ -622,9 +686,11 @@ async function cadastrar() {
     if (!resposta.ok) {
 
       if (erro) {
+
         erro.textContent =
           dados.erro ||
           "Não foi possível cadastrar.";
+
       }
 
       return;
@@ -638,23 +704,40 @@ async function cadastrar() {
       mensagem +=
         "\n\nSeu código de indicação é: " +
         dados.codigoIndicacao;
+
     }
 
     alert(mensagem);
 
-    if (campoNome) campoNome.value = "";
-    if (campoCpf) campoCpf.value = "";
-    if (campoEmail) campoEmail.value = "";
-    if (campoSenha) campoSenha.value = "";
-    if (campoCodigo) campoCodigo.value = "";
+    if (campoNome) {
+      campoNome.value = "";
+    }
+
+    if (campoCpf) {
+      campoCpf.value = "";
+    }
+
+    if (campoEmail) {
+      campoEmail.value = "";
+    }
+
+    if (campoSenha) {
+      campoSenha.value = "";
+    }
+
+    if (campoCodigo) {
+      campoCodigo.value = "";
+    }
 
     mostrarLogin();
 
   } catch (e) {
 
     if (erro) {
+
       erro.textContent =
         "Erro de conexão com o servidor.";
+
     }
 
     console.error(e);
@@ -699,8 +782,10 @@ async function fazerLogin() {
   if (!email || !senha) {
 
     if (erro) {
+
       erro.textContent =
         "Digite o e-mail e a senha.";
+
     }
 
     return;
@@ -730,17 +815,24 @@ async function fazerLogin() {
     let dados = {};
 
     try {
-      dados = await resposta.json();
+
+      dados =
+        await resposta.json();
+
     } catch (e) {
+
       dados = {};
+
     }
 
     if (!resposta.ok) {
 
       if (erro) {
+
         erro.textContent =
           dados.erro ||
           "Login inválido.";
+
       }
 
       return;
@@ -749,8 +841,10 @@ async function fazerLogin() {
     if (!dados.usuario) {
 
       if (erro) {
+
         erro.textContent =
           "O servidor não retornou os dados do usuário.";
+
       }
 
       return;
@@ -776,11 +870,6 @@ async function fazerLogin() {
     usuarioAtual.saldo =
       saldo;
 
-    /*
-      Salva a sessão somente depois
-      de um login realmente realizado.
-    */
-
     salvarSessaoLocal();
 
     const nomeUsuario =
@@ -789,8 +878,10 @@ async function fazerLogin() {
       );
 
     if (nomeUsuario) {
+
       nomeUsuario.textContent =
         usuarioAtual.nome || "";
+
     }
 
     atualizarTela();
@@ -800,18 +891,16 @@ async function fazerLogin() {
       "conteudoJogo"
     );
 
-    /*
-      Inicia a música oficial depois
-      que o usuário realizou o login.
-    */
-
+    /* Inicia a música após login */
     iniciarMusicaQuizUp();
 
   } catch (e) {
 
     if (erro) {
+
       erro.textContent =
         "Erro de conexão com o servidor.";
+
     }
 
     console.error(e);
@@ -838,8 +927,10 @@ function atualizarDadosIndicacao() {
     );
 
   if (elementoCodigo) {
+
     elementoCodigo.textContent =
       codigo;
+
   }
 
   const plano =
@@ -857,13 +948,17 @@ function atualizarDadosIndicacao() {
     );
 
   if (elementoPlano) {
+
     elementoPlano.textContent =
       plano;
+
   }
 
   if (premiumPlano) {
+
     premiumPlano.textContent =
       plano;
+
   }
 
   carregarIndicacoes();
@@ -988,8 +1083,10 @@ function renderizarIndicacoes() {
     );
 
   if (totalIndicados) {
+
     totalIndicados.textContent =
       indicacoes.length;
+
   }
 
   let ganhos = 0;
@@ -1001,15 +1098,19 @@ function renderizarIndicacoes() {
         indicacao.bonusPago === true ||
         indicacao.status === "CONCLUÍDO"
       ) {
+
         ganhos += 50;
+
       }
 
     }
   );
 
   if (ganhosIndicacao) {
+
     ganhosIndicacao.textContent =
       ganhos + " pontos";
+
   }
 
   if (indicacoes.length === 0) {
@@ -1103,6 +1204,7 @@ function renderizarIndicacoes() {
       `;
 
       lista.appendChild(item);
+
     }
   );
 }
@@ -1180,8 +1282,10 @@ function mostrarPremium() {
     );
 
   if (premiumPlano) {
+
     premiumPlano.textContent =
       plano;
+
   }
 
   mostrarTela(
@@ -1239,6 +1343,9 @@ function girarDado() {
     return;
   }
 
+  /* Garante que a música tente tocar */
+  iniciarMusicaQuizUp();
+
   const dado =
     document.getElementById(
       "dado"
@@ -1252,13 +1359,6 @@ function girarDado() {
   if (!dado || !botao) {
     return;
   }
-
-  /*
-    Garante que a música esteja tocando
-    quando o jogador começar a jogar.
-  */
-
-  iniciarMusicaQuizUp();
 
   botao.disabled = true;
 
@@ -1299,6 +1399,7 @@ function girarDado() {
               : ""
           ) +
           "!";
+
       }
 
       carregarPergunta();
@@ -1357,12 +1458,14 @@ function carregarPergunta() {
 
     nivel.style.display =
       "none";
+
   }
 
   if (perguntaElemento) {
 
     perguntaElemento.textContent =
       pergunta.pergunta;
+
   }
 
   if (!respostas) {
@@ -1387,12 +1490,15 @@ function carregarPergunta() {
 
       botao.onclick =
         function() {
+
           responder(indice);
+
         };
 
       respostas.appendChild(
         botao
       );
+
     }
   );
 
@@ -1421,8 +1527,10 @@ function iniciarTimer() {
     );
 
   if (timer) {
+
     timer.textContent =
       tempoRestante;
+
   }
 
   timerInterval =
@@ -1432,8 +1540,10 @@ function iniciarTimer() {
         tempoRestante--;
 
         if (timer) {
+
           timer.textContent =
             tempoRestante;
+
         }
 
         if (
@@ -1447,6 +1557,7 @@ function iniciarTimer() {
           timerInterval = null;
 
           tempoEsgotado();
+
         }
 
       },
@@ -1483,6 +1594,7 @@ function tempoEsgotado() {
 
     resultado.textContent =
       "⏰ Tempo esgotado! Você não ganhou os pontos.";
+
   }
 
   bloquearRespostas();
@@ -1525,7 +1637,9 @@ function responder(indice) {
         botao.classList.add(
           "correta"
         );
+
       }
+
     }
   );
 
@@ -1556,6 +1670,7 @@ function responder(indice) {
             : ""
         ) +
         ".";
+
     }
 
   } else {
@@ -1565,6 +1680,7 @@ function responder(indice) {
       botoes[indice].classList.add(
         "errada"
       );
+
     }
 
     if (resultado) {
@@ -1573,6 +1689,7 @@ function responder(indice) {
         "❌ Errou! Você não ganhou os " +
         pontosDaRodada +
         " pontos.";
+
     }
 
     pontosDaRodada = 0;
@@ -1585,6 +1702,7 @@ function responder(indice) {
 
     usuarioAtual.saldo =
       saldo;
+
   }
 
   salvarSessaoLocal();
@@ -1637,6 +1755,7 @@ function finalizarRodada() {
 
     elementoRodada.textContent =
       rodada;
+
   }
 
   pontosDaRodada = 0;
@@ -1645,15 +1764,10 @@ function finalizarRodada() {
     function() {
 
       if (botao) {
+
         botao.disabled = false;
+
       }
-
-      /*
-        Mantém a música tocando depois
-        que o anúncio termina.
-      */
-
-      iniciarMusicaQuizUp();
 
     }
   );
@@ -1763,13 +1877,17 @@ function finalizarCarregamentoIMA() {
     function(callback) {
 
       try {
+
         callback(
           typeof window.google !==
             "undefined" &&
           !!window.google.ima
         );
+
       } catch (e) {
+
         console.log(e);
+
       }
 
     }
@@ -1790,9 +1908,13 @@ function finalizarErroIMA() {
     function(callback) {
 
       try {
+
         callback(false);
+
       } catch (e) {
+
         console.log(e);
+
       }
 
     }
@@ -1830,18 +1952,6 @@ function mostrarAnuncioVideo(callback) {
     }
 
     return;
-  }
-
-  /*
-    Pausa a música durante o anúncio.
-  */
-
-  if (musicaQuizUp) {
-
-    try {
-      musicaQuizUp.pause();
-    } catch (e) {}
-
   }
 
   const card =
@@ -2010,7 +2120,9 @@ function mostrarAnuncioVideo(callback) {
 
     botaoFechar.onclick =
       function() {
+
         fecharAnuncio();
+
       };
   }
 
@@ -2019,8 +2131,10 @@ function mostrarAnuncioVideo(callback) {
       function() {
 
         if (status) {
+
           status.textContent =
             "Publicidade indisponível no momento.";
+
         }
 
         fecharAnuncio();
@@ -2036,8 +2150,10 @@ function mostrarAnuncioVideo(callback) {
     );
 
     if (botaoFechar) {
+
       botaoFechar.style.display =
         "inline-block";
+
     }
   }
 
@@ -2047,8 +2163,10 @@ function mostrarAnuncioVideo(callback) {
       if (!sucesso) {
 
         if (status) {
+
           status.textContent =
             "Publicidade indisponível.";
+
         }
 
         fecharAnuncio();
@@ -2102,8 +2220,10 @@ function mostrarAnuncioVideo(callback) {
                   );
 
                   if (status) {
+
                     status.textContent =
                       "Publicidade indisponível.";
+
                   }
 
                   fecharAnuncio();
@@ -2115,8 +2235,10 @@ function mostrarAnuncioVideo(callback) {
                 function() {
 
                   if (status) {
+
                     status.textContent =
                       "Publicidade em exibição...";
+
                   }
                 }
               );
@@ -2126,15 +2248,19 @@ function mostrarAnuncioVideo(callback) {
                 function() {
 
                   if (status) {
+
                     status.textContent =
                       "Publicidade concluída.";
+
                   }
 
                   finalizarComLimpeza();
 
                   setTimeout(
                     function() {
+
                       fecharAnuncio();
+
                     },
                     500
                   );
@@ -2146,15 +2272,19 @@ function mostrarAnuncioVideo(callback) {
                 function() {
 
                   if (status) {
+
                     status.textContent =
                       "Publicidade ignorada.";
+
                   }
 
                   finalizarComLimpeza();
 
                   setTimeout(
                     function() {
+
                       fecharAnuncio();
+
                     },
                     300
                   );
@@ -2168,6 +2298,7 @@ function mostrarAnuncioVideo(callback) {
                   console.log(
                     "Clique no anúncio HilltopAds."
                   );
+
                 }
               );
 
@@ -2200,11 +2331,14 @@ function mostrarAnuncioVideo(callback) {
 
                   promessa.catch(
                     function() {
+
                       console.log(
                         "Autoplay bloqueado pelo navegador."
                       );
+
                     }
                   );
+
                 }
 
               } catch (e) {
@@ -2213,6 +2347,7 @@ function mostrarAnuncioVideo(callback) {
                   "Não foi possível iniciar o vídeo:",
                   e
                 );
+
               }
 
               adsManager.start();
@@ -2225,8 +2360,10 @@ function mostrarAnuncioVideo(callback) {
               );
 
               if (status) {
+
                 status.textContent =
                   "Publicidade indisponível.";
+
               }
 
               fecharAnuncio();
@@ -2245,8 +2382,10 @@ function mostrarAnuncioVideo(callback) {
             );
 
             if (status) {
+
               status.textContent =
                 "Nenhum anúncio disponível.";
+
             }
 
             fecharAnuncio();
@@ -2278,8 +2417,10 @@ function mostrarAnuncioVideo(callback) {
           false;
 
         if (status) {
+
           status.textContent =
             "Buscando publicidade...";
+
         }
 
         adsLoader.requestAds(
@@ -2294,8 +2435,10 @@ function mostrarAnuncioVideo(callback) {
         );
 
         if (status) {
+
           status.textContent =
             "Publicidade indisponível.";
+
         }
 
         fecharAnuncio();
@@ -2332,18 +2475,24 @@ function atualizarTela() {
     );
 
   if (elementoPontos) {
+
     elementoPontos.textContent =
       pontos;
+
   }
 
   if (elementoSaldo) {
+
     elementoSaldo.textContent =
       saldo;
+
   }
 
   if (elementoRodada) {
+
     elementoRodada.textContent =
       rodada;
+
   }
 
   if (
@@ -2353,9 +2502,11 @@ function atualizarTela() {
 
     nomeUsuario.textContent =
       usuarioAtual.nome || "";
+
   } else if (nomeUsuario) {
 
     nomeUsuario.textContent = "";
+
   }
 }
 
@@ -2397,6 +2548,7 @@ async function salvarPontuacao() {
       );
 
     if (!resposta.ok) {
+
       console.log(
         "Não foi possível salvar a pontuação no servidor."
       );
@@ -2407,9 +2559,14 @@ async function salvarPontuacao() {
     let dados = {};
 
     try {
-      dados = await resposta.json();
+
+      dados =
+        await resposta.json();
+
     } catch (e) {
+
       dados = {};
+
     }
 
     if (dados.usuario) {
@@ -2600,8 +2757,10 @@ async function solicitarSaque() {
   if (!tipo || !chave || !quantidade) {
 
     if (resultado) {
+
       resultado.textContent =
         "Preencha os dados do saque.";
+
     }
 
     return;
@@ -2637,27 +2796,35 @@ async function solicitarSaque() {
     let dados = {};
 
     try {
+
       dados =
         await resposta.json();
+
     } catch (e) {
+
       dados = {};
+
     }
 
     if (!resposta.ok) {
 
       if (resultado) {
+
         resultado.textContent =
           dados.erro ||
           "Não foi possível solicitar o saque.";
+
       }
 
       return;
     }
 
     if (resultado) {
+
       resultado.textContent =
         dados.mensagem ||
         "Saque enviado para análise.";
+
     }
 
     if (
@@ -2690,8 +2857,10 @@ async function solicitarSaque() {
   } catch (e) {
 
     if (resultado) {
+
       resultado.textContent =
         "Erro de conexão com o servidor.";
+
     }
 
     console.error(e);
@@ -2737,8 +2906,10 @@ async function enviarMensagemSAC() {
   if (!mensagem) {
 
     if (resultado) {
+
       resultado.textContent =
         "Digite sua mensagem.";
+
     }
 
     return;
@@ -2770,27 +2941,35 @@ async function enviarMensagemSAC() {
     let dados = {};
 
     try {
+
       dados =
         await resposta.json();
+
     } catch (e) {
+
       dados = {};
+
     }
 
     if (!resposta.ok) {
 
       if (resultado) {
+
         resultado.textContent =
           dados.erro ||
           "Não foi possível enviar sua mensagem.";
+
       }
 
       return;
     }
 
     if (resultado) {
+
       resultado.textContent =
         dados.mensagem ||
         "Mensagem enviada com sucesso!";
+
     }
 
     if (campo) {
@@ -2800,12 +2979,63 @@ async function enviarMensagemSAC() {
   } catch (e) {
 
     if (resultado) {
+
       resultado.textContent =
         "Erro de conexão com o servidor.";
+
     }
 
     console.error(e);
   }
+}
+
+/* =========================
+CORREÇÃO DO BOTÃO SAIR
+========================= */
+
+function configurarBotaoSair() {
+
+  const idsPossiveis = [
+    "botaoSair",
+    "btnSair",
+    "sair",
+    "botaoSairConta"
+  ];
+
+  idsPossiveis.forEach(function(id) {
+
+    const botao =
+      document.getElementById(id);
+
+    if (!botao) {
+      return;
+    }
+
+    /*
+      Evita que o clique dependa
+      somente do onclick do HTML.
+    */
+
+    if (botao.dataset.sairConfigurado === "true") {
+      return;
+    }
+
+    botao.dataset.sairConfigurado = "true";
+
+    botao.addEventListener(
+      "click",
+      function(event) {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        sairDaConta();
+
+      }
+    );
+
+  });
+
 }
 
 /* =========================
@@ -2817,16 +3047,8 @@ document.addEventListener(
   function() {
 
     /*
-      CORREÇÃO PRINCIPAL:
-
-      NÃO chamamos mais:
-        carregarSessaoLocal();
-
-      Portanto, ao abrir/recarregar o QuizUp,
-      ele permanece na tela de LOGIN.
-
-      A sessão só é criada depois que o usuário
-      faz login novamente.
+      Não recupera automaticamente
+      a sessão anterior.
     */
 
     usuarioAtual = null;
@@ -2838,7 +3060,11 @@ document.addEventListener(
     perguntaAtiva = false;
 
     if (timerInterval) {
-      clearInterval(timerInterval);
+
+      clearInterval(
+        timerInterval
+      );
+
       timerInterval = null;
     }
 
@@ -2846,7 +3072,22 @@ document.addEventListener(
 
     atualizarTela();
 
-    mostrarTela("telaLogin");
+    mostrarTela(
+      "telaLogin"
+    );
+
+    /*
+      Configura o botão SAIR.
+    */
+
+    configurarBotaoSair();
 
   }
 );
+
+/*
+  Deixa a função disponível globalmente
+  para onclick="sairDaConta()" no HTML.
+*/
+
+window.sairDaConta = sairDaConta;
