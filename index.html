@@ -14,7 +14,6 @@
   <meta name="90645dd79179b1c3afb9fe365e976feaeb73da69"
         content="90645dd79179b1c3afb9fe365e976feaeb73da69" />
 
-  <!-- HILLTOPADS -->
   <meta name="referrer"
         content="no-referrer-when-downgrade">
 
@@ -585,10 +584,7 @@
         placeholder="Sua senha"
       >
 
-      <div
-        id="erroLogin"
-        class="erro"
-      ></div>
+      <div id="erroLogin" class="erro"></div>
 
       <button
         class="btn"
@@ -604,8 +600,7 @@
         CRIAR CONTA
       </button>
 
-      <!-- ADSTERRA -->
-
+      <!-- BANNER ADSTERRA -->
       <div
         style="
           width:320px;
@@ -614,6 +609,15 @@
           text-align:center;
         "
       >
+        <div
+          style="
+            font-size:10px;
+            color:#999;
+            margin-bottom:4px;
+          "
+        >
+          PUBLICIDADE
+        </div>
 
         <script>
           atOptions = {
@@ -628,50 +632,6 @@
         <script
           src="https://www.highperformanceformat.com/1038af95c5145869ee5257519d9480c4/invoke.js">
         </script>
-
-      </div>
-
-      <!-- HILLTOPADS -->
-
-      <div
-        style="
-          width:100%;
-          max-width:300px;
-          margin:15px auto 0;
-          text-align:center;
-        "
-      >
-
-        <div
-          style="
-            font-size:10px;
-            color:#999;
-            margin-bottom:4px;
-          "
-        >
-          PUBLICIDADE
-        </div>
-
-        <script>
-          (function(ydhm){
-            var d = document,
-                s = d.createElement('script'),
-                l = d.scripts[d.scripts.length - 1];
-
-            s.settings = ydhm || {};
-
-            s.src = "\/\/prizefamily.com\/bUXFV.sqd\/GPlZ0\/YrWRcf\/SeAm\/9\/u\/ZBU-lCksPBTLcEz\/M\/zXAW3rMlDqU\/t\/NOzjMiz-MoDDcPwNOsQO";
-
-            s.async = true;
-
-            s.referrerPolicy =
-              'no-referrer-when-downgrade';
-
-            l.parentNode.insertBefore(s, l);
-
-          })({});
-        </script>
-
       </div>
 
     </div>
@@ -800,9 +760,8 @@
 
 
     <!-- =========================
-         MONETAG
-         ZONA 11571555
-         VIGNETTE
+         MONETAG 11571555
+         VIGNETTE BANNER
          ========================= -->
 
     <div class="area-publicidade">
@@ -826,6 +785,22 @@
       </div>
 
     </div>
+
+
+    <!-- =========================
+         MONETAG 11575378
+         IN-PAGE PUSH / GREAT TAG
+         ========================= -->
+
+    <script>
+      (function(s){
+        s.dataset.zone='11575378';
+        s.src='https://nap5k.com/tag.min.js'
+      })([document.documentElement, document.body]
+        .filter(Boolean)
+        .pop()
+        .appendChild(document.createElement('script')))
+    </script>
 
 
     <!-- MENU -->
@@ -1490,9 +1465,7 @@
       </section>
 
 
-      <!-- =========================
-           RODAPÉ
-           ========================= -->
+      <!-- RODAPÉ -->
 
       <div class="rodape">
 
@@ -1527,7 +1500,7 @@
 
 
 <!-- =========================
-     FUNÇÕES AUXILIARES DO INDEX
+     FUNÇÕES AUXILIARES
      ========================= -->
 
 <script>
@@ -1542,12 +1515,17 @@
 
     });
 
-    const tela =
-      document.getElementById(
-        nome === "jogo"
-          ? "conteudoJogo"
-          : "conteudoIndicacoes"
-      );
+    let id;
+
+    if (nome === "jogo") {
+      id = "conteudoJogo";
+    } else if (nome === "indicacoes") {
+      id = "conteudoIndicacoes";
+    }
+
+    const tela = id
+      ? document.getElementById(id)
+      : null;
 
     if (tela) {
       tela.classList.add("ativa");
@@ -1583,18 +1561,14 @@
   function preencherSaque(pontos) {
 
     const campo =
-      document.getElementById(
-        "valorSaque"
-      );
+      document.getElementById("valorSaque");
 
     if (campo) {
       campo.value = pontos;
     }
 
     const tela =
-      document.getElementById(
-        "telaSaque"
-      );
+      document.getElementById("telaSaque");
 
     document.querySelectorAll(
       "#telaJogo .conteudo > .tela"
@@ -1634,7 +1608,7 @@
 
 
 <!-- =========================
-     SCRIPT PRINCIPAL DO QUIZUP
+     SCRIPT PRINCIPAL
      ========================= -->
 
 <script src="script.js"></script>
