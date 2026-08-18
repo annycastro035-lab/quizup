@@ -4,6 +4,15 @@ const path = require("path");
 
 const PORT = process.env.PORT || 10000;
 
+/*
+=========================================================
+  CONFIGURAÇÃO ADMINISTRATIVA
+=========================================================
+*/
+
+const ADMIN_KEY =
+  process.env.QUIZUP_ADMIN_KEY || "";
+
 
 /*
 =========================================================
@@ -11,10 +20,11 @@ const PORT = process.env.PORT || 10000;
 =========================================================
 */
 
-const arquivoDados = path.join(
-  __dirname,
-  "quizup-dados.json"
-);
+const arquivoDados =
+  path.join(
+    __dirname,
+    "quizup-dados.json"
+  );
 
 
 let banco = {
@@ -28,7 +38,11 @@ function carregarBanco() {
 
   try {
 
-    if (fs.existsSync(arquivoDados)) {
+    if (
+      fs.existsSync(
+        arquivoDados
+      )
+    ) {
 
       const dados =
         fs.readFileSync(
@@ -37,23 +51,34 @@ function carregarBanco() {
         );
 
       const convertido =
-        JSON.parse(dados);
+        JSON.parse(
+          dados
+        );
+
 
       banco = {
+
         usuarios:
-          Array.isArray(convertido.usuarios)
+          Array.isArray(
+            convertido.usuarios
+          )
             ? convertido.usuarios
             : [],
 
         saques:
-          Array.isArray(convertido.saques)
+          Array.isArray(
+            convertido.saques
+          )
             ? convertido.saques
             : [],
 
         mensagens:
-          Array.isArray(convertido.mensagens)
+          Array.isArray(
+            convertido.mensagens
+          )
             ? convertido.mensagens
             : []
+
       };
 
     }
@@ -111,6 +136,101 @@ const mensagens =
 
 /*
 =========================================================
+  COMPATIBILIDADE COM JOGADORES EXISTENTES
+=========================================================
+*/
+
+usuarios.forEach(
+  usuario => {
+
+    if (
+      !Number.isFinite(
+        Number(
+          usuario.pontosQuiz
+        )
+      )
+    ) {
+
+      /*
+       * Jogadores antigos:
+       * o valor antigo de pontos é considerado
+       * como pontos do Quiz.
+       */
+
+      usuario.pontosQuiz =
+        Number(
+          usuario.pontos || 0
+        );
+
+    }
+
+
+    if (
+      !Number.isFinite(
+        Number(
+          usuario.pontosPatrocinados
+        )
+      )
+    ) {
+
+      usuario.pontosPatrocinados =
+        0;
+
+    }
+
+
+    usuario.pontosQuiz =
+      Math.max(
+        0,
+        Number(
+          usuario.pontosQuiz || 0
+        )
+      );
+
+
+    usuario.pontosPatrocinados =
+      Math.max(
+        0,
+        Number(
+          usuario.pontosPatrocinados || 0
+        )
+      );
+
+
+    /*
+     * O campo pontos continua sendo
+     * o total que o jogador vê.
+     */
+
+    usuario.pontos =
+      usuario.pontosQuiz +
+      usuario.pontosPatrocinados;
+
+
+    usuario.saldo =
+      usuario.pontos;
+
+
+    if (
+      !Array.isArray(
+        usuario.historicoSaques
+      )
+    ) {
+
+      usuario.historicoSaques =
+        [];
+
+    }
+
+  }
+);
+
+
+salvarBanco();
+
+
+/*
+=========================================================
   TIPOS DE ARQUIVO
 =========================================================
 */
@@ -152,7 +272,7 @@ const tiposArquivo = {
 
 /*
 =========================================================
-  RESPOSTA
+  RESPOSTA JSON
 =========================================================
 */
 
@@ -165,6 +285,7 @@ function responder(
   res.writeHead(
     status,
     {
+
       "Content-Type":
         "application/json; charset=utf-8",
 
@@ -175,12 +296,15 @@ function responder(
         "GET,POST,OPTIONS",
 
       "Access-Control-Allow-Headers":
-        "Content-Type"
+        "Content-Type, X-Admin-Key"
+
     }
   );
 
   res.end(
-    JSON.stringify(dados)
+    JSON.stringify(
+      dados
+    )
   );
 
 }
@@ -192,21 +316,29 @@ function responder(
 =========================================================
 */
 
-function receberDados(req) {
+function receberDados(
+  req
+) {
 
   return new Promise(
-    (resolve, reject) => {
+    (
+      resolve,
+      reject
+    ) => {
 
       let corpo = "";
+
 
       req.on(
         "data",
         parte => {
 
-          corpo += parte;
+          corpo +=
+            parte;
 
         }
       );
+
 
       req.on(
         "end",
@@ -216,18 +348,23 @@ function receberDados(req) {
 
             resolve(
               corpo
-                ? JSON.parse(corpo)
+                ? JSON.parse(
+                    corpo
+                  )
                 : {}
             );
 
           } catch (erro) {
 
-            reject(erro);
+            reject(
+              erro
+            );
 
           }
 
         }
       );
+
 
       req.on(
         "error",
@@ -250,22 +387,30 @@ function gerarIdJogador() {
 
   let id;
 
+
   do {
 
     id =
       "QZ" +
-      Date.now().toString(36).toUpperCase() +
+      Date.now()
+        .toString(36)
+        .toUpperCase() +
       Math.random()
         .toString(36)
-        .substring(2, 8)
+        .substring(
+          2,
+          8
+        )
         .toUpperCase();
 
   } while (
     usuarios.some(
       usuario =>
-        usuario.idJogador === id
+        usuario.idJogador ===
+        id
     )
   );
+
 
   return id;
 
@@ -284,7 +429,9 @@ function gerarCodigoIndicacao(
 ) {
 
   const nomeLimpo =
-    String(nome || "")
+    String(
+      nome || ""
+    )
       .normalize("NFD")
       .replace(
         /[\u0300-\u036f]/g,
@@ -298,7 +445,9 @@ function gerarCodigoIndicacao(
 
 
   const emailParte =
-    String(email || "")
+    String(
+      email || ""
+    )
       .split("@")[0]
       .replace(
         /[^a-zA-Z0-9]/g,
@@ -367,7 +516,8 @@ function gerarCodigoIndicacao(
 
 
   for (
-    let i = lista.length - 1;
+    let i =
+      lista.length - 1;
     i > 0;
     i--
   ) {
@@ -377,6 +527,7 @@ function gerarCodigoIndicacao(
         Math.random() *
         (i + 1)
       );
+
 
     [
       lista[i],
@@ -418,6 +569,48 @@ function gerarCodigoIndicacao(
 
 /*
 =========================================================
+  ATUALIZAR TOTAL DE PONTOS
+=========================================================
+*/
+
+function atualizarTotalPontos(
+  usuario
+) {
+
+  usuario.pontosQuiz =
+    Math.max(
+      0,
+      Number(
+        usuario.pontosQuiz || 0
+      )
+    );
+
+
+  usuario.pontosPatrocinados =
+    Math.max(
+      0,
+      Number(
+        usuario.pontosPatrocinados || 0
+      )
+    );
+
+
+  usuario.pontos =
+    usuario.pontosQuiz +
+    usuario.pontosPatrocinados;
+
+
+  usuario.saldo =
+    usuario.pontos;
+
+
+  return usuario.pontos;
+
+}
+
+
+/*
+=========================================================
   ATUALIZAR INDICAÇÕES
 =========================================================
 */
@@ -429,9 +622,14 @@ function atualizarIndicacoesDoUsuario(
   let bonusPago = false;
 
 
-  if (!usuario.indicacoes) {
+  if (
+    !Array.isArray(
+      usuario.indicacoes
+    )
+  ) {
 
-    usuario.indicacoes = [];
+    usuario.indicacoes =
+      [];
 
   }
 
@@ -460,22 +658,12 @@ function atualizarIndicacoesDoUsuario(
         );
 
 
-      /*
-       * A indicação acompanha no máximo
-       * 300 pontos.
-       */
-
       indicacao.pontos =
         Math.min(
           pontosIndicada,
           300
         );
 
-
-      /*
-       * Abaixo de 300 pontos:
-       * não paga bônus.
-       */
 
       if (
         pontosIndicada < 300 &&
@@ -490,26 +678,25 @@ function atualizarIndicacoesDoUsuario(
       }
 
 
-      /*
-       * Ao atingir 300 pontos:
-       * paga exatamente 50 pontos uma única vez.
-       */
-
       if (
         pontosIndicada >= 300 &&
         !indicacao.bonusPago
       ) {
 
-        usuario.pontos =
+        /*
+         * Bônus da indicação:
+         * 50 pontos.
+         */
+
+        usuario.pontosQuiz =
           Number(
-            usuario.pontos || 0
+            usuario.pontosQuiz || 0
           ) + 50;
 
 
-        usuario.saldo =
-          Number(
-            usuario.saldo || 0
-          ) + 50;
+        atualizarTotalPontos(
+          usuario
+        );
 
 
         indicacao.pontos =
@@ -529,10 +716,12 @@ function atualizarIndicacoesDoUsuario(
 
 
         indicacao.dataConclusao =
-          new Date().toISOString();
+          new Date()
+            .toISOString();
 
 
-        bonusPago = true;
+        bonusPago =
+          true;
 
       }
 
@@ -553,7 +742,9 @@ function atualizarIndicacoesDoUsuario(
 =========================================================
 */
 
-function encontrarUsuario(dados) {
+function encontrarUsuario(
+  dados
+) {
 
   const id =
     String(
@@ -577,9 +768,13 @@ function encontrarUsuario(dados) {
     const porId =
       usuarios.find(
         usuario =>
-          usuario.idJogador === id ||
-          String(usuario.id) === id
+          usuario.idJogador ===
+            id ||
+          String(
+            usuario.id
+          ) === id
       );
+
 
     if (porId) {
 
@@ -594,7 +789,8 @@ function encontrarUsuario(dados) {
 
     return usuarios.find(
       usuario =>
-        usuario.email === email
+        usuario.email ===
+        email
     );
 
   }
@@ -618,7 +814,10 @@ function enviarArquivo(
 
   fs.readFile(
     arquivo,
-    (erro, dados) => {
+    (
+      erro,
+      dados
+    ) => {
 
       if (erro) {
 
@@ -630,9 +829,11 @@ function enviarArquivo(
           }
         );
 
+
         res.end(
           "Página não encontrada."
         );
+
 
         return;
 
@@ -648,16 +849,56 @@ function enviarArquivo(
       res.writeHead(
         200,
         {
+
           "Content-Type":
-            tiposArquivo[extensao] ||
+            tiposArquivo[
+              extensao
+            ] ||
             "application/octet-stream"
+
         }
       );
 
 
-      res.end(dados);
+      res.end(
+        dados
+      );
 
     }
+  );
+
+}
+
+
+/*
+=========================================================
+  AUTENTICAÇÃO DO ADMINISTRADOR
+=========================================================
+*/
+
+function verificarAdministrador(
+  req
+) {
+
+  if (!ADMIN_KEY) {
+
+    return false;
+
+  }
+
+
+  const chave =
+    String(
+      req.headers[
+        "x-admin-key"
+      ] ||
+      ""
+    ).trim();
+
+
+  return (
+    chave !== "" &&
+    chave === ADMIN_KEY
   );
 
 }
@@ -679,7 +920,7 @@ const servidor =
 
       /*
       ===================================================
-        CORS OPTIONS
+        OPTIONS / CORS
       ===================================================
       */
 
@@ -691,6 +932,7 @@ const servidor =
         res.writeHead(
           204,
           {
+
             "Access-Control-Allow-Origin":
               "*",
 
@@ -698,11 +940,14 @@ const servidor =
               "GET,POST,OPTIONS",
 
             "Access-Control-Allow-Headers":
-              "Content-Type"
+              "Content-Type, X-Admin-Key"
+
           }
         );
 
+
         res.end();
+
 
         return;
 
@@ -735,7 +980,9 @@ const servidor =
         try {
 
           const dados =
-            await receberDados(req);
+            await receberDados(
+              req
+            );
 
 
           const nome =
@@ -764,10 +1011,6 @@ const servidor =
             );
 
 
-          /*
-           * Código de indicação é opcional.
-           */
-
           const codigoRecebido =
             String(
               dados.codigo || ""
@@ -792,6 +1035,7 @@ const servidor =
               }
             );
 
+
             return;
 
           }
@@ -809,6 +1053,7 @@ const servidor =
                   "A senha deve ter pelo menos 6 caracteres."
               }
             );
+
 
             return;
 
@@ -834,15 +1079,19 @@ const servidor =
               }
             );
 
+
             return;
 
           }
 
 
-          let indicador = null;
+          let indicador =
+            null;
 
 
-          if (codigoRecebido) {
+          if (
+            codigoRecebido
+          ) {
 
             indicador =
               usuarios.find(
@@ -862,6 +1111,7 @@ const servidor =
                     "Código de indicação inválido."
                 }
               );
+
 
               return;
 
@@ -907,10 +1157,26 @@ const servidor =
                 ? indicador.id
                 : null,
 
-            indicacoes: [],
+            indicacoes:
+              [],
 
             plano:
               "GRATUITO",
+
+            /*
+             * Pontos separados no banco.
+             */
+
+            pontosQuiz:
+              0,
+
+            pontosPatrocinados:
+              0,
+
+            /*
+             * Pontos continua sendo
+             * o total mostrado ao jogador.
+             */
 
             pontos:
               0,
@@ -931,15 +1197,19 @@ const servidor =
               0,
 
             dataSaques:
-              new Date().toDateString(),
+              new Date()
+                .toDateString(),
 
-            historicoSaques: [],
+            historicoSaques:
+              [],
 
             criadoEm:
-              new Date().toISOString(),
+              new Date()
+                .toISOString(),
 
             ultimoLogin:
-              new Date().toISOString(),
+              new Date()
+                .toISOString(),
 
             ativo:
               true
@@ -954,7 +1224,7 @@ const servidor =
 
           /*
           -----------------------------------------------
-            REGISTRA INDICAÇÃO
+            INDICAÇÃO
           -----------------------------------------------
           */
 
@@ -999,7 +1269,8 @@ const servidor =
                 "EM ANDAMENTO",
 
               data:
-                new Date().toISOString()
+                new Date()
+                  .toISOString()
 
             });
 
@@ -1071,6 +1342,7 @@ const servidor =
 
         }
 
+
         return;
 
       }
@@ -1091,7 +1363,9 @@ const servidor =
         try {
 
           const dados =
-            await receberDados(req);
+            await receberDados(
+              req
+            );
 
 
           const email =
@@ -1111,8 +1385,10 @@ const servidor =
           const usuario =
             usuarios.find(
               item =>
-                item.email === email &&
-                item.senha === senha
+                item.email ===
+                  email &&
+                item.senha ===
+                  senha
             );
 
 
@@ -1127,13 +1403,20 @@ const servidor =
               }
             );
 
+
             return;
 
           }
 
 
+          atualizarTotalPontos(
+            usuario
+          );
+
+
           usuario.ultimoLogin =
-            new Date().toISOString();
+            new Date()
+              .toISOString();
 
 
           usuario.ativo =
@@ -1141,6 +1424,11 @@ const servidor =
 
 
           atualizarIndicacoesDoUsuario(
+            usuario
+          );
+
+
+          atualizarTotalPontos(
             usuario
           );
 
@@ -1219,6 +1507,7 @@ const servidor =
 
         }
 
+
         return;
 
       }
@@ -1226,7 +1515,7 @@ const servidor =
 
       /*
       ===================================================
-        SAIR
+        LOGOUT
       ===================================================
       */
 
@@ -1239,7 +1528,9 @@ const servidor =
         try {
 
           const dados =
-            await receberDados(req);
+            await receberDados(
+              req
+            );
 
 
           const usuario =
@@ -1254,7 +1545,8 @@ const servidor =
               false;
 
             usuario.ultimoLogout =
-              new Date().toISOString();
+              new Date()
+                .toISOString();
 
             salvarBanco();
 
@@ -1289,6 +1581,7 @@ const servidor =
 
         }
 
+
         return;
 
       }
@@ -1309,7 +1602,9 @@ const servidor =
         try {
 
           const dados =
-            await receberDados(req);
+            await receberDados(
+              req
+            );
 
 
           const usuario =
@@ -1329,6 +1624,7 @@ const servidor =
               }
             );
 
+
             return;
 
           }
@@ -1339,8 +1635,19 @@ const servidor =
           );
 
 
+          atualizarTotalPontos(
+            usuario
+          );
+
+
           salvarBanco();
 
+
+          /*
+           * IMPORTANTE:
+           * não enviamos pontosQuiz e
+           * pontosPatrocinados ao jogador.
+           */
 
           responder(
             res,
@@ -1400,6 +1707,7 @@ const servidor =
 
         }
 
+
         return;
 
       }
@@ -1420,7 +1728,9 @@ const servidor =
         try {
 
           const dados =
-            await receberDados(req);
+            await receberDados(
+              req
+            );
 
 
           const usuario =
@@ -1439,6 +1749,7 @@ const servidor =
                   "Jogador não encontrado."
               }
             );
+
 
             return;
 
@@ -1481,6 +1792,7 @@ const servidor =
               }
             );
 
+
             return;
 
           }
@@ -1500,6 +1812,7 @@ const servidor =
               }
             );
 
+
             return;
 
           }
@@ -1518,6 +1831,7 @@ const servidor =
                   "Informe o e-mail do PayPal."
               }
             );
+
 
             return;
 
@@ -1591,6 +1905,7 @@ const servidor =
 
         }
 
+
         return;
 
       }
@@ -1611,7 +1926,9 @@ const servidor =
         try {
 
           const dados =
-            await receberDados(req);
+            await receberDados(
+              req
+            );
 
 
           const usuario =
@@ -1631,12 +1948,18 @@ const servidor =
               }
             );
 
+
             return;
 
           }
 
 
           atualizarIndicacoesDoUsuario(
+            usuario
+          );
+
+
+          atualizarTotalPontos(
             usuario
           );
 
@@ -1684,6 +2007,7 @@ const servidor =
 
         }
 
+
         return;
 
       }
@@ -1691,7 +2015,16 @@ const servidor =
 
       /*
       ===================================================
-        PONTUAÇÃO
+        PONTUAÇÃO DO QUIZ
+      ===================================================
+
+        Esta continua sendo a rota usada pelo jogo.
+
+        O valor enviado passa a ser registrado em
+        pontosQuiz.
+
+        O jogador continua recebendo apenas o total
+        em "pontos".
       ===================================================
       */
 
@@ -1704,7 +2037,9 @@ const servidor =
         try {
 
           const dados =
-            await receberDados(req);
+            await receberDados(
+              req
+            );
 
 
           const usuario =
@@ -1730,34 +2065,50 @@ const servidor =
               }
             );
 
+
             return;
 
           }
 
 
           if (
-            Number.isFinite(
+            !Number.isFinite(
               pontosRecebidos
-            ) &&
-            pontosRecebidos >= 0
+            ) ||
+            pontosRecebidos < 0
           ) {
 
-            usuario.pontos =
-              pontosRecebidos;
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Pontuação inválida."
+              }
+            );
+
+
+            return;
 
           }
 
 
-          usuario.saldo =
-            usuario.pontos;
+          /*
+           * O jogo trabalha com pontos do Quiz.
+           */
+
+          usuario.pontosQuiz =
+            pontosRecebidos;
+
+
+          atualizarTotalPontos(
+            usuario
+          );
 
 
           /*
           =================================================
             INDICAÇÃO
-
-            O bônus de 50 pontos somente é liberado
-            quando o jogador indicado atingir 300 pontos.
           =================================================
           */
 
@@ -1798,20 +2149,20 @@ const servidor =
               if (indicacao) {
 
                 if (
-                  usuario.pontos >= 300 &&
+                  usuario.pontos >=
+                    300 &&
                   !indicacao.bonusPago
                 ) {
 
-                  indicador.pontos =
+                  indicador.pontosQuiz =
                     Number(
-                      indicador.pontos || 0
+                      indicador.pontosQuiz || 0
                     ) + 50;
 
 
-                  indicador.saldo =
-                    Number(
-                      indicador.saldo || 0
-                    ) + 50;
+                  atualizarTotalPontos(
+                    indicador
+                  );
 
 
                   indicacao.pontos =
@@ -1831,7 +2182,8 @@ const servidor =
 
 
                   indicacao.dataConclusao =
-                    new Date().toISOString();
+                    new Date()
+                      .toISOString();
 
                 }
 
@@ -1884,6 +2236,12 @@ const servidor =
 
         } catch (erro) {
 
+          console.log(
+            "Erro na pontuação:",
+            erro
+          );
+
+
           responder(
             res,
             400,
@@ -1895,6 +2253,142 @@ const servidor =
 
         }
 
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        PONTOS PATROCINADOS
+      ===================================================
+
+        Esta rota é separada da pontuação do Quiz.
+
+        Os pontos continuam aparecendo para o jogador
+        apenas como TOTAL.
+
+        A separação fica disponível no ADMIN.
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/pontuacao-patrocinado" &&
+        req.method === "POST"
+      ) {
+
+        try {
+
+          const dados =
+            await receberDados(
+              req
+            );
+
+
+          const usuario =
+            encontrarUsuario(
+              dados
+            );
+
+
+          const pontosRecebidos =
+            Number(
+              dados.pontos || 0
+            );
+
+
+          if (!usuario) {
+
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Usuário não encontrado."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          if (
+            !Number.isFinite(
+              pontosRecebidos
+            ) ||
+            pontosRecebidos < 0
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Pontuação patrocinada inválida."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          usuario.pontosPatrocinados +=
+            pontosRecebidos;
+
+
+          atualizarTotalPontos(
+            usuario
+          );
+
+
+          salvarBanco();
+
+
+          responder(
+            res,
+            200,
+            {
+
+              mensagem:
+                "Pontos patrocinados adicionados.",
+
+              idJogador:
+                usuario.idJogador,
+
+              /*
+               * Apenas total para o jogador.
+               */
+
+              pontos:
+                usuario.pontos,
+
+              saldo:
+                usuario.saldo
+
+            }
+          );
+
+
+        } catch (erro) {
+
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível adicionar os pontos patrocinados."
+            }
+          );
+
+        }
+
+
         return;
 
       }
@@ -1903,11 +2397,6 @@ const servidor =
       /*
       ===================================================
         REGRAS DE SAQUE
-      ===================================================
-
-        2.000 pontos = R$ 1,00
-        6.000 pontos = R$ 5,00
-        11.000 pontos = R$ 10,00
       ===================================================
       */
 
@@ -1962,7 +2451,9 @@ const servidor =
         try {
 
           const dados =
-            await receberDados(req);
+            await receberDados(
+              req
+            );
 
 
           const usuario =
@@ -2002,15 +2493,11 @@ const servidor =
               }
             );
 
+
             return;
 
           }
 
-
-          /*
-           * SOMENTE OS TRÊS VALORES
-           * PODEM SER SOLICITADOS.
-           */
 
           const valorJogador =
             calcularSaque(
@@ -2031,6 +2518,7 @@ const servidor =
               }
             );
 
+
             return;
 
           }
@@ -2050,6 +2538,7 @@ const servidor =
               }
             );
 
+
             return;
 
           }
@@ -2058,20 +2547,6 @@ const servidor =
           /*
           =================================================
             30% DA PLATAFORMA
-          =================================================
-
-            O jogador recebe o valor correspondente
-            à tabela.
-
-            Os 30% são registrados separadamente
-            como participação da plataforma.
-
-            Exemplo:
-
-            Saque jogador: R$ 10,00
-            Plataforma 30%: R$ 3,00
-            Custo total: R$ 13,00
-
           =================================================
           */
 
@@ -2099,7 +2574,7 @@ const servidor =
 
           /*
           =================================================
-            DESTINO DO PAGAMENTO
+            DESTINO
           =================================================
           */
 
@@ -2145,6 +2620,7 @@ const servidor =
               }
             );
 
+
             return;
 
           }
@@ -2161,6 +2637,7 @@ const servidor =
               }
             );
 
+
             return;
 
           }
@@ -2173,7 +2650,8 @@ const servidor =
           */
 
           const hoje =
-            new Date().toDateString();
+            new Date()
+              .toDateString();
 
 
           if (
@@ -2191,7 +2669,8 @@ const servidor =
 
 
           if (
-            usuario.saquesHoje >= 2
+            usuario.saquesHoje >=
+            2
           ) {
 
             responder(
@@ -2203,6 +2682,7 @@ const servidor =
               }
             );
 
+
             return;
 
           }
@@ -2210,16 +2690,71 @@ const servidor =
 
           /*
           =================================================
-            CRIA SOLICITAÇÃO
+            VERIFICAR SAQUES PENDENTES
           =================================================
 
-            IMPORTANTE:
+            Impede que o mesmo jogador tente solicitar
+            várias vezes usando os mesmos pontos antes
+            da análise administrativa.
+          =================================================
+          */
 
-            O saque nasce como PENDENTE.
+          const pendentes =
+            saques.filter(
+              saque =>
+                saque.usuarioId ===
+                  usuario.id &&
+                saque.status ===
+                  "PENDENTE"
+            );
 
-            Assim você pode verificar no painel
-            administrativo se o jogador é elegível
-            antes do pagamento.
+
+          const pontosPendentes =
+            pendentes.reduce(
+              (
+                total,
+                saque
+              ) =>
+                total +
+                Number(
+                  saque.pontos || 0
+                ),
+              0
+            );
+
+
+          if (
+            usuario.pontos -
+              pontosPendentes <
+            quantidade
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Você possui pontos comprometidos em uma solicitação de saque pendente."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          /*
+          =================================================
+            CRIAR SOLICITAÇÃO
+          =================================================
+
+            ATENÇÃO:
+
+            Os pontos NÃO são retirados agora.
+
+            Eles somente serão retirados quando
+            o administrador APROVAR o saque.
           =================================================
           */
 
@@ -2227,7 +2762,11 @@ const servidor =
 
             id:
               "SAC" +
-              Date.now(),
+              Date.now() +
+              Math.floor(
+                Math.random() *
+                1000
+              ),
 
             usuarioId:
               usuario.id,
@@ -2269,7 +2808,14 @@ const servidor =
               "AGUARDANDO ANÁLISE",
 
             data:
-              new Date().toISOString()
+              new Date()
+                .toISOString(),
+
+            analisadoEm:
+              null,
+
+            motivoRecusa:
+              ""
 
           };
 
@@ -2277,22 +2823,6 @@ const servidor =
           saques.push(
             saque
           );
-
-
-          /*
-          =================================================
-            RETIRA OS PONTOS DA CONTA
-
-            O pedido continua PENDENTE no painel.
-          =================================================
-          */
-
-          usuario.pontos -=
-            quantidade;
-
-
-          usuario.saldo =
-            usuario.pontos;
 
 
           usuario.saquesHoje++;
@@ -2360,6 +2890,11 @@ const servidor =
 
               },
 
+              /*
+               * Como o saque ainda está pendente,
+               * o saldo do jogador permanece igual.
+               */
+
               saldo:
                 usuario.saldo
 
@@ -2386,6 +2921,7 @@ const servidor =
 
         }
 
+
         return;
 
       }
@@ -2393,7 +2929,7 @@ const servidor =
 
       /*
       ===================================================
-        HISTÓRICO DE SAQUES
+        HISTÓRICO DE SAQUES DO JOGADOR
       ===================================================
       */
 
@@ -2406,7 +2942,9 @@ const servidor =
         try {
 
           const dados =
-            await receberDados(req);
+            await receberDados(
+              req
+            );
 
 
           const usuario =
@@ -2425,6 +2963,7 @@ const servidor =
                   "Jogador não encontrado."
               }
             );
+
 
             return;
 
@@ -2467,6 +3006,7 @@ const servidor =
 
         }
 
+
         return;
 
       }
@@ -2487,7 +3027,9 @@ const servidor =
         try {
 
           const dados =
-            await receberDados(req);
+            await receberDados(
+              req
+            );
 
 
           const email =
@@ -2524,6 +3066,7 @@ const servidor =
               }
             );
 
+
             return;
 
           }
@@ -2545,7 +3088,8 @@ const servidor =
               mensagem,
 
             data:
-              new Date().toISOString(),
+              new Date()
+                .toISOString(),
 
             status:
               "NOVA"
@@ -2578,6 +3122,999 @@ const servidor =
           );
 
         }
+
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        ADMIN
+        LISTAR JOGADORES
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/admin/jogadores" &&
+        req.method === "GET"
+      ) {
+
+        if (
+          !verificarAdministrador(
+            req
+          )
+        ) {
+
+          responder(
+            res,
+            401,
+            {
+              erro:
+                "Acesso administrativo não autorizado."
+            }
+          );
+
+
+          return;
+
+        }
+
+
+        const lista =
+          usuarios.map(
+            usuario => {
+
+              atualizarTotalPontos(
+                usuario
+              );
+
+
+              return {
+
+                id:
+                  usuario.id,
+
+                idJogador:
+                  usuario.idJogador,
+
+                nome:
+                  usuario.nome,
+
+                email:
+                  usuario.email,
+
+                plano:
+                  usuario.plano,
+
+                pontosQuiz:
+                  usuario.pontosQuiz,
+
+                pontosPatrocinados:
+                  usuario.pontosPatrocinados,
+
+                pontosTotal:
+                  usuario.pontos,
+
+                saldo:
+                  usuario.saldo,
+
+                codigoIndicacao:
+                  usuario.codigoIndicacao,
+
+                codigoUsado:
+                  usuario.codigoUsado,
+
+                indicadoPorId:
+                  usuario.indicadoPorId,
+
+                ativo:
+                  usuario.ativo,
+
+                criadoEm:
+                  usuario.criadoEm,
+
+                ultimoLogin:
+                  usuario.ultimoLogin,
+
+                saquesHoje:
+                  usuario.saquesHoje || 0
+
+              };
+
+            }
+          );
+
+
+        salvarBanco();
+
+
+        responder(
+          res,
+          200,
+          {
+
+            total:
+              lista.length,
+
+            jogadores:
+              lista
+
+          }
+        );
+
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        ADMIN
+        RESUMO
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/admin/resumo" &&
+        req.method === "GET"
+      ) {
+
+        if (
+          !verificarAdministrador(
+            req
+          )
+        ) {
+
+          responder(
+            res,
+            401,
+            {
+              erro:
+                "Acesso administrativo não autorizado."
+            }
+          );
+
+
+          return;
+
+        }
+
+
+        let pontosQuizTotal =
+          0;
+
+
+        let pontosPatrocinadosTotal =
+          0;
+
+
+        usuarios.forEach(
+          usuario => {
+
+            atualizarTotalPontos(
+              usuario
+            );
+
+
+            pontosQuizTotal +=
+              Number(
+                usuario.pontosQuiz ||
+                0
+              );
+
+
+            pontosPatrocinadosTotal +=
+              Number(
+                usuario.pontosPatrocinados ||
+                0
+              );
+
+          }
+        );
+
+
+        const pendentes =
+          saques.filter(
+            saque =>
+              saque.status ===
+              "PENDENTE"
+          ).length;
+
+
+        const aprovados =
+          saques.filter(
+            saque =>
+              saque.status ===
+              "APROVADO"
+          ).length;
+
+
+        const recusados =
+          saques.filter(
+            saque =>
+              saque.status ===
+              "RECUSADO"
+          ).length;
+
+
+        salvarBanco();
+
+
+        responder(
+          res,
+          200,
+          {
+
+            usuarios:
+              usuarios.length,
+
+            jogadoresAtivos:
+              usuarios.filter(
+                usuario =>
+                  usuario.ativo ===
+                  true
+              ).length,
+
+            pontosQuiz:
+              pontosQuizTotal,
+
+            pontosPatrocinados:
+              pontosPatrocinadosTotal,
+
+            pontosTotal:
+              pontosQuizTotal +
+              pontosPatrocinadosTotal,
+
+            saques:
+              saques.length,
+
+            saquesPendentes:
+              pendentes,
+
+            saquesAprovados:
+              aprovados,
+
+            saquesRecusados:
+              recusados,
+
+            mensagens:
+              mensagens.length
+
+          }
+        );
+
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        ADMIN
+        LISTAR SAQUES
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/admin/saques" &&
+        req.method === "GET"
+      ) {
+
+        if (
+          !verificarAdministrador(
+            req
+          )
+        ) {
+
+          responder(
+            res,
+            401,
+            {
+              erro:
+                "Acesso administrativo não autorizado."
+            }
+          );
+
+
+          return;
+
+        }
+
+
+        responder(
+          res,
+          200,
+          {
+
+            total:
+              saques.length,
+
+            pendentes:
+              saques.filter(
+                saque =>
+                  saque.status ===
+                  "PENDENTE"
+              ),
+
+            aprovados:
+              saques.filter(
+                saque =>
+                  saque.status ===
+                  "APROVADO"
+              ),
+
+            recusados:
+              saques.filter(
+                saque =>
+                  saque.status ===
+                  "RECUSADO"
+              ),
+
+            saques:
+              saques
+
+          }
+        );
+
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        ADMIN
+        APROVAR SAQUE
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/admin/saque/aprovar" &&
+        req.method === "POST"
+      ) {
+
+        if (
+          !verificarAdministrador(
+            req
+          )
+        ) {
+
+          responder(
+            res,
+            401,
+            {
+              erro:
+                "Acesso administrativo não autorizado."
+            }
+          );
+
+
+          return;
+
+        }
+
+
+        try {
+
+          const dados =
+            await receberDados(
+              req
+            );
+
+
+          const saque =
+            saques.find(
+              item =>
+                item.id ===
+                String(
+                  dados.idSaque ||
+                  dados.id ||
+                  ""
+                ).trim()
+            );
+
+
+          if (!saque) {
+
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Saque não encontrado."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          if (
+            saque.status !==
+            "PENDENTE"
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Este saque já foi analisado."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          const usuario =
+            usuarios.find(
+              item =>
+                item.id ===
+                saque.usuarioId
+            );
+
+
+          if (!usuario) {
+
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Jogador do saque não encontrado."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          atualizarTotalPontos(
+            usuario
+          );
+
+
+          /*
+          =================================================
+            AGORA SIM OS PONTOS SÃO DESCONTADOS.
+          =================================================
+          */
+
+          if (
+            usuario.pontos <
+            Number(
+              saque.pontos
+            )
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "O jogador não possui mais pontos suficientes para aprovar este saque."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          /*
+           * Desconto prioriza os pontos do Quiz.
+           * Depois desconta dos patrocinados.
+           */
+
+          let restante =
+            Number(
+              saque.pontos
+            );
+
+
+          const descontoQuiz =
+            Math.min(
+              Number(
+                usuario.pontosQuiz ||
+                0
+              ),
+              restante
+            );
+
+
+          usuario.pontosQuiz -=
+            descontoQuiz;
+
+
+          restante -=
+            descontoQuiz;
+
+
+          if (
+            restante > 0
+          ) {
+
+            const descontoPatrocinado =
+              Math.min(
+                Number(
+                  usuario.pontosPatrocinados ||
+                  0
+                ),
+                restante
+              );
+
+
+            usuario.pontosPatrocinados -=
+              descontoPatrocinado;
+
+
+            restante -=
+              descontoPatrocinado;
+
+          }
+
+
+          if (
+            restante > 0
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Não foi possível descontar os pontos do saque."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          atualizarTotalPontos(
+            usuario
+          );
+
+
+          saque.status =
+            "APROVADO";
+
+
+          saque.elegibilidade =
+            "APROVADO";
+
+
+          saque.analisadoEm =
+            new Date()
+              .toISOString();
+
+
+          saque.aprovadoEm =
+            new Date()
+              .toISOString();
+
+
+          saque.pontosDescontados =
+            true;
+
+
+          salvarBanco();
+
+
+          responder(
+            res,
+            200,
+            {
+
+              mensagem:
+                "Saque aprovado com sucesso.",
+
+              saque:
+                saque,
+
+              jogador: {
+
+                idJogador:
+                  usuario.idJogador,
+
+                pontosQuiz:
+                  usuario.pontosQuiz,
+
+                pontosPatrocinados:
+                  usuario.pontosPatrocinados,
+
+                pontos:
+                  usuario.pontos,
+
+                saldo:
+                  usuario.saldo
+
+              }
+
+            }
+          );
+
+
+        } catch (erro) {
+
+          console.log(
+            "Erro ao aprovar saque:",
+            erro
+          );
+
+
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível aprovar o saque."
+            }
+          );
+
+        }
+
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        ADMIN
+        RECUSAR SAQUE
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/admin/saque/recusar" &&
+        req.method === "POST"
+      ) {
+
+        if (
+          !verificarAdministrador(
+            req
+          )
+        ) {
+
+          responder(
+            res,
+            401,
+            {
+              erro:
+                "Acesso administrativo não autorizado."
+            }
+          );
+
+
+          return;
+
+        }
+
+
+        try {
+
+          const dados =
+            await receberDados(
+              req
+            );
+
+
+          const saque =
+            saques.find(
+              item =>
+                item.id ===
+                String(
+                  dados.idSaque ||
+                  dados.id ||
+                  ""
+                ).trim()
+            );
+
+
+          if (!saque) {
+
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Saque não encontrado."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          if (
+            saque.status !==
+            "PENDENTE"
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Este saque já foi analisado."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          /*
+          =================================================
+            RECUSADO:
+            NÃO DESCONTA PONTOS.
+          =================================================
+          */
+
+          saque.status =
+            "RECUSADO";
+
+
+          saque.elegibilidade =
+            "RECUSADO";
+
+
+          saque.motivoRecusa =
+            String(
+              dados.motivo ||
+              "Solicitação recusada pelo administrador."
+            ).trim();
+
+
+          saque.analisadoEm =
+            new Date()
+              .toISOString();
+
+
+          saque.recusadoEm =
+            new Date()
+              .toISOString();
+
+
+          saque.pontosDescontados =
+            false;
+
+
+          salvarBanco();
+
+
+          responder(
+            res,
+            200,
+            {
+
+              mensagem:
+                "Saque recusado. Os pontos não foram descontados.",
+
+              saque:
+                saque
+
+            }
+          );
+
+
+        } catch (erro) {
+
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível recusar o saque."
+            }
+          );
+
+        }
+
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        ADMIN
+        MENSAGENS DO SAC
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/admin/mensagens" &&
+        req.method === "GET"
+      ) {
+
+        if (
+          !verificarAdministrador(
+            req
+          )
+        ) {
+
+          responder(
+            res,
+            401,
+            {
+              erro:
+                "Acesso administrativo não autorizado."
+            }
+          );
+
+
+          return;
+
+        }
+
+
+        responder(
+          res,
+          200,
+          {
+
+            total:
+              mensagens.length,
+
+            novas:
+              mensagens.filter(
+                mensagem =>
+                  mensagem.status ===
+                  "NOVA"
+              ).length,
+
+            mensagens:
+              mensagens
+
+          }
+        );
+
+
+        return;
+
+      }
+
+
+      /*
+      ===================================================
+        ADMIN
+        MARCAR MENSAGEM COMO LIDA
+      ===================================================
+      */
+
+      if (
+        caminho ===
+          "/api/admin/mensagem/lida" &&
+        req.method === "POST"
+      ) {
+
+        if (
+          !verificarAdministrador(
+            req
+          )
+        ) {
+
+          responder(
+            res,
+            401,
+            {
+              erro:
+                "Acesso administrativo não autorizado."
+            }
+          );
+
+
+          return;
+
+        }
+
+
+        try {
+
+          const dados =
+            await receberDados(
+              req
+            );
+
+
+          const mensagem =
+            mensagens.find(
+              item =>
+                item.id ===
+                String(
+                  dados.idMensagem ||
+                  dados.id ||
+                  ""
+                ).trim()
+            );
+
+
+          if (!mensagem) {
+
+            responder(
+              res,
+              404,
+              {
+                erro:
+                  "Mensagem não encontrada."
+              }
+            );
+
+
+            return;
+
+          }
+
+
+          mensagem.status =
+            "LIDA";
+
+
+          mensagem.lidaEm =
+            new Date()
+              .toISOString();
+
+
+          salvarBanco();
+
+
+          responder(
+            res,
+            200,
+            {
+
+              mensagem:
+                "Mensagem marcada como lida.",
+
+              dados:
+                mensagem
+
+            }
+          );
+
+
+        } catch (erro) {
+
+          responder(
+            res,
+            400,
+            {
+              erro:
+                "Não foi possível atualizar a mensagem."
+            }
+          );
+
+        }
+
 
         return;
 
@@ -2613,11 +4150,19 @@ const servidor =
             jogadoresAtivos:
               usuarios.filter(
                 usuario =>
-                  usuario.ativo === true
+                  usuario.ativo ===
+                  true
               ).length,
 
             saques:
               saques.length,
+
+            saquesPendentes:
+              saques.filter(
+                saque =>
+                  saque.status ===
+                  "PENDENTE"
+              ).length,
 
             mensagens:
               mensagens.length,
@@ -2641,6 +4186,7 @@ const servidor =
 
           }
         );
+
 
         return;
 
@@ -2708,9 +4254,11 @@ const servidor =
           }
         );
 
+
         res.end(
           "Acesso negado."
         );
+
 
         return;
 
