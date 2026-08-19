@@ -151,12 +151,6 @@ usuarios.forEach(
       )
     ) {
 
-      /*
-       * Jogadores antigos:
-       * o valor antigo de pontos é considerado
-       * como pontos do Quiz.
-       */
-
       usuario.pontosQuiz =
         Number(
           usuario.pontos || 0
@@ -196,11 +190,6 @@ usuarios.forEach(
         )
       );
 
-
-    /*
-     * O campo pontos continua sendo
-     * o total que o jogador vê.
-     */
 
     usuario.pontos =
       usuario.pontosQuiz +
@@ -683,11 +672,6 @@ function atualizarIndicacoesDoUsuario(
         !indicacao.bonusPago
       ) {
 
-        /*
-         * Bônus da indicação:
-         * 50 pontos.
-         */
-
         usuario.pontosQuiz =
           Number(
             usuario.pontosQuiz || 0
@@ -1163,20 +1147,11 @@ const servidor =
             plano:
               "GRATUITO",
 
-            /*
-             * Pontos separados no banco.
-             */
-
             pontosQuiz:
               0,
 
             pontosPatrocinados:
               0,
-
-            /*
-             * Pontos continua sendo
-             * o total mostrado ao jogador.
-             */
 
             pontos:
               0,
@@ -1643,12 +1618,6 @@ const servidor =
           salvarBanco();
 
 
-          /*
-           * IMPORTANTE:
-           * não enviamos pontosQuiz e
-           * pontosPatrocinados ao jogador.
-           */
-
           responder(
             res,
             200,
@@ -2017,15 +1986,6 @@ const servidor =
       ===================================================
         PONTUAÇÃO DO QUIZ
       ===================================================
-
-        Esta continua sendo a rota usada pelo jogo.
-
-        O valor enviado passa a ser registrado em
-        pontosQuiz.
-
-        O jogador continua recebendo apenas o total
-        em "pontos".
-      ===================================================
       */
 
       if (
@@ -2093,10 +2053,6 @@ const servidor =
           }
 
 
-          /*
-           * O jogo trabalha com pontos do Quiz.
-           */
-
           usuario.pontosQuiz =
             pontosRecebidos;
 
@@ -2105,12 +2061,6 @@ const servidor =
             usuario
           );
 
-
-          /*
-          =================================================
-            INDICAÇÃO
-          =================================================
-          */
 
           if (
             usuario.indicadoPorId
@@ -2263,14 +2213,6 @@ const servidor =
       ===================================================
         PONTOS PATROCINADOS
       ===================================================
-
-        Esta rota é separada da pontuação do Quiz.
-
-        Os pontos continuam aparecendo para o jogador
-        apenas como TOTAL.
-
-        A separação fica disponível no ADMIN.
-      ===================================================
       */
 
       if (
@@ -2360,10 +2302,6 @@ const servidor =
 
               idJogador:
                 usuario.idJogador,
-
-              /*
-               * Apenas total para o jogador.
-               */
 
               pontos:
                 usuario.pontos,
@@ -2692,11 +2630,6 @@ const servidor =
           =================================================
             VERIFICAR SAQUES PENDENTES
           =================================================
-
-            Impede que o mesmo jogador tente solicitar
-            várias vezes usando os mesmos pontos antes
-            da análise administrativa.
-          =================================================
           */
 
           const pendentes =
@@ -2748,8 +2681,6 @@ const servidor =
           =================================================
             CRIAR SOLICITAÇÃO
           =================================================
-
-            ATENÇÃO:
 
             Os pontos NÃO são retirados agora.
 
@@ -2889,11 +2820,6 @@ const servidor =
                   saque.elegibilidade
 
               },
-
-              /*
-               * Como o saque ainda está pendente,
-               * o saldo do jogador permanece igual.
-               */
 
               saldo:
                 usuario.saldo
@@ -3590,12 +3516,6 @@ const servidor =
           );
 
 
-          /*
-          =================================================
-            AGORA SIM OS PONTOS SÃO DESCONTADOS.
-          =================================================
-          */
-
           if (
             usuario.pontos <
             Number(
@@ -3619,9 +3539,10 @@ const servidor =
 
 
           /*
-           * Desconto prioriza os pontos do Quiz.
-           * Depois desconta dos patrocinados.
-           */
+          =================================================
+            DESCONTO DOS PONTOS
+          =================================================
+          */
 
           let restante =
             Number(
@@ -3869,13 +3790,6 @@ const servidor =
 
           }
 
-
-          /*
-          =================================================
-            RECUSADO:
-            NÃO DESCONTA PONTOS.
-          =================================================
-          */
 
           saque.status =
             "RECUSADO";
