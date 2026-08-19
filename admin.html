@@ -8,430 +8,225 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>QuizUp - Painel Administrativo</title>
+  <title>QuizUp Admin</title>
 
   <style>
-
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
     }
 
     body {
+      margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #f3f4f6;
-      color: #222;
-      min-height: 100vh;
+      background: #f4f6f9;
+      color: #1f2937;
     }
 
-    .app {
-      width: 100%;
-      max-width: 1200px;
-      margin: auto;
-      min-height: 100vh;
+    button,
+    input,
+    textarea {
+      font: inherit;
     }
 
-    /* =========================
+    .oculto {
+      display: none !important;
+    }
+
+    /* ==============================
        LOGIN ADMIN
-       ========================= */
+    ============================== */
 
-    #telaLoginAdmin {
+    #telaLogin {
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
-
-      background:
-        linear-gradient(
-          135deg,
-          #312e81,
-          #4f46e5,
-          #7c3aed
-        );
+      background: linear-gradient(
+        135deg,
+        #111827,
+        #2563eb
+      );
     }
 
-    .login-box {
+    .login-card {
       width: 100%;
-      max-width: 420px;
-
+      max-width: 430px;
       background: white;
-      border-radius: 24px;
-      padding: 30px 24px;
-
-      box-shadow:
-        0 20px 50px rgba(0,0,0,.25);
-
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.25);
       text-align: center;
     }
 
-    .logo {
-      font-size: 55px;
-      margin-bottom: 8px;
-    }
-
-    .login-box h1 {
-      color: #4f46e5;
-      font-size: 30px;
+    .login-logo {
+      font-size: 48px;
       margin-bottom: 5px;
     }
 
-    .login-box p {
-      color: #666;
-      margin-bottom: 25px;
+    .login-card h1 {
+      margin: 0;
+      font-size: 28px;
     }
 
-    .campo {
-      width: 100%;
-      padding: 15px;
-
-      border: 1px solid #ddd;
-      border-radius: 12px;
-
-      font-size: 16px;
-      outline: none;
-
-      margin-bottom: 12px;
+    .login-card p {
+      color: #6b7280;
+      margin-top: 8px;
     }
 
-    .campo:focus {
-      border-color: #4f46e5;
-    }
-
-    .btn {
-      width: 100%;
-      border: none;
-      border-radius: 12px;
-
-      padding: 14px;
-
-      font-size: 15px;
+    .login-card label {
+      display: block;
+      text-align: left;
+      margin: 22px 0 7px;
       font-weight: bold;
+    }
 
-      cursor: pointer;
+    .login-card input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      outline: none;
+    }
 
-      background: #4f46e5;
+    .login-card input:focus {
+      border-color: #2563eb;
+    }
+
+    .btn-principal {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      border: 0;
+      border-radius: 10px;
+      background: #2563eb;
       color: white;
+      font-weight: bold;
+      cursor: pointer;
     }
 
-    .btn:hover {
-      opacity: .92;
+    .btn-principal:hover {
+      background: #1d4ed8;
     }
 
-    .btn:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-    }
-
-    .erro {
-      min-height: 22px;
+    #erroLogin {
+      margin-top: 15px;
       color: #dc2626;
-      font-size: 14px;
-      margin-bottom: 8px;
+      font-weight: bold;
     }
 
-    /* =========================
+    /* ==============================
        PAINEL
-       ========================= */
+    ============================== */
 
-    #painelAdmin {
-      display: none;
+    #painel {
+      min-height: 100vh;
     }
 
     .topo {
-      background:
-        linear-gradient(
-          135deg,
-          #312e81,
-          #4f46e5,
-          #7c3aed
-        );
-
+      background: #111827;
       color: white;
-      padding: 20px;
-    }
-
-    .topo-conteudo {
-      max-width: 1150px;
-      margin: auto;
-
+      padding: 18px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-
       gap: 15px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .topo h1 {
-      font-size: 25px;
+      margin: 0;
+      font-size: 22px;
     }
 
-    .topo p {
-      margin-top: 5px;
-      opacity: .9;
+    .topo span {
+      color: #d1d5db;
       font-size: 13px;
     }
 
     .btn-sair {
-      border: none;
-      background: rgba(255,255,255,.18);
+      border: 1px solid #6b7280;
+      background: transparent;
       color: white;
-
-      padding: 10px 15px;
-      border-radius: 10px;
-
-      font-weight: bold;
+      padding: 9px 14px;
+      border-radius: 8px;
       cursor: pointer;
     }
 
-    /* =========================
-       CONTEÚDO
-       ========================= */
-
-    .conteudo {
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      margin: auto;
       padding: 20px;
     }
 
-    /* =========================
-       CARDS
-       ========================= */
+    /* ==============================
+       CARDS RESUMO
+    ============================== */
 
-    .estatisticas {
+    .resumo {
       display: grid;
-
       grid-template-columns:
-        repeat(
-          auto-fit,
-          minmax(180px, 1fr)
-        );
-
+        repeat(auto-fit, minmax(180px, 1fr));
       gap: 15px;
-
-      margin-bottom: 20px;
-    }
-
-    .estatistica {
-      background: white;
-
-      border-radius: 16px;
-      padding: 20px;
-
-      box-shadow:
-        0 4px 15px rgba(0,0,0,.06);
-    }
-
-    .estatistica .icone {
-      font-size: 28px;
-      margin-bottom: 8px;
-    }
-
-    .estatistica .numero {
-      font-size: 27px;
-      font-weight: bold;
-      color: #4f46e5;
-    }
-
-    .estatistica .titulo {
-      margin-top: 4px;
-      color: #777;
-      font-size: 13px;
-    }
-
-    /* =========================
-       NAVEGAÇÃO
-       ========================= */
-
-    .abas {
-      display: flex;
-      gap: 8px;
-
-      overflow-x: auto;
-
-      margin-bottom: 18px;
-      padding-bottom: 4px;
-    }
-
-    .aba {
-      border: none;
-      background: white;
-
-      padding: 12px 16px;
-
-      border-radius: 12px;
-
-      font-weight: bold;
-      cursor: pointer;
-
-      white-space: nowrap;
-
-      color: #555;
-    }
-
-    .aba.ativa {
-      background: #4f46e5;
-      color: white;
-    }
-
-    /* =========================
-       SEÇÕES
-       ========================= */
-
-    .secao {
-      display: none;
-    }
-
-    .secao.ativa {
-      display: block;
+      margin-bottom: 25px;
     }
 
     .card {
       background: white;
-      border-radius: 18px;
+      border-radius: 14px;
       padding: 20px;
-
-      margin-bottom: 18px;
-
-      box-shadow:
-        0 4px 15px rgba(0,0,0,.06);
+      box-shadow: 0 3px 12px rgba(0,0,0,.07);
     }
 
-    .card h2 {
-      color: #4f46e5;
-      margin-bottom: 8px;
-      font-size: 21px;
-    }
-
-    .card-subtitulo {
-      color: #777;
+    .card .titulo {
+      color: #6b7280;
       font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .card .numero {
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    /* ==============================
+       SEÇÕES
+    ============================== */
+
+    .secao {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.07);
+    }
+
+    .secao h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .barra {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-bottom: 15px;
     }
 
-    /* =========================
-       SAQUES
-       ========================= */
-
-    .lista {
-      display: grid;
-      gap: 14px;
-    }
-
-    .saque {
-      border: 1px solid #e5e7eb;
-      border-radius: 15px;
-
-      padding: 16px;
-
-      background: #fff;
-    }
-
-    .saque-pendente {
-      border-left: 5px solid #f59e0b;
-    }
-
-    .saque-aprovado {
-      border-left: 5px solid #16a34a;
-    }
-
-    .saque-rejeitado {
-      border-left: 5px solid #dc2626;
-    }
-
-    .saque-topo {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      gap: 10px;
-
-      margin-bottom: 12px;
-    }
-
-    .saque-id {
-      font-size: 12px;
-      color: #777;
-      word-break: break-all;
-    }
-
-    .status {
-      display: inline-block;
-
-      padding: 6px 9px;
-
-      border-radius: 20px;
-
-      font-size: 11px;
-      font-weight: bold;
-    }
-
-    .status-pendente {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .status-aprovado {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .status-rejeitado {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .dados-saque {
-      display: grid;
-
-      grid-template-columns:
-        repeat(
-          auto-fit,
-          minmax(180px, 1fr)
-        );
-
-      gap: 10px;
-
-      margin-bottom: 14px;
-    }
-
-    .dado-info {
-      background: #f9fafb;
-      padding: 10px;
-      border-radius: 10px;
-    }
-
-    .dado-info small {
-      display: block;
-      color: #888;
-      font-size: 11px;
-      margin-bottom: 3px;
-    }
-
-    .dado-info strong {
-      word-break: break-word;
-    }
-
-    .valor-saque {
-      font-size: 25px;
-      font-weight: bold;
-      color: #16a34a;
-    }
-
-    .acoes {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .btn-acao {
-      border: none;
-
-      padding: 11px 14px;
-
-      border-radius: 10px;
-
-      font-weight: bold;
+    .btn {
+      border: 0;
+      padding: 10px 14px;
+      border-radius: 8px;
       cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-atualizar {
+      background: #2563eb;
+      color: white;
     }
 
     .btn-aprovar {
@@ -439,19 +234,19 @@
       color: white;
     }
 
-    .btn-rejeitar {
+    .btn-recusar {
       background: #dc2626;
       color: white;
     }
 
-    .btn-detalhes {
-      background: #e5e7eb;
-      color: #333;
+    .btn-lida {
+      background: #6b7280;
+      color: white;
     }
 
-    /* =========================
-       JOGADORES
-       ========================= */
+    /* ==============================
+       TABELAS
+    ============================== */
 
     .tabela-container {
       width: 100%;
@@ -461,197 +256,153 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 750px;
+      min-width: 850px;
     }
 
     th,
     td {
-      padding: 12px;
+      padding: 11px;
+      border-bottom: 1px solid #e5e7eb;
       text-align: left;
-      border-bottom: 1px solid #eee;
+      vertical-align: top;
       font-size: 13px;
     }
 
     th {
+      background: #f3f4f6;
+      font-weight: bold;
+    }
+
+    tr:hover td {
       background: #f9fafb;
-      color: #555;
     }
 
-    td {
-      color: #444;
-    }
-
-    .ativo {
-      color: #16a34a;
+    .status {
+      display: inline-block;
+      padding: 5px 8px;
+      border-radius: 20px;
+      font-size: 11px;
       font-weight: bold;
     }
 
-    .inativo {
-      color: #dc2626;
-      font-weight: bold;
+    .pendente {
+      background: #fef3c7;
+      color: #92400e;
     }
 
-    /* =========================
+    .aprovado {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .recusado {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .nova {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .lida {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    /* ==============================
        MENSAGENS
-       ========================= */
+    ============================== */
 
     .mensagem {
-      border: 1px solid #eee;
-      border-radius: 14px;
-
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
       padding: 15px;
       margin-bottom: 10px;
     }
 
-    .mensagem-nova {
-      border-left: 5px solid #4f46e5;
-    }
-
-    .mensagem-topo {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 8px;
+    .mensagem strong {
+      display: block;
+      margin-bottom: 5px;
     }
 
     .mensagem-texto {
       white-space: pre-wrap;
-      line-height: 1.5;
-      color: #555;
+      margin: 10px 0;
     }
 
-    /* =========================
-       MODAL
-       ========================= */
+    /* ==============================
+       AVISOS
+    ============================== */
 
-    .modal {
-      display: none;
-
+    #aviso {
       position: fixed;
-      z-index: 9999;
+      right: 20px;
+      bottom: 20px;
+      max-width: 350px;
+      padding: 14px 18px;
+      border-radius: 10px;
+      color: white;
+      background: #111827;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 8px 30px rgba(0,0,0,.2);
+    }
 
-      inset: 0;
-
-      background: rgba(0,0,0,.55);
-
-      align-items: center;
-      justify-content: center;
-
+    #carregando {
+      text-align: center;
       padding: 20px;
+      color: #6b7280;
     }
 
-    .modal.aberto {
-      display: flex;
-    }
+    /* ==============================
+       MOBILE
+    ============================== */
 
-    .modal-box {
-      width: 100%;
-      max-width: 500px;
+    @media (max-width: 700px) {
 
-      background: white;
-
-      border-radius: 18px;
-      padding: 22px;
-
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .modal-box h2 {
-      color: #4f46e5;
-      margin-bottom: 15px;
-    }
-
-    .modal-botoes {
-      display: flex;
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    .modal-botoes button {
-      flex: 1;
-    }
-
-    /* =========================
-       AVISO
-       ========================= */
-
-    .aviso {
-      padding: 14px;
-
-      border-radius: 12px;
-
-      background: #eff6ff;
-      color: #1e40af;
-
-      font-size: 13px;
-
-      margin-bottom: 15px;
-    }
-
-    .vazio {
-      text-align: center;
-      padding: 30px 15px;
-
-      color: #888;
-    }
-
-    .carregando {
-      text-align: center;
-      padding: 25px;
-      color: #777;
-    }
-
-    /* =========================
-       RESPONSIVO
-       ========================= */
-
-    @media (max-width: 600px) {
-
-      .topo-conteudo {
-        flex-direction: column;
-        align-items: stretch;
+      .topo {
+        align-items: flex-start;
       }
 
-      .btn-sair {
-        width: 100%;
+      .topo h1 {
+        font-size: 18px;
       }
 
-      .conteudo {
+      .container {
         padding: 12px;
+      }
+
+      .secao {
+        padding: 15px;
       }
 
       .card {
         padding: 15px;
       }
 
-      .acoes {
-        flex-direction: column;
+      .card .numero {
+        font-size: 22px;
       }
 
-      .btn-acao {
-        width: 100%;
+      .login-card {
+        padding: 24px;
       }
-
     }
-
   </style>
-
 </head>
 
 <body>
 
-<div class="app">
+  <!-- =====================================================
+       LOGIN
+  ====================================================== -->
 
-  <!-- =================================================
-       LOGIN DO ADMINISTRADOR
-       ================================================= -->
+  <section id="telaLogin">
 
-  <section id="telaLoginAdmin">
+    <div class="login-card">
 
-    <div class="login-box">
-
-      <div class="logo">
+      <div class="login-logo">
         🔐
       </div>
 
@@ -663,86 +414,73 @@
         Painel administrativo
       </p>
 
-      <input
-        type="email"
-        id="adminEmail"
-        class="campo"
-        placeholder="E-mail do administrador"
-        autocomplete="username"
-      >
+      <label for="chaveAdmin">
+        Chave administrativa
+      </label>
 
       <input
+        id="chaveAdmin"
         type="password"
-        id="adminSenha"
-        class="campo"
-        placeholder="Senha do administrador"
-        autocomplete="current-password"
+        placeholder="Digite sua chave administrativa"
+        autocomplete="off"
       >
-
-      <div
-        id="erroAdmin"
-        class="erro"
-      ></div>
 
       <button
-        class="btn"
-        id="btnLoginAdmin"
+        class="btn-principal"
         onclick="entrarAdmin()"
       >
         🔐 ENTRAR NO PAINEL
       </button>
+
+      <div id="erroLogin"></div>
 
     </div>
 
   </section>
 
 
-  <!-- =================================================
+  <!-- =====================================================
        PAINEL
-       ================================================= -->
+  ====================================================== -->
 
-  <section id="painelAdmin">
+  <section
+    id="painel"
+    class="oculto"
+  >
 
     <header class="topo">
 
-      <div class="topo-conteudo">
+      <div>
+        <h1>
+          🎯 QuizUp Admin
+        </h1>
 
-        <div>
-
-          <h1>
-            🎯 QuizUp Admin
-          </h1>
-
-          <p>
-            Controle de jogadores, saques e atendimento
-          </p>
-
-        </div>
-
-        <button
-          class="btn-sair"
-          onclick="sairAdmin()"
-        >
-          🚪 SAIR
-        </button>
-
+        <span>
+          Painel administrativo
+        </span>
       </div>
+
+      <button
+        class="btn-sair"
+        onclick="sairAdmin()"
+      >
+        Sair
+      </button>
 
     </header>
 
 
-    <main class="conteudo">
+    <main class="container">
 
       <!-- =================================================
-           ESTATÍSTICAS
-           ================================================= -->
+           RESUMO
+      ================================================== -->
 
-      <section class="estatisticas">
+      <section class="resumo">
 
-        <div class="estatistica">
-
-          <div class="icone">
-            👥
+        <div class="card">
+          <div class="titulo">
+            👥 Usuários
           </div>
 
           <div
@@ -751,18 +489,12 @@
           >
             0
           </div>
-
-          <div class="titulo">
-            Jogadores cadastrados
-          </div>
-
         </div>
 
 
-        <div class="estatistica">
-
-          <div class="icone">
-            🟢
+        <div class="card">
+          <div class="titulo">
+            🟢 Jogadores ativos
           </div>
 
           <div
@@ -771,38 +503,54 @@
           >
             0
           </div>
-
-          <div class="titulo">
-            Jogadores ativos
-          </div>
-
         </div>
 
 
-        <div class="estatistica">
-
-          <div class="icone">
-            💰
+        <div class="card">
+          <div class="titulo">
+            🎮 Pontos do Quiz
           </div>
 
           <div
             class="numero"
-            id="totalSaques"
+            id="pontosQuiz"
           >
             0
           </div>
-
-          <div class="titulo">
-            Solicitações de saque
-          </div>
-
         </div>
 
 
-        <div class="estatistica">
+        <div class="card">
+          <div class="titulo">
+            📢 Pontos patrocinados
+          </div>
 
-          <div class="icone">
-            ⏳
+          <div
+            class="numero"
+            id="pontosPatrocinados"
+          >
+            0
+          </div>
+        </div>
+
+
+        <div class="card">
+          <div class="titulo">
+            🧮 Pontos totais
+          </div>
+
+          <div
+            class="numero"
+            id="pontosTotal"
+          >
+            0
+          </div>
+        </div>
+
+
+        <div class="card">
+          <div class="titulo">
+            ⏳ Saques pendentes
           </div>
 
           <div
@@ -811,113 +559,58 @@
           >
             0
           </div>
-
-          <div class="titulo">
-            Saques pendentes
-          </div>
-
         </div>
 
 
-        <div class="estatistica">
-
-          <div class="icone">
-            🎧
+        <div class="card">
+          <div class="titulo">
+            ✅ Saques aprovados
           </div>
 
           <div
             class="numero"
-            id="totalMensagens"
+            id="saquesAprovados"
           >
             0
           </div>
+        </div>
 
+
+        <div class="card">
           <div class="titulo">
-            Mensagens SAC
+            ❌ Saques recusados
           </div>
 
+          <div
+            class="numero"
+            id="saquesRecusados"
+          >
+            0
+          </div>
         </div>
 
       </section>
 
 
       <!-- =================================================
-           ABAS
-           ================================================= -->
+           CONTROLES
+      ================================================== -->
 
-      <nav class="abas">
+      <section class="secao">
 
-        <button
-          class="aba ativa"
-          onclick="abrirAba('saques', this)"
-        >
-          💰 SAQUES
-        </button>
+        <div class="barra">
 
-        <button
-          class="aba"
-          onclick="abrirAba('jogadores', this)"
-        >
-          👥 JOGADORES
-        </button>
-
-        <button
-          class="aba"
-          onclick="abrirAba('mensagens', this)"
-        >
-          🎧 SAC
-        </button>
-
-        <button
-          class="aba"
-          onclick="atualizarTudo()"
-        >
-          🔄 ATUALIZAR
-        </button>
-
-      </nav>
-
-
-      <!-- =================================================
-           SAQUES
-           ================================================= -->
-
-      <section
-        id="secaoSaques"
-        class="secao ativa"
-      >
-
-        <div class="card">
-
-          <h2>
-            💰 Solicitações de saque
-          </h2>
-
-          <div class="card-subtitulo">
-            Analise cada solicitação antes de autorizar o pagamento.
-          </div>
-
-          <div class="aviso">
-
-            ⚠️
-            Um saque somente deve ser aprovado
-            depois de você verificar os dados
-            do jogador e confirmar que ele está
-            elegível para receber.
-
-          </div>
-
-          <div
-            id="listaSaques"
-            class="lista"
+          <button
+            class="btn btn-atualizar"
+            onclick="carregarTudo()"
           >
+            🔄 Atualizar painel
+          </button>
 
-            <div class="carregando">
-              Carregando saques...
-            </div>
+        </div>
 
-          </div>
-
+        <div id="carregando">
+          Carregando informações...
         </div>
 
       </section>
@@ -925,83 +618,80 @@
 
       <!-- =================================================
            JOGADORES
-           ================================================= -->
+      ================================================== -->
 
-      <section
-        id="secaoJogadores"
-        class="secao"
-      >
+      <section class="secao">
 
-        <div class="card">
+        <h2>
+          👥 Jogadores
+        </h2>
 
-          <h2>
-            👥 Jogadores
-          </h2>
+        <div class="tabela-container">
 
-          <div class="card-subtitulo">
-            Visualização dos jogadores cadastrados no QuizUp.
-          </div>
+          <table>
 
-          <div class="tabela-container">
+            <thead>
 
-            <table>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Plano</th>
+                <th>🎮 Quiz</th>
+                <th>📢 Patrocinado</th>
+                <th>🧮 Total</th>
+                <th>Saldo</th>
+                <th>Status</th>
+              </tr>
 
-              <thead>
+            </thead>
 
-                <tr>
+            <tbody id="tabelaJogadores">
 
-                  <th>
-                    ID
-                  </th>
+            </tbody>
 
-                  <th>
-                    Nome
-                  </th>
+          </table>
 
-                  <th>
-                    E-mail
-                  </th>
+        </div>
 
-                  <th>
-                    Pontos
-                  </th>
+      </section>
 
-                  <th>
-                    Plano
-                  </th>
 
-                  <th>
-                    Indicações
-                  </th>
+      <!-- =================================================
+           SAQUES
+      ================================================== -->
 
-                  <th>
-                    Status
-                  </th>
+      <section class="secao">
 
-                </tr>
+        <h2>
+          💰 Solicitações de saque
+        </h2>
 
-              </thead>
+        <div class="tabela-container">
 
-              <tbody
-                id="tabelaJogadores"
-              >
+          <table>
 
-                <tr>
+            <thead>
 
-                  <td
-                    colspan="7"
-                    class="vazio"
-                  >
-                    Carregando jogadores...
-                  </td>
+              <tr>
+                <th>Data</th>
+                <th>Jogador</th>
+                <th>Pontos</th>
+                <th>Valor</th>
+                <th>Plataforma</th>
+                <th>Total</th>
+                <th>Pagamento</th>
+                <th>Status</th>
+                <th>Ação</th>
+              </tr>
 
-                </tr>
+            </thead>
 
-              </tbody>
+            <tbody id="tabelaSaques">
 
-            </table>
+            </tbody>
 
-          </div>
+          </table>
 
         </div>
 
@@ -1010,32 +700,15 @@
 
       <!-- =================================================
            SAC
-           ================================================= -->
+      ================================================== -->
 
-      <section
-        id="secaoMensagens"
-        class="secao"
-      >
+      <section class="secao">
 
-        <div class="card">
+        <h2>
+          💬 Mensagens do SAC
+        </h2>
 
-          <h2>
-            🎧 Mensagens do SAC
-          </h2>
-
-          <div class="card-subtitulo">
-            Mensagens enviadas pelos jogadores.
-          </div>
-
-          <div
-            id="listaMensagens"
-          >
-
-            <div class="carregando">
-              Carregando mensagens...
-            </div>
-
-          </div>
+        <div id="listaMensagens">
 
         </div>
 
@@ -1045,166 +718,803 @@
 
   </section>
 
-</div>
+
+  <div id="aviso"></div>
 
 
-<!-- =====================================================
-     MODAL DE DETALHES
-     ===================================================== -->
+  <script>
 
-<div
-  id="modal"
-  class="modal"
-  onclick="fecharModalFora(event)"
->
+    /* =====================================================
+       CONFIGURAÇÃO
+    ====================================================== */
 
-  <div class="modal-box">
+    const API = "";
 
-    <h2>
-      📋 Detalhes
-    </h2>
-
-    <div
-      id="conteudoModal"
-    ></div>
-
-    <div class="modal-botoes">
-
-      <button
-        class="btn btn-detalhes"
-        onclick="fecharModal()"
-      >
-        FECHAR
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
+    let chaveAdmin = "";
 
 
-<script>
+    /* =====================================================
+       UTILITÁRIOS
+    ====================================================== */
 
-  /* =====================================================
-     CONFIGURAÇÃO
-     ===================================================== */
+    function escaparHTML(valor) {
 
-  const API = "";
+      return String(
+        valor ?? ""
+      )
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+      .replace(
+        /'/g,
+        "&#039;"
+      );
 
-
-  /*
-   * Token administrativo.
-   *
-   * Ele será fornecido pelo servidor depois
-   * que adicionarmos as rotas administrativas
-   * no servidor.js.
-   */
-
-  let tokenAdmin =
-    localStorage.getItem(
-      "quizup_admin_token"
-    ) || "";
-
-
-  let dadosSaques = [];
-
-  let dadosJogadores = [];
-
-  let dadosMensagens = [];
-
-
-  /* =====================================================
-     ELEMENTOS
-     ===================================================== */
-
-  const telaLogin =
-    document.getElementById(
-      "telaLoginAdmin"
-    );
-
-  const painel =
-    document.getElementById(
-      "painelAdmin"
-    );
+    }
 
 
-  /* =====================================================
-     INICIALIZAÇÃO
-     ===================================================== */
+    function numero(valor) {
 
-  document.addEventListener(
-    "DOMContentLoaded",
-    function() {
+      return Number(
+        valor || 0
+      ).toLocaleString(
+        "pt-BR"
+      );
 
-      if (tokenAdmin) {
+    }
 
-        mostrarPainel();
+
+    function dinheiro(valor) {
+
+      return Number(
+        valor || 0
+      ).toLocaleString(
+        "pt-BR",
+        {
+          style: "currency",
+          currency: "BRL"
+        }
+      );
+
+    }
+
+
+    function dataFormatada(valor) {
+
+      if (!valor) {
+        return "-";
+      }
+
+      const data =
+        new Date(valor);
+
+      if (
+        Number.isNaN(
+          data.getTime()
+        )
+      ) {
+        return escaparHTML(valor);
+      }
+
+      return data.toLocaleString(
+        "pt-BR"
+      );
+
+    }
+
+
+    function mostrarAviso(
+      mensagem,
+      erro = false
+    ) {
+
+      const aviso =
+        document.getElementById(
+          "aviso"
+        );
+
+      aviso.textContent =
+        mensagem;
+
+      aviso.style.display =
+        "block";
+
+      aviso.style.background =
+        erro
+          ? "#dc2626"
+          : "#111827";
+
+      setTimeout(
+        () => {
+          aviso.style.display =
+            "none";
+        },
+        3500
+      );
+
+    }
+
+
+    /* =====================================================
+       REQUISIÇÃO ADMINISTRATIVA
+    ====================================================== */
+
+    async function requisicaoAdmin(
+      caminho,
+      opcoes = {}
+    ) {
+
+      const configuracao = {
+        ...opcoes,
+        headers: {
+          ...(opcoes.headers || {}),
+          "X-Admin-Key":
+            chaveAdmin
+        }
+      };
+
+
+      const resposta =
+        await fetch(
+          API + caminho,
+          configuracao
+        );
+
+
+      let dados = {};
+
+      try {
+
+        dados =
+          await resposta.json();
+
+      } catch (erro) {
+
+        dados = {};
+
+      }
+
+
+      if (
+        resposta.status === 401
+      ) {
+
+        throw new Error(
+          "Chave administrativa inválida ou não autorizada."
+        );
+
+      }
+
+
+      if (
+        !resposta.ok
+      ) {
+
+        throw new Error(
+          dados.erro ||
+          "Erro na comunicação com o servidor."
+        );
+
+      }
+
+
+      return dados;
+
+    }
+
+
+    /* =====================================================
+       ENTRAR
+    ====================================================== */
+
+    async function entrarAdmin() {
+
+      const campo =
+        document.getElementById(
+          "chaveAdmin"
+        );
+
+      const erro =
+        document.getElementById(
+          "erroLogin"
+        );
+
+
+      const chave =
+        campo.value.trim();
+
+
+      erro.textContent =
+        "";
+
+
+      if (!chave) {
+
+        erro.textContent =
+          "Digite a chave administrativa.";
+
+        return;
+
+      }
+
+
+      chaveAdmin =
+        chave;
+
+
+      try {
+
+        erro.textContent =
+          "Verificando chave...";
+
+
+        /*
+         * O resumo é protegido pelo servidor.
+         * Se a chave estiver correta,
+         * a requisição será autorizada.
+         */
+
+        await requisicaoAdmin(
+          "/api/admin/resumo"
+        );
+
+
+        localStorage.setItem(
+          "quizup_admin_key",
+          chaveAdmin
+        );
+
+
+        document
+          .getElementById(
+            "telaLogin"
+          )
+          .classList.add(
+            "oculto"
+          );
+
+
+        document
+          .getElementById(
+            "painel"
+          )
+          .classList.remove(
+            "oculto"
+          );
+
+
+        erro.textContent =
+          "";
+
+
+        await carregarTudo();
+
+
+      } catch (erroLogin) {
+
+        chaveAdmin =
+          "";
+
+        erro.textContent =
+          erroLogin.message ||
+          "Não foi possível entrar.";
 
       }
 
     }
-  );
 
 
-  /* =====================================================
-     LOGIN
-     ===================================================== */
+    /* =====================================================
+       SAIR
+    ====================================================== */
 
-  async function entrarAdmin() {
+    function sairAdmin() {
 
-    const email =
-      document
-        .getElementById("adminEmail")
-        .value
-        .trim()
-        .toLowerCase();
+      chaveAdmin =
+        "";
 
-
-    const senha =
-      document
-        .getElementById("adminSenha")
-        .value;
-
-
-    const erro =
-      document.getElementById(
-        "erroAdmin"
+      localStorage.removeItem(
+        "quizup_admin_key"
       );
 
 
-    erro.textContent = "";
+      document
+        .getElementById(
+          "painel"
+        )
+        .classList.add(
+          "oculto"
+        );
 
 
-    if (!email || !senha) {
+      document
+        .getElementById(
+          "telaLogin"
+        )
+        .classList.remove(
+          "oculto"
+        );
 
-      erro.textContent =
-        "Informe o e-mail e a senha.";
 
-      return;
+      document
+        .getElementById(
+          "chaveAdmin"
+        )
+        .value =
+        "";
 
     }
 
 
-    const botao =
-      document.getElementById(
-        "btnLoginAdmin"
+    /* =====================================================
+       CARREGAR RESUMO
+    ====================================================== */
+
+    async function carregarResumo() {
+
+      const dados =
+        await requisicaoAdmin(
+          "/api/admin/resumo"
+        );
+
+
+      document
+        .getElementById(
+          "totalUsuarios"
+        )
+        .textContent =
+        numero(
+          dados.usuarios
+        );
+
+
+      document
+        .getElementById(
+          "jogadoresAtivos"
+        )
+        .textContent =
+        numero(
+          dados.jogadoresAtivos
+        );
+
+
+      document
+        .getElementById(
+          "pontosQuiz"
+        )
+        .textContent =
+        numero(
+          dados.pontosQuiz
+        );
+
+
+      document
+        .getElementById(
+          "pontosPatrocinados"
+        )
+        .textContent =
+        numero(
+          dados.pontosPatrocinados
+        );
+
+
+      document
+        .getElementById(
+          "pontosTotal"
+        )
+        .textContent =
+        numero(
+          dados.pontosTotal
+        );
+
+
+      document
+        .getElementById(
+          "saquesPendentes"
+        )
+        .textContent =
+        numero(
+          dados.saquesPendentes
+        );
+
+
+      document
+        .getElementById(
+          "saquesAprovados"
+        )
+        .textContent =
+        numero(
+          dados.saquesAprovados
+        );
+
+
+      document
+        .getElementById(
+          "saquesRecusados"
+        )
+        .textContent =
+        numero(
+          dados.saquesRecusados
+        );
+
+    }
+
+
+    /* =====================================================
+       CARREGAR JOGADORES
+    ====================================================== */
+
+    async function carregarJogadores() {
+
+      const dados =
+        await requisicaoAdmin(
+          "/api/admin/jogadores"
+        );
+
+
+      const tabela =
+        document.getElementById(
+          "tabelaJogadores"
+        );
+
+
+      tabela.innerHTML =
+        "";
+
+
+      if (
+        !dados.jogadores ||
+        dados.jogadores.length === 0
+      ) {
+
+        tabela.innerHTML =
+          `
+          <tr>
+            <td colspan="9">
+              Nenhum jogador cadastrado.
+            </td>
+          </tr>
+          `;
+
+        return;
+
+      }
+
+
+      dados.jogadores.forEach(
+        jogador => {
+
+          const tr =
+            document.createElement(
+              "tr"
+            );
+
+
+          tr.innerHTML = `
+
+            <td>
+              ${escaparHTML(
+                jogador.idJogador
+              )}
+            </td>
+
+            <td>
+              ${escaparHTML(
+                jogador.nome
+              )}
+            </td>
+
+            <td>
+              ${escaparHTML(
+                jogador.email
+              )}
+            </td>
+
+            <td>
+              ${escaparHTML(
+                jogador.plano
+              )}
+            </td>
+
+            <td>
+              ${numero(
+                jogador.pontosQuiz
+              )}
+            </td>
+
+            <td>
+              ${numero(
+                jogador.pontosPatrocinados
+              )}
+            </td>
+
+            <td>
+              <strong>
+                ${numero(
+                  jogador.pontosTotal
+                )}
+              </strong>
+            </td>
+
+            <td>
+              ${numero(
+                jogador.saldo
+              )}
+            </td>
+
+            <td>
+              ${
+                jogador.ativo
+                  ? `<span class="status aprovado">
+                       ATIVO
+                     </span>`
+                  : `<span class="status recusado">
+                       INATIVO
+                     </span>`
+              }
+            </td>
+
+          `;
+
+
+          tabela.appendChild(
+            tr
+          );
+
+        }
       );
 
-
-    botao.disabled = true;
-
-    botao.textContent =
-      "ENTRANDO...";
+    }
 
 
-    try {
+    /* =====================================================
+       CARREGAR SAQUES
+    ====================================================== */
 
-      const resposta =
-        await fetch(
-          API + "/api/admin/login",
+    async function carregarSaques() {
+
+      const dados =
+        await requisicaoAdmin(
+          "/api/admin/saques"
+        );
+
+
+      const tabela =
+        document.getElementById(
+          "tabelaSaques"
+        );
+
+
+      tabela.innerHTML =
+        "";
+
+
+      const lista =
+        dados.saques || [];
+
+
+      if (
+        lista.length === 0
+      ) {
+
+        tabela.innerHTML =
+          `
+          <tr>
+            <td colspan="9">
+              Nenhuma solicitação de saque.
+            </td>
+          </tr>
+          `;
+
+        return;
+
+      }
+
+
+      lista
+        .slice()
+        .reverse()
+        .forEach(
+          saque => {
+
+            const tr =
+              document.createElement(
+                "tr"
+              );
+
+
+            let classeStatus =
+              "pendente";
+
+
+            if (
+              saque.status ===
+              "APROVADO"
+            ) {
+
+              classeStatus =
+                "aprovado";
+
+            }
+
+
+            if (
+              saque.status ===
+              "RECUSADO"
+            ) {
+
+              classeStatus =
+                "recusado";
+
+            }
+
+
+            let botoes = "";
+
+
+            if (
+              saque.status ===
+              "PENDENTE"
+            ) {
+
+              botoes = `
+
+                <button
+                  class="btn btn-aprovar"
+                  onclick="aprovarSaque('${escaparHTML(
+                    saque.id
+                  )}')"
+                >
+                  ✅ Aprovar
+                </button>
+
+                <button
+                  class="btn btn-recusar"
+                  onclick="recusarSaque('${escaparHTML(
+                    saque.id
+                  )}')"
+                >
+                  ❌ Recusar
+                </button>
+
+              `;
+
+            } else {
+
+              botoes =
+                `<span>
+                  Já analisado
+                </span>`;
+
+            }
+
+
+            tr.innerHTML = `
+
+              <td>
+                ${dataFormatada(
+                  saque.data
+                )}
+              </td>
+
+              <td>
+                <strong>
+                  ${escaparHTML(
+                    saque.nome
+                  )}
+                </strong>
+                <br>
+                ${escaparHTML(
+                  saque.idJogador
+                )}
+              </td>
+
+              <td>
+                ${numero(
+                  saque.pontos
+                )}
+              </td>
+
+              <td>
+                ${dinheiro(
+                  saque.valorJogador
+                )}
+              </td>
+
+              <td>
+                ${dinheiro(
+                  saque.valorPlataforma
+                )}
+                <br>
+                ${numero(
+                  saque.percentualPlataforma
+                )}%
+              </td>
+
+              <td>
+                <strong>
+                  ${dinheiro(
+                    saque.custoTotal
+                  )}
+                </strong>
+              </td>
+
+              <td>
+                ${escaparHTML(
+                  String(
+                    saque.tipo || ""
+                  ).toUpperCase()
+                )}
+                <br>
+                ${escaparHTML(
+                  saque.destino
+                )}
+              </td>
+
+              <td>
+                <span
+                  class="status ${classeStatus}"
+                >
+                  ${escaparHTML(
+                    saque.status
+                  )}
+                </span>
+              </td>
+
+              <td>
+                ${botoes}
+              </td>
+
+            `;
+
+
+            tabela.appendChild(
+              tr
+            );
+
+          }
+        );
+
+    }
+
+
+    /* =====================================================
+       APROVAR SAQUE
+    ====================================================== */
+
+    async function aprovarSaque(
+      idSaque
+    ) {
+
+      const confirmar =
+        confirm(
+          "Tem certeza que deseja APROVAR este saque?\n\nOs pontos serão descontados do jogador."
+        );
+
+
+      if (!confirmar) {
+        return;
+      }
+
+
+      try {
+
+        await requisicaoAdmin(
+          "/api/admin/saque/aprovar",
           {
-
             method: "POST",
 
             headers: {
@@ -1214,873 +1524,78 @@
 
             body:
               JSON.stringify({
-                email: email,
-                senha: senha
+                idSaque:
+                  idSaque
               })
 
           }
         );
 
 
-      const dados =
-        await resposta.json();
+        mostrarAviso(
+          "Saque aprovado com sucesso."
+        );
 
 
-      if (!resposta.ok) {
+        await carregarTudo();
 
-        throw new Error(
-          dados.erro ||
-          "Não foi possível entrar."
+
+      } catch (erro) {
+
+        mostrarAviso(
+          erro.message,
+          true
         );
 
       }
 
-
-      if (!dados.token) {
-
-        throw new Error(
-          "O servidor não retornou o token administrativo."
-        );
-
-      }
-
-
-      tokenAdmin =
-        dados.token;
-
-
-      localStorage.setItem(
-        "quizup_admin_token",
-        tokenAdmin
-      );
-
-
-      mostrarPainel();
-
-
-    } catch (erroLogin) {
-
-      erro.textContent =
-        erroLogin.message ||
-        "Erro ao entrar no painel.";
-
-    } finally {
-
-      botao.disabled = false;
-
-      botao.textContent =
-        "🔐 ENTRAR NO PAINEL";
-
-    }
-
-  }
-
-
-  /* =====================================================
-     MOSTRAR PAINEL
-     ===================================================== */
-
-  function mostrarPainel() {
-
-    telaLogin.style.display =
-      "none";
-
-    painel.style.display =
-      "block";
-
-
-    atualizarTudo();
-
-  }
-
-
-  /* =====================================================
-     SAIR
-     ===================================================== */
-
-  function sairAdmin() {
-
-    tokenAdmin = "";
-
-    localStorage.removeItem(
-      "quizup_admin_token"
-    );
-
-
-    painel.style.display =
-      "none";
-
-    telaLogin.style.display =
-      "flex";
-
-
-    document
-      .getElementById("adminSenha")
-      .value = "";
-
-  }
-
-
-  /* =====================================================
-     CABEÇALHOS ADMIN
-     ===================================================== */
-
-  function headersAdmin() {
-
-    return {
-
-      "Content-Type":
-        "application/json",
-
-      "Authorization":
-        "Bearer " + tokenAdmin
-
-    };
-
-  }
-
-
-  /* =====================================================
-     ABRIR ABA
-     ===================================================== */
-
-  function abrirAba(
-    nome,
-    botao
-  ) {
-
-    document
-      .querySelectorAll(".secao")
-      .forEach(function(secao) {
-
-        secao.classList.remove(
-          "ativa"
-        );
-
-      });
-
-
-    document
-      .querySelectorAll(".aba")
-      .forEach(function(aba) {
-
-        aba.classList.remove(
-          "ativa"
-        );
-
-      });
-
-
-    if (nome === "saques") {
-
-      document
-        .getElementById("secaoSaques")
-        .classList.add("ativa");
-
     }
 
 
-    if (nome === "jogadores") {
+    /* =====================================================
+       RECUSAR SAQUE
+    ====================================================== */
 
-      document
-        .getElementById("secaoJogadores")
-        .classList.add("ativa");
+    async function recusarSaque(
+      idSaque
+    ) {
 
-    }
-
-
-    if (nome === "mensagens") {
-
-      document
-        .getElementById("secaoMensagens")
-        .classList.add("ativa");
-
-    }
-
-
-    if (botao) {
-
-      botao.classList.add(
-        "ativa"
-      );
-
-    }
-
-  }
-
-
-  /* =====================================================
-     ATUALIZAR TUDO
-     ===================================================== */
-
-  async function atualizarTudo() {
-
-    if (!tokenAdmin) {
-
-      return;
-
-    }
-
-
-    await Promise.all([
-
-      carregarResumo(),
-
-      carregarSaques(),
-
-      carregarJogadores(),
-
-      carregarMensagens()
-
-    ]);
-
-  }
-
-
-  /* =====================================================
-     RESUMO
-     ===================================================== */
-
-  async function carregarResumo() {
-
-    try {
-
-      const resposta =
-        await fetch(
-          API + "/api/admin/resumo",
-          {
-
-            method: "GET",
-
-            headers:
-              headersAdmin()
-
-          }
+      const motivo =
+        prompt(
+          "Informe o motivo da recusa:"
         );
 
 
       if (
-        resposta.status === 401 ||
-        resposta.status === 403
+        motivo === null
       ) {
-
-        sairAdmin();
 
         return;
 
       }
 
 
-      const dados =
-        await resposta.json();
+      try {
 
-
-      if (!resposta.ok) {
-
-        throw new Error(
-          dados.erro ||
-          "Erro ao carregar resumo."
-        );
-
-      }
-
-
-      document
-        .getElementById("totalUsuarios")
-        .textContent =
-          Number(
-            dados.usuarios || 0
-          );
-
-
-      document
-        .getElementById("jogadoresAtivos")
-        .textContent =
-          Number(
-            dados.jogadoresAtivos || 0
-          );
-
-
-      document
-        .getElementById("totalSaques")
-        .textContent =
-          Number(
-            dados.saques || 0
-          );
-
-
-      document
-        .getElementById("saquesPendentes")
-        .textContent =
-          Number(
-            dados.saquesPendentes || 0
-          );
-
-
-      document
-        .getElementById("totalMensagens")
-        .textContent =
-          Number(
-            dados.mensagens || 0
-          );
-
-
-    } catch (erro) {
-
-      console.log(
-        "Erro no resumo:",
-        erro
-      );
-
-    }
-
-  }
-
-
-  /* =====================================================
-     CARREGAR SAQUES
-     ===================================================== */
-
-  async function carregarSaques() {
-
-    const lista =
-      document.getElementById(
-        "listaSaques"
-      );
-
-
-    lista.innerHTML =
-      '<div class="carregando">Carregando saques...</div>';
-
-
-    try {
-
-      const resposta =
-        await fetch(
-          API + "/api/admin/saques",
+        await requisicaoAdmin(
+          "/api/admin/saque/recusar",
           {
-
-            method: "GET",
-
-            headers:
-              headersAdmin()
-
-          }
-        );
-
-
-      if (
-        resposta.status === 401 ||
-        resposta.status === 403
-      ) {
-
-        sairAdmin();
-
-        return;
-
-      }
-
-
-      const dados =
-        await resposta.json();
-
-
-      if (!resposta.ok) {
-
-        throw new Error(
-          dados.erro ||
-          "Erro ao carregar saques."
-        );
-
-      }
-
-
-      dadosSaques =
-        Array.isArray(
-          dados.saques
-        )
-          ? dados.saques
-          : [];
-
-
-      renderizarSaques();
-
-
-    } catch (erro) {
-
-      lista.innerHTML =
-
-        '<div class="vazio">' +
-        'Não foi possível carregar os saques.' +
-        '<br><br>' +
-        escapeHtml(
-          erro.message
-        ) +
-        '</div>';
-
-    }
-
-  }
-
-
-  /* =====================================================
-     RENDERIZAR SAQUES
-     ===================================================== */
-
-  function renderizarSaques() {
-
-    const lista =
-      document.getElementById(
-        "listaSaques"
-      );
-
-
-    if (!dadosSaques.length) {
-
-      lista.innerHTML =
-        '<div class="vazio">' +
-        '💰 Nenhuma solicitação de saque encontrada.' +
-        '</div>';
-
-      return;
-
-    }
-
-
-    lista.innerHTML =
-      dadosSaques
-        .map(
-          criarCardSaque
-        )
-        .join("");
-
-  }
-
-
-  /* =====================================================
-     CARD DE SAQUE
-     ===================================================== */
-
-  function criarCardSaque(
-    saque
-  ) {
-
-    const status =
-      String(
-        saque.status || "PENDENTE"
-      ).toUpperCase();
-
-
-    let classe =
-      "saque-pendente";
-
-
-    let classeStatus =
-      "status-pendente";
-
-
-    if (
-      status === "APROVADO"
-    ) {
-
-      classe =
-        "saque-aprovado";
-
-      classeStatus =
-        "status-aprovado";
-
-    }
-
-
-    if (
-      status === "REJEITADO"
-    ) {
-
-      classe =
-        "saque-rejeitado";
-
-      classeStatus =
-        "status-rejeitado";
-
-    }
-
-
-    const botoes =
-      status === "PENDENTE"
-
-        ? `
-
-          <button
-            class="btn-acao btn-aprovar"
-            onclick="aprovarSaque('${escapeAttr(saque.id)}')"
-          >
-            ✅ APROVAR
-          </button>
-
-          <button
-            class="btn-acao btn-rejeitar"
-            onclick="rejeitarSaque('${escapeAttr(saque.id)}')"
-          >
-            ❌ REJEITAR
-          </button>
-
-          <button
-            class="btn-acao btn-detalhes"
-            onclick="mostrarDetalhesSaque('${escapeAttr(saque.id)}')"
-          >
-            📋 DETALHES
-          </button>
-
-        `
-
-        : `
-
-          <button
-            class="btn-acao btn-detalhes"
-            onclick="mostrarDetalhesSaque('${escapeAttr(saque.id)}')"
-          >
-            📋 DETALHES
-          </button>
-
-        `;
-
-
-    return `
-
-      <div class="saque ${classe}">
-
-        <div class="saque-topo">
-
-          <div class="saque-id">
-            ${escapeHtml(
-              saque.id || ""
-            )}
-          </div>
-
-          <span class="status ${classeStatus}">
-            ${escapeHtml(status)}
-          </span>
-
-        </div>
-
-
-        <div class="dados-saque">
-
-          <div class="dado-info">
-
-            <small>
-              Jogador
-            </small>
-
-            <strong>
-              ${escapeHtml(
-                saque.nome || "-"
-              )}
-            </strong>
-
-          </div>
-
-
-          <div class="dado-info">
-
-            <small>
-              ID do jogador
-            </small>
-
-            <strong>
-              ${escapeHtml(
-                saque.idJogador || "-"
-              )}
-            </strong>
-
-          </div>
-
-
-          <div class="dado-info">
-
-            <small>
-              E-mail
-            </small>
-
-            <strong>
-              ${escapeHtml(
-                saque.email || "-"
-              )}
-            </strong>
-
-          </div>
-
-
-          <div class="dado-info">
-
-            <small>
-              Pontos solicitados
-            </small>
-
-            <strong>
-              ${formatarNumero(
-                saque.pontos
-              )}
-            </strong>
-
-          </div>
-
-
-          <div class="dado-info">
-
-            <small>
-              Valor para o jogador
-            </small>
-
-            <div class="valor-saque">
-              R$ ${formatarMoeda(
-                saque.valorJogador
-              )}
-            </div>
-
-          </div>
-
-
-          <div class="dado-info">
-
-            <small>
-              Forma de pagamento
-            </small>
-
-            <strong>
-              ${escapeHtml(
-                String(
-                  saque.tipo || ""
-                ).toUpperCase()
-              )}
-            </strong>
-
-          </div>
-
-
-          <div class="dado-info">
-
-            <small>
-              Destino
-            </small>
-
-            <strong>
-              ${escapeHtml(
-                saque.destino || "-"
-              )}
-            </strong>
-
-          </div>
-
-
-          <div class="dado-info">
-
-            <small>
-              Data
-            </small>
-
-            <strong>
-              ${formatarData(
-                saque.data
-              )}
-            </strong>
-
-          </div>
-
-        </div>
-
-
-        <div class="acoes">
-
-          ${botoes}
-
-        </div>
-
-      </div>
-
-    `;
-
-  }
-
-
-  /* =====================================================
-     APROVAR SAQUE
-     ===================================================== */
-
-  async function aprovarSaque(
-    id
-  ) {
-
-    const saque =
-      dadosSaques.find(
-        item =>
-          String(item.id) ===
-          String(id)
-      );
-
-
-    if (!saque) {
-
-      alert(
-        "Saque não encontrado."
-      );
-
-      return;
-
-    }
-
-
-    const confirmar =
-      confirm(
-        "Confirma a aprovação deste saque?\n\n" +
-        "Jogador: " +
-        (saque.nome || "") +
-        "\n" +
-        "Valor: R$ " +
-        formatarMoeda(
-          saque.valorJogador
-        ) +
-        "\n\n" +
-        "Depois da aprovação, o pagamento deverá ser realizado."
-      );
-
-
-    if (!confirmar) {
-
-      return;
-
-    }
-
-
-    try {
-
-      const resposta =
-        await fetch(
-          API + "/api/admin/saques/aprovar",
-          {
-
             method: "POST",
 
-            headers:
-              headersAdmin(),
-
-            body:
-              JSON.stringify({
-                id: id
-              })
-
-          }
-        );
-
-
-      const dados =
-        await resposta.json();
-
-
-      if (!resposta.ok) {
-
-        throw new Error(
-          dados.erro ||
-          "Não foi possível aprovar o saque."
-        );
-
-      }
-
-
-      alert(
-        dados.mensagem ||
-        "Saque aprovado."
-      );
-
-
-      await atualizarTudo();
-
-
-    } catch (erro) {
-
-      alert(
-        erro.message
-      );
-
-    }
-
-  }
-
-
-  /* =====================================================
-     REJEITAR SAQUE
-     ===================================================== */
-
-  async function rejeitarSaque(
-    id
-  ) {
-
-    const saque =
-      dadosSaques.find(
-        item =>
-          String(item.id) ===
-          String(id)
-      );
-
-
-    if (!saque) {
-
-      alert(
-        "Saque não encontrado."
-      );
-
-      return;
-
-    }
-
-
-    const motivo =
-      prompt(
-        "Informe o motivo da rejeição:"
-      );
-
-
-    if (
-      motivo === null
-    ) {
-
-      return;
-
-    }
-
-
-    if (
-      !motivo.trim()
-    ) {
-
-      alert(
-        "Informe o motivo da rejeição."
-      );
-
-      return;
-
-    }
-
-
-    try {
-
-      const resposta =
-        await fetch(
-          API + "/api/admin/saques/rejeitar",
-          {
-
-            method: "POST",
-
-            headers:
-              headersAdmin(),
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
 
             body:
               JSON.stringify({
 
-                id: id,
+                idSaque:
+                  idSaque,
 
                 motivo:
-                  motivo.trim()
+                  motivo.trim() ||
+                  "Solicitação recusada pelo administrador."
 
               })
 
@@ -2088,101 +1603,368 @@
         );
 
 
-      const dados =
-        await resposta.json();
+        mostrarAviso(
+          "Saque recusado. Os pontos não foram descontados."
+        );
 
 
-      if (!resposta.ok) {
+        await carregarTudo();
 
-        throw new Error(
-          dados.erro ||
-          "Não foi possível rejeitar o saque."
+
+      } catch (erro) {
+
+        mostrarAviso(
+          erro.message,
+          true
         );
 
       }
 
-
-      alert(
-        dados.mensagem ||
-        "Saque rejeitado."
-      );
-
-
-      await atualizarTudo();
-
-
-    } catch (erro) {
-
-      alert(
-        erro.message
-      );
-
-    }
-
-  }
-
-
-  /* =====================================================
-     DETALHES DO SAQUE
-     ===================================================== */
-
-  function mostrarDetalhesSaque(
-    id
-  ) {
-
-    const saque =
-      dadosSaques.find(
-        item =>
-          String(item.id) ===
-          String(id)
-      );
-
-
-    if (!saque) {
-
-      return;
-
     }
 
 
-    const html = `
+    /* =====================================================
+       CARREGAR MENSAGENS
+    ====================================================== */
 
-      <div class="dados-saque">
+    async function carregarMensagens() {
 
-        <div class="dado-info">
-          <small>ID do saque</small>
-          <strong>
-            ${escapeHtml(
-              saque.id || "-"
-            )}
-          </strong>
-        </div>
+      const dados =
+        await requisicaoAdmin(
+          "/api/admin/mensagens"
+        );
 
-        <div class="dado-info">
-          <small>ID do jogador</small>
-          <strong>
-            ${escapeHtml(
-              saque.idJogador || "-"
-            )}
-          </strong>
-        </div>
 
-        <div class="dado-info">
-          <small>Nome</small>
-          <strong>
-            ${escapeHtml(
-              saque.nome || "-"
-            )}
-          </strong>
-        </div>
+      const lista =
+        document.getElementById(
+          "listaMensagens"
+        );
 
-        <div class="dado-info">
-          <small>E-mail</small>
-          <strong>
-            ${escapeHtml(
-              saque.email || "-"
-            )}
-          </strong>
-        </div>
 
-        <div class="
+      lista.innerHTML =
+        "";
+
+
+      const mensagens =
+        dados.mensagens || [];
+
+
+      if (
+        mensagens.length === 0
+      ) {
+
+        lista.innerHTML =
+          "<p>Nenhuma mensagem no SAC.</p>";
+
+        return;
+
+      }
+
+
+      mensagens
+        .slice()
+        .reverse()
+        .forEach(
+          mensagem => {
+
+            const div =
+              document.createElement(
+                "div"
+              );
+
+
+            div.className =
+              "mensagem";
+
+
+            const status =
+              mensagem.status ===
+              "NOVA"
+                ? `
+                  <span class="status nova">
+                    NOVA
+                  </span>
+                `
+                : `
+                  <span class="status lida">
+                    LIDA
+                  </span>
+                `;
+
+
+            div.innerHTML = `
+
+              <strong>
+                ${escaparHTML(
+                  mensagem.email
+                )}
+              </strong>
+
+              <div>
+                ${status}
+              </div>
+
+              <div class="mensagem-texto">
+                ${escaparHTML(
+                  mensagem.mensagem
+                )}
+              </div>
+
+              <small>
+                ${dataFormatada(
+                  mensagem.data
+                )}
+              </small>
+
+              ${
+                mensagem.status ===
+                "NOVA"
+                  ? `
+                    <br><br>
+
+                    <button
+                      class="btn btn-lida"
+                      onclick="marcarMensagemLida('${escaparHTML(
+                        mensagem.id
+                      )}')"
+                    >
+                      ✓ Marcar como lida
+                    </button>
+                  `
+                  : ""
+              }
+
+            `;
+
+
+            lista.appendChild(
+              div
+            );
+
+          }
+        );
+
+    }
+
+
+    /* =====================================================
+       MARCAR SAC COMO LIDA
+    ====================================================== */
+
+    async function marcarMensagemLida(
+      idMensagem
+    ) {
+
+      try {
+
+        await requisicaoAdmin(
+          "/api/admin/mensagem/lida",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body:
+              JSON.stringify({
+                idMensagem:
+                  idMensagem
+              })
+
+          }
+        );
+
+
+        mostrarAviso(
+          "Mensagem marcada como lida."
+        );
+
+
+        await carregarTudo();
+
+
+      } catch (erro) {
+
+        mostrarAviso(
+          erro.message,
+          true
+        );
+
+      }
+
+    }
+
+
+    /* =====================================================
+       CARREGAR TUDO
+    ====================================================== */
+
+    async function carregarTudo() {
+
+      const carregando =
+        document.getElementById(
+          "carregando"
+        );
+
+
+      carregando.style.display =
+        "block";
+
+
+      try {
+
+        await Promise.all([
+
+          carregarResumo(),
+
+          carregarJogadores(),
+
+          carregarSaques(),
+
+          carregarMensagens()
+
+        ]);
+
+
+        mostrarAviso(
+          "Painel atualizado."
+        );
+
+
+      } catch (erro) {
+
+        console.error(
+          erro
+        );
+
+
+        mostrarAviso(
+          erro.message,
+          true
+        );
+
+
+        /*
+         * Se a chave deixou de ser válida,
+         * volta para a tela de login.
+         */
+
+        if (
+          erro.message.includes(
+            "não autorizada"
+          ) ||
+          erro.message.includes(
+            "inválida"
+          )
+        ) {
+
+          sairAdmin();
+
+        }
+
+      } finally {
+
+        carregando.style.display =
+          "none";
+
+      }
+
+    }
+
+
+    /* =====================================================
+       ENTER NO CAMPO DE CHAVE
+    ====================================================== */
+
+    document
+      .getElementById(
+        "chaveAdmin"
+      )
+      .addEventListener(
+        "keydown",
+        evento => {
+
+          if (
+            evento.key ===
+            "Enter"
+          ) {
+
+            entrarAdmin();
+
+          }
+
+        }
+      );
+
+
+    /* =====================================================
+       TENTAR RECUPERAR SESSÃO
+    ====================================================== */
+
+    window.addEventListener(
+      "load",
+      async () => {
+
+        const chaveSalva =
+          localStorage.getItem(
+            "quizup_admin_key"
+          );
+
+
+        if (!chaveSalva) {
+          return;
+        }
+
+
+        chaveAdmin =
+          chaveSalva;
+
+
+        try {
+
+          await requisicaoAdmin(
+            "/api/admin/resumo"
+          );
+
+
+          document
+            .getElementById(
+              "telaLogin"
+            )
+            .classList.add(
+              "oculto"
+            );
+
+
+          document
+            .getElementById(
+              "painel"
+            )
+            .classList.remove(
+              "oculto"
+            );
+
+
+          await carregarTudo();
+
+
+        } catch (erro) {
+
+          chaveAdmin =
+            "";
+
+          localStorage.removeItem(
+            "quizup_admin_key"
+          );
+
+        }
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
