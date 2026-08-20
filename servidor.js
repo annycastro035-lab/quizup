@@ -164,10 +164,6 @@ function identificarTipoPix(
 
   }
 
-  /*
-  CPF
-  */
-
   const somenteNumeros =
     valor.replace(
       /\D/g,
@@ -183,10 +179,6 @@ function identificarTipoPix(
 
   }
 
-  /*
-  CNPJ
-  */
-
   if (
     somenteNumeros.length ===
     14
@@ -195,10 +187,6 @@ function identificarTipoPix(
     return "CNPJ";
 
   }
-
-  /*
-  E-mail
-  */
 
   if (
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -209,10 +197,6 @@ function identificarTipoPix(
 
   }
 
-  /*
-  EVP
-  */
-
   if (
     /^[0-9a-fA-F-]{32,36}$/
       .test(valor)
@@ -221,10 +205,6 @@ function identificarTipoPix(
     return "EVP";
 
   }
-
-  /*
-  Telefone
-  */
 
   if (
     /^\+?\d{10,13}$/
@@ -288,11 +268,6 @@ async function criarTransferenciaPixAsaas(
     )
       .trim()
       .toUpperCase();
-
-  /*
-  Se o jogador não informou o tipo,
-  tenta identificar automaticamente.
-  */
 
   if (!tipoPix) {
 
@@ -2761,6 +2736,12 @@ const servidor =
 
           }
 
+          /*
+          =================================================
+            SALDO INSUFICIENTE
+          =================================================
+          */
+
           if (
             usuario.pontos <
             quantidade
@@ -2771,7 +2752,7 @@ const servidor =
               400,
               {
                 erro:
-                  "Pontos insuficientes."
+                  "Saldo insuficiente. Você não possui pontos suficientes para realizar este saque."
               }
             );
 
@@ -3726,10 +3707,6 @@ const servidor =
 
           }
 
-          /*
-          Evita duplicação.
-          */
-
           if (
             saque.asaasTransferId
           ) {
@@ -3828,19 +3805,13 @@ const servidor =
               400,
               {
                 erro:
-                  "O jogador não possui pontos suficientes para este saque."
+                  "Saldo insuficiente. O jogador não possui pontos suficientes para este saque."
               }
             );
 
             return;
 
           }
-
-          /*
-          -----------------------------------------------
-            ASAAS SOMENTE PARA PIX
-          -----------------------------------------------
-          */
 
           if (
             saque.tipo !==
@@ -3859,12 +3830,6 @@ const servidor =
             return;
 
           }
-
-          /*
-          -----------------------------------------------
-            GARANTIR TIPO PIX
-          -----------------------------------------------
-          */
 
           if (
             !saque.tipoPix
@@ -3893,12 +3858,6 @@ const servidor =
             return;
 
           }
-
-          /*
-          -----------------------------------------------
-            CRIAR TRANSFERÊNCIA
-          -----------------------------------------------
-          */
 
           let transferencia;
 
@@ -3949,12 +3908,6 @@ const servidor =
 
           }
 
-          /*
-          -----------------------------------------------
-            SALVAR ASAAS
-          -----------------------------------------------
-          */
-
           saque.asaasTransferId =
             transferencia.id ||
             null;
@@ -3970,12 +3923,6 @@ const servidor =
           saque.asaasResposta =
             transferencia;
 
-          /*
-          -----------------------------------------------
-            PAGAMENTO CONCLUÍDO
-          -----------------------------------------------
-          */
-
           if (
             transferencia.status ===
             "DONE"
@@ -3988,11 +3935,6 @@ const servidor =
               );
 
             if (!descontou) {
-
-              /*
-              A transferência já aconteceu.
-              Não podemos fingir que não aconteceu.
-              */
 
               saque.status =
                 "PAGO_COM_ERRO_PONTOS";
@@ -4090,12 +4032,6 @@ const servidor =
 
           }
 
-          /*
-          -----------------------------------------------
-            PAGAMENTO PENDENTE
-          -----------------------------------------------
-          */
-
           if (
             transferencia.status ===
             "PENDING"
@@ -4145,12 +4081,6 @@ const servidor =
             return;
 
           }
-
-          /*
-          -----------------------------------------------
-            CANCELADA / OUTRO STATUS
-          -----------------------------------------------
-          */
 
           saque.asaasErro =
             "Transferência não concluída. Status: " +
@@ -4681,3 +4611,4 @@ servidor.listen(
 
   }
 );
+
