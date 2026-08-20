@@ -200,10 +200,8 @@ function sairDaConta() {
   pontosDaRodada = 0;
   respostaCorreta = 0;
 
-  /* Para a música */
   pararMusicaQuizUp();
 
-  /* Remove sessão salva */
   try {
 
     localStorage.removeItem(
@@ -218,7 +216,6 @@ function sairDaConta() {
     );
   }
 
-  /* Remove anúncio */
   const anuncio =
     document.getElementById(
       "quizupAnuncioVideo"
@@ -228,13 +225,11 @@ function sairDaConta() {
     anuncio.remove();
   }
 
-  /* Limpa conta */
   usuarioAtual = null;
   pontos = 0;
   saldo = 0;
   rodada = 1;
 
-  /* Limpa login */
   const loginEmail =
     document.getElementById(
       "loginEmail"
@@ -264,7 +259,6 @@ function sairDaConta() {
 
   atualizarTela();
 
-  /* Remove menu ativo */
   document
     .querySelectorAll(
       ".menu-item"
@@ -277,7 +271,6 @@ function sairDaConta() {
 
     });
 
-  /* Esconde todas as telas */
   document
     .querySelectorAll(
       "body > .app > .tela"
@@ -290,7 +283,6 @@ function sairDaConta() {
 
     });
 
-  /* Mostra login */
   const telaLogin =
     document.getElementById(
       "telaLogin"
@@ -891,7 +883,6 @@ async function fazerLogin() {
       "conteudoJogo"
     );
 
-    /* Inicia a música após login */
     iniciarMusicaQuizUp();
 
   } catch (e) {
@@ -1343,7 +1334,6 @@ function girarDado() {
     return;
   }
 
-  /* Garante que a música tente tocar */
   iniciarMusicaQuizUp();
 
   const dado =
@@ -2754,12 +2744,52 @@ async function solicitarSaque() {
     resultado.textContent = "";
   }
 
+  /* =========================
+  VERIFICAR DADOS
+  ========================= */
+
   if (!tipo || !chave || !quantidade) {
 
     if (resultado) {
 
       resultado.textContent =
         "Preencha os dados do saque.";
+
+    }
+
+    return;
+  }
+
+  /* =========================
+  CORREÇÃO:
+  VERIFICAR SE POSSUI PONTOS
+  ========================= */
+
+  if (Number(saldo) <= 0) {
+
+    if (resultado) {
+
+      resultado.textContent =
+        "❌ Você não tem pontos suficientes para sacar.";
+
+    }
+
+    return;
+  }
+
+  /* =========================
+  CORREÇÃO:
+  VERIFICAR SE POSSUI
+  PONTOS SUFICIENTES PARA
+  O VALOR SOLICITADO
+  ========================= */
+
+  if (quantidade > Number(saldo)) {
+
+    if (resultado) {
+
+      resultado.textContent =
+        "❌ Você não tem pontos suficientes para este saque.";
 
     }
 
@@ -2848,6 +2878,12 @@ async function solicitarSaque() {
           usuarioAtual.saldo ??
           saldo
         );
+
+      usuarioAtual.pontos =
+        pontos;
+
+      usuarioAtual.saldo =
+        saldo;
 
       salvarSessaoLocal();
 
@@ -3011,11 +3047,6 @@ function configurarBotaoSair() {
       return;
     }
 
-    /*
-      Evita que o clique dependa
-      somente do onclick do HTML.
-    */
-
     if (botao.dataset.sairConfigurado === "true") {
       return;
     }
@@ -3046,11 +3077,6 @@ document.addEventListener(
   "DOMContentLoaded",
   function() {
 
-    /*
-      Não recupera automaticamente
-      a sessão anterior.
-    */
-
     usuarioAtual = null;
     pontos = 0;
     saldo = 0;
@@ -3075,10 +3101,6 @@ document.addEventListener(
     mostrarTela(
       "telaLogin"
     );
-
-    /*
-      Configura o botão SAIR.
-    */
 
     configurarBotaoSair();
 
