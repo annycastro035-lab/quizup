@@ -6,7 +6,393 @@ const PORT = process.env.PORT || 10000;
 
 /*
 =========================================================
-  CONFIGURAÇÃO ADMINISTRATIVA
+  ASAAS SANDBOX
+=========================================================
+*/
+
+const ASAAS_API_KEY =
+  process.env.ASAAS_API_KEY || "";
+
+const ASAAS_BASE_URL =
+  "https://api-sandbox.asaas.com/v3";
+
+
+async function asaasRequisicao(
+  endpoint,
+  metodo = "GET",
+  corpo = null
+) {
+
+  if (!ASAAS_API_KEY) {
+
+    throw new Error(
+      "ASAAS_API_KEY não configurada no Render."
+    );
+
+  }
+
+  const opcoes = {
+    method: metodo,
+
+    headers: {
+      "Content-Type":
+        "application/json",
+
+      "Accept":
+        "application/json",
+
+      "access_token":
+        ASAAS_API_KEY
+    }
+  };
+
+  if (corpo !== null) {
+
+    opcoes.body =
+      JSON.stringify(corpo);
+
+  }
+
+  const resposta =
+    await fetch(
+      ASAAS_BASE_URL + endpoint,
+      opcoes
+    );
+
+  const texto =
+    await resposta.text();
+
+  let dados;
+
+  try {
+
+    dados =
+      texto
+        ? JSON.parse(texto)
+        : {};
+
+  } catch {
+
+    dados = {
+      mensagem: texto
+    };
+
+  }
+
+  if (!resposta.ok) {
+
+    const erro =
+      dados?.errors?.[0]?.description ||
+      dados?.message ||
+      dados?.error ||
+      "Erro desconhecido no Asaas.";
+
+    throw new Error(
+      `Asaas ${resposta.status}: ${erro}`
+    );
+
+  }
+
+  return dados;
+
+}
+
+
+/*
+=========================================================
+  TESTE ASAAS
+=========================================================
+*/
+
+async function testarAsaas() {
+
+  if (!ASAAS_API_KEY) {
+
+    console.log(
+      "Asaas: ASAAS_API_KEY não configurada."
+    );
+
+    return;
+
+  }
+
+  try {
+
+    const resposta =
+      await asaasRequisicao(
+        "/myAccount",
+        "GET"
+      );
+
+    console.log(
+      "Asaas Sandbox conectado:",
+      resposta.name ||
+      resposta.email ||
+      "OK"
+    );
+
+  } catch (erro) {
+
+    console.log(
+      "Asaas Sandbox não conectado:",
+      erro.message
+    );
+
+  }
+
+}
+
+
+/*
+=========================================================
+  IDENTIFICAR TIPO DE CHAVE PIX
+=========================================================
+*/
+
+function identificarTipoPix(
+  chave
+) {
+
+  const valor =
+    String(
+      chave || ""
+    ).trim();
+
+  if (!valor) {
+
+    return null;
+
+  }
+
+  /*
+  CPF
+  */
+
+  const somenteNumeros =
+    valor.replace(
+      /\D/g,
+      ""
+    );
+
+  if (
+    somenteNumeros.length ===
+    11
+  ) {
+
+    return "CPF";
+
+  }
+
+  /*
+  CNPJ
+  */
+
+  if (
+    somenteNumeros.length ===
+    14
+  ) {
+
+    return "CNPJ";
+
+  }
+
+  /*
+  E-mail
+  */
+
+  if (
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      .test(valor)
+  ) {
+
+    return "EMAIL";
+
+  }
+
+  /*
+  EVP
+  */
+
+  if (
+    /^[0-9a-fA-F-]{32,36}$/
+      .test(valor)
+  ) {
+
+    return "EVP";
+
+  }
+
+  /*
+  Telefone
+  */
+
+  if (
+    /^\+?\d{10,13}$/
+      .test(valor)
+  ) {
+
+    return "PHONE";
+
+  }
+
+  return null;
+
+}
+
+
+/*
+=========================================================
+  CRIAR TRANSFERÊNCIA PIX ASAAS
+=========================================================
+*/
+
+async function criarTransferenciaPixAsaas(
+  saque
+) {
+
+  if (!saque) {
+
+    throw new Error(
+      "Saque inválido."
+    );
+
+  }
+
+  if (
+    saque.tipo !==
+    "pix"
+  ) {
+
+    throw new Error(
+      "O pagamento automático está disponível somente para PIX."
+    );
+
+  }
+
+  const chavePix =
+    String(
+      saque.destino || ""
+    ).trim();
+
+  if (!chavePix) {
+
+    throw new Error(
+      "Chave Pix não informada."
+    );
+
+  }
+
+  let tipoPix =
+    String(
+      saque.tipoPix || ""
+    )
+      .trim()
+      .toUpperCase();
+
+  /*
+  Se o jogador não informou o tipo,
+  tenta identificar automaticamente.
+  */
+
+  if (!tipoPix) {
+
+    tipoPix =
+      identificarTipoPix(
+        chavePix
+      );
+
+  }
+
+  const tiposPermitidos = [
+    "CPF",
+    "CNPJ",
+    "EMAIL",
+    "PHONE",
+    "EVP"
+  ];
+
+  if (
+    !tiposPermitidos.includes(
+      tipoPix
+    )
+  ) {
+
+    throw new Error(
+      "Não foi possível identificar o tipo da chave Pix. Informe CPF, CNPJ, EMAIL, PHONE ou EVP."
+    );
+
+  }
+
+  const valor =
+    Number(
+      saque.valorJogador
+    );
+
+  if (
+    !Number.isFinite(
+      valor
+    ) ||
+    valor <= 0
+  ) {
+
+    throw new Error(
+      "Valor da transferência inválido."
+    );
+
+  }
+
+  const corpo = {
+
+    value:
+      Number(
+        valor.toFixed(2)
+      ),
+
+    operationType:
+      "PIX",
+
+    pixAddressKey:
+      chavePix,
+
+    pixAddressKeyType:
+      tipoPix,
+
+    description:
+      `Pagamento QuizUp ${saque.id}`,
+
+    externalReference:
+      String(
+        saque.id
+      )
+
+  };
+
+  console.log(
+    "Criando transferência Pix Asaas:",
+    {
+      valor:
+        corpo.value,
+
+      tipoPix:
+        corpo.pixAddressKeyType,
+
+      saque:
+        saque.id
+    }
+  );
+
+  return await asaasRequisicao(
+    "/transfers",
+    "POST",
+    corpo
+  );
+
+}
+
+
+/*
+=========================================================
+  CONFIGURAÇÃO ADMIN
 =========================================================
 */
 
@@ -16,7 +402,7 @@ const ADMIN_KEY =
 
 /*
 =========================================================
-  ARMAZENAMENTO
+  BANCO LOCAL
 =========================================================
 */
 
@@ -54,7 +440,6 @@ function carregarBanco() {
         JSON.parse(
           dados
         );
-
 
       banco = {
 
@@ -136,7 +521,7 @@ const mensagens =
 
 /*
 =========================================================
-  COMPATIBILIDADE COM JOGADORES EXISTENTES
+  COMPATIBILIDADE
 =========================================================
 */
 
@@ -158,7 +543,6 @@ usuarios.forEach(
 
     }
 
-
     if (
       !Number.isFinite(
         Number(
@@ -172,7 +556,6 @@ usuarios.forEach(
 
     }
 
-
     usuario.pontosQuiz =
       Math.max(
         0,
@@ -180,7 +563,6 @@ usuarios.forEach(
           usuario.pontosQuiz || 0
         )
       );
-
 
     usuario.pontosPatrocinados =
       Math.max(
@@ -190,15 +572,12 @@ usuarios.forEach(
         )
       );
 
-
     usuario.pontos =
       usuario.pontosQuiz +
       usuario.pontosPatrocinados;
 
-
     usuario.saldo =
       usuario.pontos;
-
 
     if (
       !Array.isArray(
@@ -254,14 +633,20 @@ const tiposArquivo = {
     "image/svg+xml",
 
   ".ico":
-    "image/x-icon"
+    "image/x-icon",
+
+  ".mp3":
+    "audio/mpeg",
+
+  ".webp":
+    "image/webp"
 
 };
 
 
 /*
 =========================================================
-  RESPOSTA JSON
+  JSON
 =========================================================
 */
 
@@ -317,7 +702,6 @@ function receberDados(
 
       let corpo = "";
 
-
       req.on(
         "data",
         parte => {
@@ -325,9 +709,23 @@ function receberDados(
           corpo +=
             parte;
 
+          if (
+            corpo.length >
+            2 * 1024 * 1024
+          ) {
+
+            reject(
+              new Error(
+                "Dados muito grandes."
+              )
+            );
+
+            req.destroy();
+
+          }
+
         }
       );
-
 
       req.on(
         "end",
@@ -354,7 +752,6 @@ function receberDados(
         }
       );
 
-
       req.on(
         "error",
         reject
@@ -368,14 +765,13 @@ function receberDados(
 
 /*
 =========================================================
-  ID DO JOGADOR
+  ID JOGADOR
 =========================================================
 */
 
 function gerarIdJogador() {
 
   let id;
-
 
   do {
 
@@ -399,7 +795,6 @@ function gerarIdJogador() {
         id
     )
   );
-
 
   return id;
 
@@ -432,7 +827,6 @@ function gerarCodigoIndicacao(
       )
       .toUpperCase();
 
-
   const emailParte =
     String(
       email || ""
@@ -444,9 +838,7 @@ function gerarCodigoIndicacao(
       )
       .toUpperCase();
 
-
   let caracteres = "";
-
 
   for (
     let i = 0;
@@ -460,7 +852,6 @@ function gerarCodigoIndicacao(
 
   }
 
-
   for (
     let i = 0;
     i < emailParte.length &&
@@ -473,10 +864,8 @@ function gerarCodigoIndicacao(
 
   }
 
-
   const aleatorio =
     "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
 
   while (
     caracteres.length < 8
@@ -492,17 +881,14 @@ function gerarCodigoIndicacao(
 
   }
 
-
   caracteres =
     caracteres.substring(
       0,
       8
     );
 
-
   const lista =
     caracteres.split("");
-
 
   for (
     let i =
@@ -517,7 +903,6 @@ function gerarCodigoIndicacao(
         (i + 1)
       );
 
-
     [
       lista[i],
       lista[j]
@@ -528,10 +913,8 @@ function gerarCodigoIndicacao(
 
   }
 
-
   const codigo =
     lista.join("");
-
 
   const existe =
     usuarios.some(
@@ -539,7 +922,6 @@ function gerarCodigoIndicacao(
         usuario.codigoIndicacao ===
         codigo
     );
-
 
   if (existe) {
 
@@ -550,7 +932,6 @@ function gerarCodigoIndicacao(
 
   }
 
-
   return codigo;
 
 }
@@ -558,7 +939,7 @@ function gerarCodigoIndicacao(
 
 /*
 =========================================================
-  ATUALIZAR TOTAL DE PONTOS
+  TOTAL DE PONTOS
 =========================================================
 */
 
@@ -574,7 +955,6 @@ function atualizarTotalPontos(
       )
     );
 
-
   usuario.pontosPatrocinados =
     Math.max(
       0,
@@ -583,15 +963,12 @@ function atualizarTotalPontos(
       )
     );
 
-
   usuario.pontos =
     usuario.pontosQuiz +
     usuario.pontosPatrocinados;
 
-
   usuario.saldo =
     usuario.pontos;
-
 
   return usuario.pontos;
 
@@ -600,7 +977,7 @@ function atualizarTotalPontos(
 
 /*
 =========================================================
-  ATUALIZAR INDICAÇÕES
+  INDICAÇÕES
 =========================================================
 */
 
@@ -609,7 +986,6 @@ function atualizarIndicacoesDoUsuario(
 ) {
 
   let bonusPago = false;
-
 
   if (
     !Array.isArray(
@@ -622,7 +998,6 @@ function atualizarIndicacoesDoUsuario(
 
   }
 
-
   usuario.indicacoes.forEach(
     indicacao => {
 
@@ -633,26 +1008,22 @@ function atualizarIndicacoesDoUsuario(
             indicacao.usuarioId
         );
 
-
       if (!indicado) {
 
         return;
 
       }
 
-
       const pontosIndicada =
         Number(
           indicado.pontos || 0
         );
-
 
       indicacao.pontos =
         Math.min(
           pontosIndicada,
           300
         );
-
 
       if (
         pontosIndicada < 300 &&
@@ -666,7 +1037,6 @@ function atualizarIndicacoesDoUsuario(
 
       }
 
-
       if (
         pontosIndicada >= 300 &&
         !indicacao.bonusPago
@@ -677,32 +1047,25 @@ function atualizarIndicacoesDoUsuario(
             usuario.pontosQuiz || 0
           ) + 50;
 
-
         atualizarTotalPontos(
           usuario
         );
 
-
         indicacao.pontos =
           300;
-
 
         indicacao.bonus =
           50;
 
-
         indicacao.bonusPago =
           true;
-
 
         indicacao.status =
           "CONCLUÍDO";
 
-
         indicacao.dataConclusao =
           new Date()
             .toISOString();
-
 
         bonusPago =
           true;
@@ -711,7 +1074,6 @@ function atualizarIndicacoesDoUsuario(
 
     }
   );
-
 
   return {
     bonusPago
@@ -737,7 +1099,6 @@ function encontrarUsuario(
       ""
     ).trim();
 
-
   const email =
     String(
       dados.email ||
@@ -745,7 +1106,6 @@ function encontrarUsuario(
     )
       .trim()
       .toLowerCase();
-
 
   if (id) {
 
@@ -759,7 +1119,6 @@ function encontrarUsuario(
           ) === id
       );
 
-
     if (porId) {
 
       return porId;
@@ -767,7 +1126,6 @@ function encontrarUsuario(
     }
 
   }
-
 
   if (email) {
 
@@ -778,7 +1136,6 @@ function encontrarUsuario(
     );
 
   }
-
 
   return null;
 
@@ -813,22 +1170,18 @@ function enviarArquivo(
           }
         );
 
-
         res.end(
           "Página não encontrada."
         );
-
 
         return;
 
       }
 
-
       const extensao =
         path.extname(
           arquivo
         ).toLowerCase();
-
 
       res.writeHead(
         200,
@@ -843,7 +1196,6 @@ function enviarArquivo(
         }
       );
 
-
       res.end(
         dados
       );
@@ -856,7 +1208,7 @@ function enviarArquivo(
 
 /*
 =========================================================
-  AUTENTICAÇÃO DO ADMINISTRADOR
+  ADMIN
 =========================================================
 */
 
@@ -870,7 +1222,6 @@ function verificarAdministrador(
 
   }
 
-
   const chave =
     String(
       req.headers[
@@ -879,11 +1230,118 @@ function verificarAdministrador(
       ""
     ).trim();
 
-
   return (
     chave !== "" &&
     chave === ADMIN_KEY
   );
+
+}
+
+
+/*
+=========================================================
+  REGRAS DE SAQUE
+=========================================================
+*/
+
+function calcularSaque(
+  pontos
+) {
+
+  if (
+    pontos === 2000
+  ) {
+
+    return 1;
+
+  }
+
+  if (
+    pontos === 6000
+  ) {
+
+    return 5;
+
+  }
+
+  if (
+    pontos === 11000
+  ) {
+
+    return 10;
+
+  }
+
+  return 0;
+
+}
+
+
+/*
+=========================================================
+  DESCONTAR PONTOS
+=========================================================
+*/
+
+function descontarPontos(
+  usuario,
+  quantidade
+) {
+
+  let restante =
+    Number(
+      quantidade
+    );
+
+  const descontoQuiz =
+    Math.min(
+      Number(
+        usuario.pontosQuiz ||
+        0
+      ),
+      restante
+    );
+
+  usuario.pontosQuiz -=
+    descontoQuiz;
+
+  restante -=
+    descontoQuiz;
+
+  if (
+    restante > 0
+  ) {
+
+    const descontoPatrocinado =
+      Math.min(
+        Number(
+          usuario.pontosPatrocinados ||
+          0
+        ),
+        restante
+      );
+
+    usuario.pontosPatrocinados -=
+      descontoPatrocinado;
+
+    restante -=
+      descontoPatrocinado;
+
+  }
+
+  if (
+    restante > 0
+  ) {
+
+    return false;
+
+  }
+
+  atualizarTotalPontos(
+    usuario
+  );
+
+  return true;
 
 }
 
@@ -900,13 +1358,6 @@ const servidor =
       req,
       res
     ) => {
-
-
-      /*
-      ===================================================
-        OPTIONS / CORS
-      ===================================================
-      */
 
       if (
         req.method ===
@@ -929,21 +1380,17 @@ const servidor =
           }
         );
 
-
         res.end();
-
 
         return;
 
       }
-
 
       const url =
         new URL(
           req.url,
           `http://${req.headers.host}`
         );
-
 
       const caminho =
         url.pathname;
@@ -968,18 +1415,15 @@ const servidor =
               req
             );
 
-
           const nome =
             String(
               dados.nome || ""
             ).trim();
 
-
           const cpf =
             String(
               dados.cpf || ""
             ).trim();
-
 
           const email =
             String(
@@ -988,12 +1432,10 @@ const servidor =
               .trim()
               .toLowerCase();
 
-
           const senha =
             String(
               dados.senha || ""
             );
-
 
           const codigoRecebido =
             String(
@@ -1001,7 +1443,6 @@ const servidor =
             )
               .trim()
               .toUpperCase();
-
 
           if (
             !nome ||
@@ -1019,11 +1460,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           if (
             senha.length < 6
@@ -1038,11 +1477,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           const existeEmail =
             usuarios.find(
@@ -1050,7 +1487,6 @@ const servidor =
                 usuario.email ===
                 email
             );
-
 
           if (existeEmail) {
 
@@ -1063,15 +1499,12 @@ const servidor =
               }
             );
 
-
             return;
 
           }
 
-
           let indicador =
             null;
-
 
           if (
             codigoRecebido
@@ -1084,7 +1517,6 @@ const servidor =
                   codigoRecebido
               );
 
-
             if (!indicador) {
 
               responder(
@@ -1096,20 +1528,11 @@ const servidor =
                 }
               );
 
-
               return;
 
             }
 
           }
-
-
-          const codigoIndicacao =
-            gerarCodigoIndicacao(
-              nome,
-              email
-            );
-
 
           const usuario = {
 
@@ -1131,7 +1554,11 @@ const servidor =
 
             senha,
 
-            codigoIndicacao,
+            codigoIndicacao:
+              gerarCodigoIndicacao(
+                nome,
+                email
+              ),
 
             codigoUsado:
               codigoRecebido || "",
@@ -1141,8 +1568,7 @@ const servidor =
                 ? indicador.id
                 : null,
 
-            indicacoes:
-              [],
+            indicacoes: [],
 
             plano:
               "GRATUITO",
@@ -1160,6 +1586,9 @@ const servidor =
               0,
 
             pix:
+              "",
+
+            tipoPix:
               "",
 
             paypal:
@@ -1191,17 +1620,9 @@ const servidor =
 
           };
 
-
           usuarios.push(
             usuario
           );
-
-
-          /*
-          -----------------------------------------------
-            INDICAÇÃO
-          -----------------------------------------------
-          */
 
           if (indicador) {
 
@@ -1215,7 +1636,6 @@ const servidor =
                 [];
 
             }
-
 
             indicador.indicacoes.push({
 
@@ -1251,9 +1671,7 @@ const servidor =
 
           }
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -1297,14 +1715,12 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           console.log(
             "Erro no cadastro:",
             erro
           );
-
 
           responder(
             res,
@@ -1316,7 +1732,6 @@ const servidor =
           );
 
         }
-
 
         return;
 
@@ -1342,7 +1757,6 @@ const servidor =
               req
             );
 
-
           const email =
             String(
               dados.email || ""
@@ -1350,12 +1764,10 @@ const servidor =
               .trim()
               .toLowerCase();
 
-
           const senha =
             String(
               dados.senha || ""
             );
-
 
           const usuario =
             usuarios.find(
@@ -1365,7 +1777,6 @@ const servidor =
                 item.senha ===
                   senha
             );
-
 
           if (!usuario) {
 
@@ -1378,38 +1789,30 @@ const servidor =
               }
             );
 
-
             return;
 
           }
 
-
           atualizarTotalPontos(
             usuario
           );
-
 
           usuario.ultimoLogin =
             new Date()
               .toISOString();
 
-
           usuario.ativo =
             true;
-
 
           atualizarIndicacoesDoUsuario(
             usuario
           );
 
-
           atualizarTotalPontos(
             usuario
           );
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -1451,6 +1854,9 @@ const servidor =
                 pix:
                   usuario.pix || "",
 
+                tipoPix:
+                  usuario.tipoPix || "",
+
                 paypal:
                   usuario.paypal || "",
 
@@ -1468,7 +1874,6 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           responder(
@@ -1481,7 +1886,6 @@ const servidor =
           );
 
         }
-
 
         return;
 
@@ -1507,12 +1911,10 @@ const servidor =
               req
             );
 
-
           const usuario =
             encontrarUsuario(
               dados
             );
-
 
           if (usuario) {
 
@@ -1526,7 +1928,6 @@ const servidor =
             salvarBanco();
 
           }
-
 
           responder(
             res,
@@ -1542,7 +1943,6 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           responder(
@@ -1555,7 +1955,6 @@ const servidor =
           );
 
         }
-
 
         return;
 
@@ -1581,12 +1980,10 @@ const servidor =
               req
             );
 
-
           const usuario =
             encontrarUsuario(
               dados
             );
-
 
           if (!usuario) {
 
@@ -1599,24 +1996,19 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           atualizarIndicacoesDoUsuario(
             usuario
           );
 
-
           atualizarTotalPontos(
             usuario
           );
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -1647,6 +2039,9 @@ const servidor =
               pix:
                 usuario.pix || "",
 
+              tipoPix:
+                usuario.tipoPix || "",
+
               paypal:
                 usuario.paypal || "",
 
@@ -1662,7 +2057,6 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           responder(
@@ -1676,7 +2070,6 @@ const servidor =
 
         }
 
-
         return;
 
       }
@@ -1684,7 +2077,7 @@ const servidor =
 
       /*
       ===================================================
-        PAGAMENTO
+        PAGAMENTO / PIX
       ===================================================
       */
 
@@ -1701,12 +2094,10 @@ const servidor =
               req
             );
 
-
           const usuario =
             encontrarUsuario(
               dados
             );
-
 
           if (!usuario) {
 
@@ -1719,17 +2110,21 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           const pix =
             String(
               dados.pix || ""
             ).trim();
 
+          const tipoPix =
+            String(
+              dados.tipoPix || ""
+            )
+              .trim()
+              .toUpperCase();
 
           const paypal =
             String(
@@ -1738,14 +2133,12 @@ const servidor =
               .trim()
               .toLowerCase();
 
-
           const preferido =
             String(
               dados.tipo || ""
             )
               .trim()
               .toLowerCase();
-
 
           if (
             !pix &&
@@ -1761,11 +2154,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           if (
             preferido === "pix" &&
@@ -1781,11 +2172,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           if (
             preferido === "paypal" &&
@@ -1801,19 +2190,23 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           if (pix) {
 
             usuario.pix =
               pix;
 
-          }
+            usuario.tipoPix =
+              tipoPix ||
+              identificarTipoPix(
+                pix
+              ) ||
+              "";
 
+          }
 
           if (paypal) {
 
@@ -1821,7 +2214,6 @@ const servidor =
               paypal;
 
           }
-
 
           if (
             preferido === "pix" ||
@@ -1833,9 +2225,7 @@ const servidor =
 
           }
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -1851,6 +2241,9 @@ const servidor =
               pix:
                 usuario.pix,
 
+              tipoPix:
+                usuario.tipoPix,
+
               paypal:
                 usuario.paypal,
 
@@ -1859,7 +2252,6 @@ const servidor =
 
             }
           );
-
 
         } catch (erro) {
 
@@ -1873,7 +2265,6 @@ const servidor =
           );
 
         }
-
 
         return;
 
@@ -1899,12 +2290,10 @@ const servidor =
               req
             );
 
-
           const usuario =
             encontrarUsuario(
               dados
             );
-
 
           if (!usuario) {
 
@@ -1917,24 +2306,19 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           atualizarIndicacoesDoUsuario(
             usuario
           );
 
-
           atualizarTotalPontos(
             usuario
           );
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -1962,7 +2346,6 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           responder(
@@ -1976,7 +2359,6 @@ const servidor =
 
         }
 
-
         return;
 
       }
@@ -1984,7 +2366,7 @@ const servidor =
 
       /*
       ===================================================
-        PONTUAÇÃO DO QUIZ
+        PONTUAÇÃO
       ===================================================
       */
 
@@ -2001,18 +2383,15 @@ const servidor =
               req
             );
 
-
           const usuario =
             encontrarUsuario(
               dados
             );
 
-
           const pontosRecebidos =
             Number(
               dados.pontos || 0
             );
-
 
           if (!usuario) {
 
@@ -2025,11 +2404,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           if (
             !Number.isFinite(
@@ -2047,20 +2424,16 @@ const servidor =
               }
             );
 
-
             return;
 
           }
 
-
           usuario.pontosQuiz =
             pontosRecebidos;
-
 
           atualizarTotalPontos(
             usuario
           );
-
 
           if (
             usuario.indicadoPorId
@@ -2072,7 +2445,6 @@ const servidor =
                   item.id ===
                   usuario.indicadoPorId
               );
-
 
             if (indicador) {
 
@@ -2087,14 +2459,12 @@ const servidor =
 
               }
 
-
               const indicacao =
                 indicador.indicacoes.find(
                   item =>
                     item.usuarioId ===
                     usuario.id
                 );
-
 
               if (indicacao) {
 
@@ -2109,35 +2479,27 @@ const servidor =
                       indicador.pontosQuiz || 0
                     ) + 50;
 
-
                   atualizarTotalPontos(
                     indicador
                   );
 
-
                   indicacao.pontos =
                     300;
-
 
                   indicacao.bonus =
                     50;
 
-
                   indicacao.bonusPago =
                     true;
 
-
                   indicacao.status =
                     "CONCLUÍDO";
-
 
                   indicacao.dataConclusao =
                     new Date()
                       .toISOString();
 
-                }
-
-                else if (
+                } else if (
                   !indicacao.bonusPago
                 ) {
 
@@ -2146,7 +2508,6 @@ const servidor =
                       usuario.pontos,
                       300
                     );
-
 
                   indicacao.status =
                     "EM ANDAMENTO";
@@ -2159,9 +2520,7 @@ const servidor =
 
           }
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -2183,14 +2542,12 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           console.log(
             "Erro na pontuação:",
             erro
           );
-
 
           responder(
             res,
@@ -2202,7 +2559,6 @@ const servidor =
           );
 
         }
-
 
         return;
 
@@ -2228,18 +2584,15 @@ const servidor =
               req
             );
 
-
           const usuario =
             encontrarUsuario(
               dados
             );
 
-
           const pontosRecebidos =
             Number(
               dados.pontos || 0
             );
-
 
           if (!usuario) {
 
@@ -2252,11 +2605,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           if (
             !Number.isFinite(
@@ -2274,23 +2625,18 @@ const servidor =
               }
             );
 
-
             return;
 
           }
 
-
           usuario.pontosPatrocinados +=
             pontosRecebidos;
-
 
           atualizarTotalPontos(
             usuario
           );
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -2312,7 +2658,6 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           responder(
@@ -2326,50 +2671,7 @@ const servidor =
 
         }
 
-
         return;
-
-      }
-
-
-      /*
-      ===================================================
-        REGRAS DE SAQUE
-      ===================================================
-      */
-
-      function calcularSaque(
-        pontos
-      ) {
-
-        if (
-          pontos === 2000
-        ) {
-
-          return 1;
-
-        }
-
-
-        if (
-          pontos === 6000
-        ) {
-
-          return 5;
-
-        }
-
-
-        if (
-          pontos === 11000
-        ) {
-
-          return 10;
-
-        }
-
-
-        return 0;
 
       }
 
@@ -2393,18 +2695,15 @@ const servidor =
               req
             );
 
-
           const usuario =
             encontrarUsuario(
               dados
             );
 
-
           const quantidade =
             Number(
               dados.pontos || 0
             );
-
 
           const tipo =
             String(
@@ -2413,12 +2712,17 @@ const servidor =
               .trim()
               .toLowerCase();
 
-
           const destino =
             String(
               dados.destino || ""
             ).trim();
 
+          const tipoPixRecebido =
+            String(
+              dados.tipoPix || ""
+            )
+              .trim()
+              .toUpperCase();
 
           if (!usuario) {
 
@@ -2431,17 +2735,14 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           const valorJogador =
             calcularSaque(
               quantidade
             );
-
 
           if (
             valorJogador <= 0
@@ -2456,11 +2757,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           if (
             usuario.pontos <
@@ -2476,21 +2775,12 @@ const servidor =
               }
             );
 
-
             return;
 
           }
 
-
-          /*
-          =================================================
-            30% DA PLATAFORMA
-          =================================================
-          */
-
           const percentualPlataforma =
             0.30;
-
 
           const valorPlataforma =
             Number(
@@ -2500,7 +2790,6 @@ const servidor =
               ).toFixed(2)
             );
 
-
           const custoTotal =
             Number(
               (
@@ -2509,16 +2798,11 @@ const servidor =
               ).toFixed(2)
             );
 
-
-          /*
-          =================================================
-            DESTINO
-          =================================================
-          */
-
           let destinoFinal =
             destino;
 
+          let tipoPixFinal =
+            tipoPixRecebido;
 
           if (
             tipo === "pix"
@@ -2529,8 +2813,15 @@ const servidor =
               usuario.pix ||
               "";
 
-          }
+            tipoPixFinal =
+              tipoPixFinal ||
+              usuario.tipoPix ||
+              identificarTipoPix(
+                destinoFinal
+              ) ||
+              "";
 
+          }
 
           if (
             tipo === "paypal"
@@ -2542,7 +2833,6 @@ const servidor =
               "";
 
           }
-
 
           if (
             tipo !== "pix" &&
@@ -2558,11 +2848,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           if (!destinoFinal) {
 
@@ -2575,22 +2863,39 @@ const servidor =
               }
             );
 
+            return;
+
+          }
+
+          if (
+            tipo === "pix" &&
+            ![
+              "CPF",
+              "CNPJ",
+              "EMAIL",
+              "PHONE",
+              "EVP"
+            ].includes(
+              tipoPixFinal
+            )
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Não foi possível identificar o tipo da chave Pix. Cadastre novamente a chave Pix informando o tipo."
+              }
+            );
 
             return;
 
           }
 
-
-          /*
-          =================================================
-            LIMITE DE 2 SAQUES POR DIA
-          =================================================
-          */
-
           const hoje =
             new Date()
               .toDateString();
-
 
           if (
             usuario.dataSaques !==
@@ -2604,7 +2909,6 @@ const servidor =
               0;
 
           }
-
 
           if (
             usuario.saquesHoje >=
@@ -2620,27 +2924,22 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
-
-          /*
-          =================================================
-            VERIFICAR SAQUES PENDENTES
-          =================================================
-          */
 
           const pendentes =
             saques.filter(
               saque =>
                 saque.usuarioId ===
                   usuario.id &&
-                saque.status ===
-                  "PENDENTE"
+                (
+                  saque.status ===
+                    "PENDENTE" ||
+                  saque.status ===
+                    "PAGAMENTO_PENDENTE"
+                )
             );
-
 
           const pontosPendentes =
             pendentes.reduce(
@@ -2654,7 +2953,6 @@ const servidor =
                 ),
               0
             );
-
 
           if (
             usuario.pontos -
@@ -2671,23 +2969,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
-
-          /*
-          =================================================
-            CRIAR SOLICITAÇÃO
-          =================================================
-
-            Os pontos NÃO são retirados agora.
-
-            Eles somente serão retirados quando
-            o administrador APROVAR o saque.
-          =================================================
-          */
 
           const saque = {
 
@@ -2732,6 +3016,11 @@ const servidor =
             destino:
               destinoFinal,
 
+            tipoPix:
+              tipo === "pix"
+                ? tipoPixFinal
+                : "",
+
             status:
               "PENDENTE",
 
@@ -2746,18 +3035,30 @@ const servidor =
               null,
 
             motivoRecusa:
-              ""
+              "",
+
+            pago:
+              false,
+
+            pontosDescontados:
+              false,
+
+            asaasTransferId:
+              null,
+
+            asaasStatus:
+              null,
+
+            asaasErro:
+              null
 
           };
-
 
           saques.push(
             saque
           );
 
-
           usuario.saquesHoje++;
-
 
           if (
             !Array.isArray(
@@ -2770,14 +3071,11 @@ const servidor =
 
           }
 
-
           usuario.historicoSaques.push(
             saque.id
           );
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -2813,6 +3111,9 @@ const servidor =
                 tipo:
                   saque.tipo,
 
+                tipoPix:
+                  saque.tipoPix,
+
                 status:
                   saque.status,
 
@@ -2827,14 +3128,12 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           console.log(
             "Erro no saque:",
             erro
           );
-
 
           responder(
             res,
@@ -2847,7 +3146,6 @@ const servidor =
 
         }
 
-
         return;
 
       }
@@ -2855,7 +3153,7 @@ const servidor =
 
       /*
       ===================================================
-        HISTÓRICO DE SAQUES DO JOGADOR
+        HISTÓRICO
       ===================================================
       */
 
@@ -2872,12 +3170,10 @@ const servidor =
               req
             );
 
-
           const usuario =
             encontrarUsuario(
               dados
             );
-
 
           if (!usuario) {
 
@@ -2890,11 +3186,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           const lista =
             saques.filter(
@@ -2902,7 +3196,6 @@ const servidor =
                 saque.usuarioId ===
                 usuario.id
             );
-
 
           responder(
             res,
@@ -2918,7 +3211,6 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           responder(
@@ -2931,7 +3223,6 @@ const servidor =
           );
 
         }
-
 
         return;
 
@@ -2957,7 +3248,6 @@ const servidor =
               req
             );
 
-
           const email =
             String(
               dados.email || ""
@@ -2965,18 +3255,15 @@ const servidor =
               .trim()
               .toLowerCase();
 
-
           const mensagem =
             String(
               dados.mensagem || ""
             ).trim();
 
-
           const idJogador =
             String(
               dados.idJogador || ""
             ).trim();
-
 
           if (
             !email ||
@@ -2992,11 +3279,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           mensagens.push({
 
@@ -3022,9 +3307,7 @@ const servidor =
 
           });
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -3034,7 +3317,6 @@ const servidor =
                 "Mensagem enviada com sucesso."
             }
           );
-
 
         } catch (erro) {
 
@@ -3049,7 +3331,6 @@ const servidor =
 
         }
 
-
         return;
 
       }
@@ -3057,8 +3338,7 @@ const servidor =
 
       /*
       ===================================================
-        ADMIN
-        LISTAR JOGADORES
+        ADMIN JOGADORES
       ===================================================
       */
 
@@ -3083,11 +3363,9 @@ const servidor =
             }
           );
 
-
           return;
 
         }
-
 
         const lista =
           usuarios.map(
@@ -3096,7 +3374,6 @@ const servidor =
               atualizarTotalPontos(
                 usuario
               );
-
 
               return {
 
@@ -3153,9 +3430,7 @@ const servidor =
             }
           );
 
-
         salvarBanco();
-
 
         responder(
           res,
@@ -3171,7 +3446,6 @@ const servidor =
           }
         );
 
-
         return;
 
       }
@@ -3179,8 +3453,7 @@ const servidor =
 
       /*
       ===================================================
-        ADMIN
-        RESUMO
+        ADMIN RESUMO
       ===================================================
       */
 
@@ -3205,19 +3478,15 @@ const servidor =
             }
           );
 
-
           return;
 
         }
 
-
         let pontosQuizTotal =
           0;
 
-
         let pontosPatrocinadosTotal =
           0;
-
 
         usuarios.forEach(
           usuario => {
@@ -3226,13 +3495,11 @@ const servidor =
               usuario
             );
 
-
             pontosQuizTotal +=
               Number(
                 usuario.pontosQuiz ||
                 0
               );
-
 
             pontosPatrocinadosTotal +=
               Number(
@@ -3243,14 +3510,12 @@ const servidor =
           }
         );
 
-
         const pendentes =
           saques.filter(
             saque =>
               saque.status ===
               "PENDENTE"
           ).length;
-
 
         const aprovados =
           saques.filter(
@@ -3259,7 +3524,6 @@ const servidor =
               "APROVADO"
           ).length;
 
-
         const recusados =
           saques.filter(
             saque =>
@@ -3267,9 +3531,7 @@ const servidor =
               "RECUSADO"
           ).length;
 
-
         salvarBanco();
-
 
         responder(
           res,
@@ -3314,7 +3576,6 @@ const servidor =
           }
         );
 
-
         return;
 
       }
@@ -3322,8 +3583,7 @@ const servidor =
 
       /*
       ===================================================
-        ADMIN
-        LISTAR SAQUES
+        ADMIN SAQUES
       ===================================================
       */
 
@@ -3348,11 +3608,9 @@ const servidor =
             }
           );
 
-
           return;
 
         }
-
 
         responder(
           res,
@@ -3383,12 +3641,18 @@ const servidor =
                   "RECUSADO"
               ),
 
+            pagamentosPendentes:
+              saques.filter(
+                saque =>
+                  saque.status ===
+                  "PAGAMENTO_PENDENTE"
+              ),
+
             saques:
               saques
 
           }
         );
-
 
         return;
 
@@ -3397,8 +3661,7 @@ const servidor =
 
       /*
       ===================================================
-        ADMIN
-        APROVAR SAQUE
+        ADMIN APROVAR SAQUE + ASAAS
       ===================================================
       */
 
@@ -3423,11 +3686,9 @@ const servidor =
             }
           );
 
-
           return;
 
         }
-
 
         try {
 
@@ -3436,18 +3697,19 @@ const servidor =
               req
             );
 
+          const idSaque =
+            String(
+              dados.idSaque ||
+              dados.id ||
+              ""
+            ).trim();
 
           const saque =
             saques.find(
               item =>
                 item.id ===
-                String(
-                  dados.idSaque ||
-                  dados.id ||
-                  ""
-                ).trim()
+                idSaque
             );
-
 
           if (!saque) {
 
@@ -3460,11 +3722,32 @@ const servidor =
               }
             );
 
-
             return;
 
           }
 
+          /*
+          Evita duplicação.
+          */
+
+          if (
+            saque.asaasTransferId
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Este saque já possui uma transferência Asaas.",
+                transferencia:
+                  saque.asaasTransferId
+              }
+            );
+
+            return;
+
+          }
 
           if (
             saque.status !==
@@ -3480,11 +3763,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           const usuario =
             usuarios.find(
@@ -3492,7 +3773,6 @@ const servidor =
                 item.id ===
                 saque.usuarioId
             );
-
 
           if (!usuario) {
 
@@ -3505,22 +3785,42 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           atualizarTotalPontos(
             usuario
           );
 
+          const pontosSaque =
+            Number(
+              saque.pontos
+            );
+
+          if (
+            !Number.isFinite(
+              pontosSaque
+            ) ||
+            pontosSaque <= 0
+          ) {
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Quantidade de pontos do saque inválida."
+              }
+            );
+
+            return;
+
+          }
 
           if (
             usuario.pontos <
-            Number(
-              saque.pontos
-            )
+            pontosSaque
           ) {
 
             responder(
@@ -3528,72 +3828,23 @@ const servidor =
               400,
               {
                 erro:
-                  "O jogador não possui mais pontos suficientes para aprovar este saque."
+                  "O jogador não possui pontos suficientes para este saque."
               }
             );
-
 
             return;
 
           }
-
 
           /*
-          =================================================
-            DESCONTO DOS PONTOS
-          =================================================
+          -----------------------------------------------
+            ASAAS SOMENTE PARA PIX
+          -----------------------------------------------
           */
 
-          let restante =
-            Number(
-              saque.pontos
-            );
-
-
-          const descontoQuiz =
-            Math.min(
-              Number(
-                usuario.pontosQuiz ||
-                0
-              ),
-              restante
-            );
-
-
-          usuario.pontosQuiz -=
-            descontoQuiz;
-
-
-          restante -=
-            descontoQuiz;
-
-
           if (
-            restante > 0
-          ) {
-
-            const descontoPatrocinado =
-              Math.min(
-                Number(
-                  usuario.pontosPatrocinados ||
-                  0
-                ),
-                restante
-              );
-
-
-            usuario.pontosPatrocinados -=
-              descontoPatrocinado;
-
-
-            restante -=
-              descontoPatrocinado;
-
-          }
-
-
-          if (
-            restante > 0
+            saque.tipo !==
+            "pix"
           ) {
 
             responder(
@@ -3601,67 +3852,286 @@ const servidor =
               400,
               {
                 erro:
-                  "Não foi possível descontar os pontos do saque."
+                  "O pagamento automático pelo Asaas está disponível somente para saques via PIX."
               }
             );
-
 
             return;
 
           }
 
+          /*
+          -----------------------------------------------
+            GARANTIR TIPO PIX
+          -----------------------------------------------
+          */
 
-          atualizarTotalPontos(
-            usuario
-          );
+          if (
+            !saque.tipoPix
+          ) {
 
+            saque.tipoPix =
+              identificarTipoPix(
+                saque.destino
+              );
 
-          saque.status =
-            "APROVADO";
+          }
 
+          if (
+            !saque.tipoPix
+          ) {
 
-          saque.elegibilidade =
-            "APROVADO";
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "Não foi possível identificar o tipo da chave Pix."
+              }
+            );
 
+            return;
 
-          saque.analisadoEm =
+          }
+
+          /*
+          -----------------------------------------------
+            CRIAR TRANSFERÊNCIA
+          -----------------------------------------------
+          */
+
+          let transferencia;
+
+          try {
+
+            transferencia =
+              await criarTransferenciaPixAsaas(
+                saque
+              );
+
+          } catch (
+            erroAsaas
+          ) {
+
+            console.log(
+              "Erro na transferência Asaas:",
+              erroAsaas.message
+            );
+
+            saque.asaasStatus =
+              "ERRO";
+
+            saque.asaasErro =
+              erroAsaas.message;
+
+            saque.asaasTentativaEm =
+              new Date()
+                .toISOString();
+
+            salvarBanco();
+
+            responder(
+              res,
+              400,
+              {
+                erro:
+                  "O Asaas não conseguiu criar a transferência.",
+
+                detalhe:
+                  erroAsaas.message,
+
+                saque:
+                  saque
+              }
+            );
+
+            return;
+
+          }
+
+          /*
+          -----------------------------------------------
+            SALVAR ASAAS
+          -----------------------------------------------
+          */
+
+          saque.asaasTransferId =
+            transferencia.id ||
+            null;
+
+          saque.asaasStatus =
+            transferencia.status ||
+            "PENDING";
+
+          saque.asaasCriadoEm =
             new Date()
               .toISOString();
 
+          saque.asaasResposta =
+            transferencia;
 
-          saque.aprovadoEm =
-            new Date()
-              .toISOString();
+          /*
+          -----------------------------------------------
+            PAGAMENTO CONCLUÍDO
+          -----------------------------------------------
+          */
 
+          if (
+            transferencia.status ===
+            "DONE"
+          ) {
 
-          saque.pontosDescontados =
-            true;
+            const descontou =
+              descontarPontos(
+                usuario,
+                pontosSaque
+              );
 
+            if (!descontou) {
 
-          salvarBanco();
+              /*
+              A transferência já aconteceu.
+              Não podemos fingir que não aconteceu.
+              */
 
+              saque.status =
+                "PAGO_COM_ERRO_PONTOS";
 
-          responder(
-            res,
-            200,
-            {
+              saque.elegibilidade =
+                "PAGO - VERIFICAR PONTOS";
 
-              mensagem:
-                "Saque aprovado com sucesso.",
+              saque.pago =
+                true;
 
-              saque:
-                saque,
+              saque.pontosDescontados =
+                false;
 
-              jogador: {
+              salvarBanco();
 
-                idJogador:
-                  usuario.idJogador,
+              responder(
+                res,
+                500,
+                {
+                  erro:
+                    "O Asaas confirmou o pagamento, mas os pontos não puderam ser descontados. Verifique o saque manualmente.",
 
-                pontosQuiz:
-                  usuario.pontosQuiz,
+                  transferencia:
+                    transferencia,
 
-                pontosPatrocinados:
-                  usuario.pontosPatrocinados,
+                  saque:
+                    saque
+                }
+              );
+
+              return;
+
+            }
+
+            saque.status =
+              "APROVADO";
+
+            saque.elegibilidade =
+              "PAGO";
+
+            saque.pago =
+              true;
+
+            saque.pontosDescontados =
+              true;
+
+            saque.analisadoEm =
+              new Date()
+                .toISOString();
+
+            saque.aprovadoEm =
+              new Date()
+                .toISOString();
+
+            saque.pagoEm =
+              new Date()
+                .toISOString();
+
+            salvarBanco();
+
+            responder(
+              res,
+              200,
+              {
+
+                mensagem:
+                  "Saque aprovado e pagamento Pix enviado pelo Asaas.",
+
+                saque:
+                  saque,
+
+                jogador: {
+
+                  idJogador:
+                    usuario.idJogador,
+
+                  pontosQuiz:
+                    usuario.pontosQuiz,
+
+                  pontosPatrocinados:
+                    usuario.pontosPatrocinados,
+
+                  pontos:
+                    usuario.pontos,
+
+                  saldo:
+                    usuario.saldo
+
+                }
+
+              }
+            );
+
+            return;
+
+          }
+
+          /*
+          -----------------------------------------------
+            PAGAMENTO PENDENTE
+          -----------------------------------------------
+          */
+
+          if (
+            transferencia.status ===
+            "PENDING"
+          ) {
+
+            saque.status =
+              "PAGAMENTO_PENDENTE";
+
+            saque.elegibilidade =
+              "PAGAMENTO ASAAS PENDENTE";
+
+            saque.pontosDescontados =
+              false;
+
+            salvarBanco();
+
+            responder(
+              res,
+              200,
+              {
+
+                mensagem:
+                  "Transferência criada no Asaas e aguardando conclusão.",
+
+                saque:
+                  saque,
+
+                transferencia: {
+
+                  id:
+                    transferencia.id,
+
+                  status:
+                    transferencia.status
+
+                },
 
                 pontos:
                   usuario.pontos,
@@ -3670,10 +4140,49 @@ const servidor =
                   usuario.saldo
 
               }
+            );
+
+            return;
+
+          }
+
+          /*
+          -----------------------------------------------
+            CANCELADA / OUTRO STATUS
+          -----------------------------------------------
+          */
+
+          saque.asaasErro =
+            "Transferência não concluída. Status: " +
+            String(
+              transferencia.status ||
+              "DESCONHECIDO"
+            );
+
+          saque.status =
+            "PENDENTE";
+
+          saque.elegibilidade =
+            "ASAAS NÃO CONCLUÍDO";
+
+          salvarBanco();
+
+          responder(
+            res,
+            400,
+            {
+
+              erro:
+                "A transferência do Asaas não foi concluída.",
+
+              statusAsaas:
+                transferencia.status,
+
+              saque:
+                saque
 
             }
           );
-
 
         } catch (erro) {
 
@@ -3682,18 +4191,19 @@ const servidor =
             erro
           );
 
-
           responder(
             res,
             400,
             {
               erro:
-                "Não foi possível aprovar o saque."
+                "Não foi possível processar o saque.",
+
+              detalhe:
+                erro.message
             }
           );
 
         }
-
 
         return;
 
@@ -3702,8 +4212,7 @@ const servidor =
 
       /*
       ===================================================
-        ADMIN
-        RECUSAR SAQUE
+        ADMIN RECUSAR SAQUE
       ===================================================
       */
 
@@ -3728,11 +4237,9 @@ const servidor =
             }
           );
 
-
           return;
 
         }
-
 
         try {
 
@@ -3740,7 +4247,6 @@ const servidor =
             await receberDados(
               req
             );
-
 
           const saque =
             saques.find(
@@ -3753,7 +4259,6 @@ const servidor =
                 ).trim()
             );
 
-
           if (!saque) {
 
             responder(
@@ -3765,11 +4270,9 @@ const servidor =
               }
             );
 
-
             return;
 
           }
-
 
           if (
             saque.status !==
@@ -3785,19 +4288,15 @@ const servidor =
               }
             );
 
-
             return;
 
           }
 
-
           saque.status =
             "RECUSADO";
 
-
           saque.elegibilidade =
             "RECUSADO";
-
 
           saque.motivoRecusa =
             String(
@@ -3805,23 +4304,18 @@ const servidor =
               "Solicitação recusada pelo administrador."
             ).trim();
 
-
           saque.analisadoEm =
             new Date()
               .toISOString();
-
 
           saque.recusadoEm =
             new Date()
               .toISOString();
 
-
           saque.pontosDescontados =
             false;
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -3837,7 +4331,6 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           responder(
@@ -3851,7 +4344,6 @@ const servidor =
 
         }
 
-
         return;
 
       }
@@ -3859,8 +4351,7 @@ const servidor =
 
       /*
       ===================================================
-        ADMIN
-        MENSAGENS DO SAC
+        ADMIN MENSAGENS
       ===================================================
       */
 
@@ -3885,11 +4376,9 @@ const servidor =
             }
           );
 
-
           return;
 
         }
-
 
         responder(
           res,
@@ -3912,7 +4401,6 @@ const servidor =
           }
         );
 
-
         return;
 
       }
@@ -3920,8 +4408,7 @@ const servidor =
 
       /*
       ===================================================
-        ADMIN
-        MARCAR MENSAGEM COMO LIDA
+        ADMIN MENSAGEM LIDA
       ===================================================
       */
 
@@ -3946,11 +4433,9 @@ const servidor =
             }
           );
 
-
           return;
 
         }
-
 
         try {
 
@@ -3958,7 +4443,6 @@ const servidor =
             await receberDados(
               req
             );
-
 
           const mensagem =
             mensagens.find(
@@ -3971,7 +4455,6 @@ const servidor =
                 ).trim()
             );
 
-
           if (!mensagem) {
 
             responder(
@@ -3983,23 +4466,18 @@ const servidor =
               }
             );
 
-
             return;
 
           }
 
-
           mensagem.status =
             "LIDA";
-
 
           mensagem.lidaEm =
             new Date()
               .toISOString();
 
-
           salvarBanco();
-
 
           responder(
             res,
@@ -4015,7 +4493,6 @@ const servidor =
             }
           );
 
-
         } catch (erro) {
 
           responder(
@@ -4028,7 +4505,6 @@ const servidor =
           );
 
         }
-
 
         return;
 
@@ -4058,6 +4534,11 @@ const servidor =
             mensagem:
               "QuizUp funcionando!",
 
+            asaas:
+              ASAAS_API_KEY
+                ? "configurado"
+                : "não configurado",
+
             usuarios:
               usuarios.length,
 
@@ -4076,6 +4557,13 @@ const servidor =
                 saque =>
                   saque.status ===
                   "PENDENTE"
+              ).length,
+
+            pagamentosAsaasPendentes:
+              saques.filter(
+                saque =>
+                  saque.status ===
+                  "PAGAMENTO_PENDENTE"
               ).length,
 
             mensagens:
@@ -4101,7 +4589,6 @@ const servidor =
           }
         );
 
-
         return;
 
       }
@@ -4109,13 +4596,12 @@ const servidor =
 
       /*
       ===================================================
-        ARQUIVOS DO SITE
+        ARQUIVOS
       ===================================================
       */
 
       let arquivo =
         caminho;
-
 
       if (
         arquivo === "/"
@@ -4126,30 +4612,21 @@ const servidor =
 
       }
 
-
       arquivo =
         path.join(
           __dirname,
           arquivo
         );
 
-
       const pastaProjeto =
         path.resolve(
           __dirname
         );
 
-
       const arquivoFinal =
         path.resolve(
           arquivo
         );
-
-
-      /*
-       * Segurança contra acesso
-       * a arquivos fora do projeto.
-       */
 
       if (
         arquivoFinal !==
@@ -4168,16 +4645,13 @@ const servidor =
           }
         );
 
-
         res.end(
           "Acesso negado."
         );
 
-
         return;
 
       }
-
 
       enviarArquivo(
         res,
@@ -4202,6 +4676,8 @@ servidor.listen(
     console.log(
       `QuizUp funcionando na porta ${PORT}`
     );
+
+    testarAsaas();
 
   }
 );
