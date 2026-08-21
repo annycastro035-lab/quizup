@@ -1,4593 +1,1579 @@
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-
-const PORT = process.env.PORT || 10000;
-
-/*
-
-ASAAS SANDBOX
-
-*/
-
-const ASAAS_API_KEY =
-process.env.ASAAS_API_KEY || "";
-
-const ASAAS_BASE_URL =
-"https://api-sandbox.asaas.com/v3";
-
-async function asaasRequisicao(
-endpoint,
-metodo = "GET",
-corpo = null
-) {
-
-if (!ASAAS_API_KEY) {
-
-throw new Error(  
-  "ASAAS_API_KEY não configurada no Render."  
-);
-
-}
-
-const opcoes = {
-method: metodo,
-
-headers: {  
-  "Content-Type":  
-    "application/json",  
-
-  "Accept":  
-    "application/json",  
-
-  "access_token":  
-    ASAAS_API_KEY  
-}
-
-};
-
-if (corpo !== null) {
-
-opcoes.body =  
-  JSON.stringify(corpo);
-
-}
-
-const resposta =
-await fetch(
-ASAAS_BASE_URL + endpoint,
-opcoes
-);
-
-const texto =
-await resposta.text();
-
-let dados;
-
-try {
-
-dados =  
-  texto  
-    ? JSON.parse(texto)  
-    : {};
-
-} catch {
-
-dados = {  
-  mensagem: texto  
-};
-
-}
-
-if (!resposta.ok) {
-
-const erro =  
-  dados?.errors?.[0]?.description ||  
-  dados?.message ||  
-  dados?.error ||  
-  "Erro desconhecido no Asaas.";  
-
-throw new Error(  
-  `Asaas ${resposta.status}: ${erro}`  
-);
-
-}
-
-return dados;
-
-}
-
-/*
-
-TESTE ASAAS
-
-*/
-
-async function testarAsaas() {
-
-if (!ASAAS_API_KEY) {
-
-console.log(  
-  "Asaas: ASAAS_API_KEY não configurada."  
-);  
-
-return;
-
-}
-
-try {
-
-const resposta =  
-  await asaasRequisicao(  
-    "/myAccount",  
-    "GET"  
-  );  
-
-console.log(  
-  "Asaas Sandbox conectado:",  
-  resposta.name ||  
-  resposta.email ||  
-  "OK"  
-);
-
-} catch (erro) {
-
-console.log(  
-  "Asaas Sandbox não conectado:",  
-  erro.message  
-);
-
-}
-
-}
-
-/*
-
-IDENTIFICAR TIPO DE CHAVE PIX
-
-*/
-
-function identificarTipoPix(
-chave
-) {
-
-const valor =
-String(
-chave || ""
-).trim();
-
-if (!valor) {
-
-return null;
-
-}
-
-const somenteNumeros =
-valor.replace(
-/\D/g,
-""
-);
-
-if (
-somenteNumeros.length ===
-11
-) {
-
-return "CPF";
-
-}
-
-if (
-somenteNumeros.length ===
-14
-) {
-
-return "CNPJ";
-
-}
-
-if (
-/^[^\s@]+@[^\s@]+.[^\s@]+$/
-.test(valor)
-) {
-
-return "EMAIL";
-
-}
-
-if (
-/^[0-9a-fA-F-]{32,36}$/
-.test(valor)
-) {
-
-return "EVP";
-
-}
-
-if (
-/^+?\d{10,13}$/
-.test(valor)
-) {
-
-return "PHONE";
-
-}
-
-return null;
-
-}
-
-/*
-
-CRIAR TRANSFERÊNCIA PIX ASAAS
-
-*/
-
-async function criarTransferenciaPixAsaas(
-saque
-) {
-
-if (!saque) {
-
-throw new Error(  
-  "Saque inválido."  
-);
-
-}
-
-if (
-saque.tipo !==
-"pix"
-) {
-
-throw new Error(  
-  "O pagamento automático está disponível somente para PIX."  
-);
-
-}
-
-const chavePix =
-String(
-saque.destino || ""
-).trim();
-
-if (!chavePix) {
-
-throw new Error(  
-  "Chave Pix não informada."  
-);
-
-}
-
-let tipoPix =
-String(
-saque.tipoPix || ""
-)
-.trim()
-.toUpperCase();
-
-if (!tipoPix) {
-
-tipoPix =  
-  identificarTipoPix(  
-    chavePix  
-  );
-
-}
-
-const tiposPermitidos = [
-"CPF",
-"CNPJ",
-"EMAIL",
-"PHONE",
-"EVP"
-];
-
-if (
-!tiposPermitidos.includes(
-tipoPix
-)
-) {
-
-throw new Error(  
-  "Não foi possível identificar o tipo da chave Pix. Informe CPF, CNPJ, EMAIL, PHONE ou EVP."  
-);
-
-}
-
-const valor =
-Number(
-saque.valorJogador
-);
-
-if (
-!Number.isFinite(
-valor
-) ||
-valor <= 0
-) {
-
-throw new Error(  
-  "Valor da transferência inválido."  
-);
-
-}
-
-const corpo = {
-
-value:  
-  Number(  
-    valor.toFixed(2)  
-  ),  
-
-operationType:  
-  "PIX",  
-
-pixAddressKey:  
-  chavePix,  
-
-pixAddressKeyType:  
-  tipoPix,  
-
-description:  
-  `Pagamento QuizUp ${saque.id}`,  
-
-externalReference:  
-  String(  
-    saque.id  
-  )
-
-};
-
-console.log(
-"Criando transferência Pix Asaas:",
-{
-valor:
-corpo.value,
-
-tipoPix:  
-    corpo.pixAddressKeyType,  
-
-  saque:  
-    saque.id  
-}
-
-);
-
-return await asaasRequisicao(
-"/transfers",
-"POST",
-corpo
-);
-
-}
-
-/*
-
-CONFIGURAÇÃO ADMIN
-
-*/
-
-const ADMIN_KEY =
-process.env.QUIZUP_ADMIN_KEY || "";
-
-/*
-
-BANCO LOCAL
-
-*/
-
-const arquivoDados =
-path.join(
-__dirname,
-"quizup-dados.json"
-);
-
-let banco = {
-usuarios: [],
-saques: [],
-mensagens: []
-};
-
-function carregarBanco() {
-
-try {
-
-if (  
-  fs.existsSync(  
-    arquivoDados  
-  )  
-) {  
-
-  const dados =  
-    fs.readFileSync(  
-      arquivoDados,  
-      "utf8"  
-    );  
-
-  const convertido =  
-    JSON.parse(  
-      dados  
-    );  
-
-  banco = {  
-
-    usuarios:  
-      Array.isArray(  
-        convertido.usuarios  
-      )  
-        ? convertido.usuarios  
-        : [],  
-
-    saques:  
-      Array.isArray(  
-        convertido.saques  
-      )  
-        ? convertido.saques  
-        : [],  
-
-    mensagens:  
-      Array.isArray(  
-        convertido.mensagens  
-      )  
-        ? convertido.mensagens  
-        : []  
-
-  };  
-
-}
-
-} catch (erro) {
-
-console.log(  
-  "Não foi possível carregar os dados:",  
-  erro.message  
-);
-
-}
-
-}
-
-function salvarBanco() {
-
-try {
-
-fs.writeFileSync(  
-  arquivoDados,  
-  JSON.stringify(  
-    banco,  
-    null,  
-    2  
-  ),  
-  "utf8"  
-);
-
-} catch (erro) {
-
-console.log(  
-  "Não foi possível salvar os dados:",  
-  erro.message  
-);
-
-}
-
-}
-
-carregarBanco();
-
-const usuarios =
-banco.usuarios;
-
-const saques =
-banco.saques;
-
-const mensagens =
-banco.mensagens;
-
-/*
-
-COMPATIBILIDADE
-
-*/
-
-usuarios.forEach(
-usuario => {
-
-if (  
-  !Number.isFinite(  
-    Number(  
-      usuario.pontosQuiz  
-    )  
-  )  
-) {  
-
-  usuario.pontosQuiz =  
-    Number(  
-      usuario.pontos || 0  
-    );  
-
-}  
-
-if (  
-  !Number.isFinite(  
-    Number(  
-      usuario.pontosPatrocinados  
-    )  
-  )  
-) {  
-
-  usuario.pontosPatrocinados =  
-    0;  
-
-}  
-
-usuario.pontosQuiz =  
-  Math.max(  
-    0,  
-    Number(  
-      usuario.pontosQuiz || 0  
-    )  
-  );  
-
-usuario.pontosPatrocinados =  
-  Math.max(  
-    0,  
-    Number(  
-      usuario.pontosPatrocinados || 0  
-    )  
-  );  
-
-usuario.pontos =  
-  usuario.pontosQuiz +  
-  usuario.pontosPatrocinados;  
-
-usuario.saldo =  
-  usuario.pontos;  
-
-if (  
-  !Array.isArray(  
-    usuario.historicoSaques  
-  )  
-) {  
-
-  usuario.historicoSaques =  
-    [];  
-
-}
-
-}
-);
-
-salvarBanco();
-
-/*
-
-TIPOS DE ARQUIVO
-
-*/
-
-const tiposArquivo = {
-
-".html":
-"text/html; charset=utf-8",
-
-".css":
-"text/css; charset=utf-8",
-
-".js":
-"application/javascript; charset=utf-8",
-
-".json":
-"application/json; charset=utf-8",
-
-".png":
-"image/png",
-
-".jpg":
-"image/jpeg",
-
-".jpeg":
-"image/jpeg",
-
-".gif":
-"image/gif",
-
-".svg":
-"image/svg+xml",
-
-".ico":
-"image/x-icon",
-
-".mp3":
-"audio/mpeg",
-
-".webp":
-"image/webp"
-
-};
-
-/*
-
-JSON
-
-*/
-
-function responder(
-res,
-status,
-dados
-) {
-
-res.writeHead(
-status,
-{
-
-"Content-Type":  
-    "application/json; charset=utf-8",  
-
-  "Access-Control-Allow-Origin":  
-    "*",  
-
-  "Access-Control-Allow-Methods":  
-    "GET,POST,OPTIONS",  
-
-  "Access-Control-Allow-Headers":  
-    "Content-Type, X-Admin-Key"  
-
-}
-
-);
-
-res.end(
-JSON.stringify(
-dados
-)
-);
-
-}
-
-/*
-
-RECEBER JSON
-
-*/
-
-function receberDados(
-req
-) {
-
-return new Promise(
-(
-resolve,
-reject
-) => {
-
-let corpo = "";  
-
-  req.on(  
-    "data",  
-    parte => {  
-
-      corpo +=  
-        parte;  
-
-      if (  
-        corpo.length >  
-        2 * 1024 * 1024  
-      ) {  
-
-        reject(  
-          new Error(  
-            "Dados muito grandes."  
-          )  
-        );  
-
-        req.destroy();  
-
-      }  
-
+<!DOCTYPE html>  <html lang="pt-BR">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">    <meta name="6a97888e-site-verification" content="ef776e1b50bcc979e5f7ab11a92375ec">    <!-- VERIFICAÇÃO ADBNK -->  <meta name="adbnk-site-verification"  
+content="adbnk-verify-3c2b9ad22b4de353c0f63208" />
+
+  <!-- VERIFICAÇÃO HILLTOPADS -->  <meta name="90645dd79179b1c3afb9fe365e976feaeb73da69"  
+content="90645dd79179b1c3afb9fe365e976feaeb73da69" />
+
+  <meta name="referrer" content="no-referrer-when-downgrade">    <title>QuizUp - Gire. Responda. Pontue!</title>    <style>  
+    * {  
+      box-sizing: border-box;  
+      margin: 0;  
+      padding: 0;  
     }  
-  );  
-
-  req.on(  
-    "end",  
-    () => {  
-
-      try {  
-
-        resolve(  
-          corpo  
-            ? JSON.parse(  
-                corpo  
-              )  
-            : {}  
-        );  
-
-      } catch (erro) {  
-
-        reject(  
-          erro  
-        );  
-
-      }  
-
+  
+    body {  
+      font-family: Arial, Helvetica, sans-serif;  
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);  
+      min-height: 100vh;  
+      color: #222;  
     }  
-  );  
-
-  req.on(  
-    "error",  
-    reject  
-  );  
-
-}
-
-);
-
-}
-
-/*
-
-ID JOGADOR
-
-*/
-
-function gerarIdJogador() {
-
-let id;
-
-do {
-
-id =  
-  "QZ" +  
-  Date.now()  
-    .toString(36)  
-    .toUpperCase() +  
-  Math.random()  
-    .toString(36)  
-    .substring(  
-      2,  
-      8  
-    )  
-    .toUpperCase();
-
-} while (
-usuarios.some(
-usuario =>
-usuario.idJogador ===
-id
-)
-);
-
-return id;
-
-}
-
-/*
-
-CÓDIGO DE INDICAÇÃO
-
-*/
-
-function gerarCodigoIndicacao(
-nome,
-email
-) {
-
-const nomeLimpo =
-String(
-nome || ""
-)
-.normalize("NFD")
-.replace(
-/[\u0300-\u036f]/g,
-""
-)
-.replace(
-/[^a-zA-Z]/g,
-""
-)
-.toUpperCase();
-
-const emailParte =
-String(
-email || ""
-)
-.split("@")[0]
-.replace(
-/[^a-zA-Z0-9]/g,
-""
-)
-.toUpperCase();
-
-let caracteres = "";
-
-for (
-let i = 0;
-i < nomeLimpo.length &&
-caracteres.length < 4;
-i += 2
-) {
-
-caracteres +=  
-  nomeLimpo[i];
-
-}
-
-for (
-let i = 0;
-i < emailParte.length &&
-caracteres.length < 8;
-i += 2
-) {
-
-caracteres +=  
-  emailParte[i];
-
-}
-
-const aleatorio =
-"ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-while (
-caracteres.length < 8
-) {
-
-caracteres +=  
-  aleatorio[  
-    Math.floor(  
-      Math.random() *  
-      aleatorio.length  
-    )  
-  ];
-
-}
-
-caracteres =
-caracteres.substring(
-0,
-8
-);
-
-const lista =
-caracteres.split("");
-
-for (
-let i =
-lista.length - 1;
-i > 0;
-i--
-) {
-
-const j =  
-  Math.floor(  
-    Math.random() *  
-    (i + 1)  
-  );  
-
-[  
-  lista[i],  
-  lista[j]  
-] = [  
-  lista[j],  
-  lista[i]  
-];
-
-}
-
-const codigo =
-lista.join("");
-
-const existe =
-usuarios.some(
-usuario =>
-usuario.codigoIndicacao ===
-codigo
-);
-
-if (existe) {
-
-return gerarCodigoIndicacao(  
-  nome,  
-  email  
-);
-
-}
-
-return codigo;
-
-}
-
-/*
-
-TOTAL DE PONTOS
-
-*/
-
-function atualizarTotalPontos(
-usuario
-) {
-
-usuario.pontosQuiz =
-Math.max(
-0,
-Number(
-usuario.pontosQuiz || 0
-)
-);
-
-usuario.pontosPatrocinados =
-Math.max(
-0,
-Number(
-usuario.pontosPatrocinados || 0
-)
-);
-
-usuario.pontos =
-usuario.pontosQuiz +
-usuario.pontosPatrocinados;
-
-usuario.saldo =
-usuario.pontos;
-
-return usuario.pontos;
-
-}
-
-/*
-
-INDICAÇÕES
-
-*/
-
-function atualizarIndicacoesDoUsuario(
-usuario
-) {
-
-let bonusPago = false;
-
-if (
-!Array.isArray(
-usuario.indicacoes
-)
-) {
-
-usuario.indicacoes =  
-  [];
-
-}
-
-usuario.indicacoes.forEach(
-indicacao => {
-
-const indicado =  
-    usuarios.find(  
-      item =>  
-        item.id ===  
-        indicacao.usuarioId  
-    );  
-
-  if (!indicado) {  
-
-    return;  
-
-  }  
-
-  const pontosIndicada =  
-    Number(  
-      indicado.pontos || 0  
-    );  
-
-  indicacao.pontos =  
-    Math.min(  
-      pontosIndicada,  
-      300  
-    );  
-
-  if (  
-    pontosIndicada < 300 &&  
-    !indicacao.bonusPago  
-  ) {  
-
-    indicacao.status =  
-      "EM ANDAMENTO";  
-
-    return;  
-
-  }  
-
-  if (  
-    pontosIndicada >= 300 &&  
-    !indicacao.bonusPago  
-  ) {  
-
-    usuario.pontosQuiz =  
-      Number(  
-        usuario.pontosQuiz || 0  
-      ) + 50;  
-
-    atualizarTotalPontos(  
-      usuario  
-    );  
-
-    indicacao.pontos =  
-      300;  
-
-    indicacao.bonus =  
-      50;  
-
-    indicacao.bonusPago =  
-      true;  
-
-    indicacao.status =  
-      "CONCLUÍDO";  
-
-    indicacao.dataConclusao =  
-      new Date()  
-        .toISOString();  
-
-    bonusPago =  
-      true;  
-
-  }  
-
-}
-
-);
-
-return {
-bonusPago
-};
-
-}
-
-/*
-
-LOCALIZAR USUÁRIO
-
-*/
-
-function encontrarUsuario(
-dados
-) {
-
-const id =
-String(
-dados.idJogador ||
-dados.id ||
-""
-).trim();
-
-const email =
-String(
-dados.email ||
-""
-)
-.trim()
-.toLowerCase();
-
-if (id) {
-
-const porId =  
-  usuarios.find(  
-    usuario =>  
-      usuario.idJogador ===  
-        id ||  
-      String(  
-        usuario.id  
-      ) === id  
-  );  
-
-if (porId) {  
-
-  return porId;  
-
-}
-
-}
-
-if (email) {
-
-return usuarios.find(  
-  usuario =>  
-    usuario.email ===  
-    email  
-);
-
-}
-
-return null;
-
-}
-
-/*
-
-ARQUIVOS
-
-*/
-
-function enviarArquivo(
-res,
-arquivo
-) {
-
-fs.readFile(
-arquivo,
-(
-erro,
-dados
-) => {
-
-if (erro) {  
-
-    res.writeHead(  
-      404,  
-      {  
-        "Content-Type":  
-          "text/plain; charset=utf-8"  
-      }  
-    );  
-
-    res.end(  
-      "Página não encontrada."  
-    );  
-
-    return;  
-
-  }  
-
-  const extensao =  
-    path.extname(  
-      arquivo  
-    ).toLowerCase();  
-
-  res.writeHead(  
-    200,  
-    {  
-
-      "Content-Type":  
-        tiposArquivo[  
-          extensao  
-        ] ||  
-        "application/octet-stream"  
-
+  
+    .app {  
+      width: 100%;  
+      max-width: 430px;  
+      margin: auto;  
+      min-height: 100vh;  
+      background: #f5f7fb;  
+      overflow-x: hidden;  
     }  
-  );  
-
-  res.end(  
-    dados  
-  );  
-
-}
-
-);
-
-}
-
-/*
-
-ADMIN
-
-*/
-
-function verificarAdministrador(
-req
-) {
-
-if (!ADMIN_KEY) {
-
-return false;
-
-}
-
-const chave =
-String(
-req.headers[
-"x-admin-key"
-] ||
-""
-).trim();
-
-return (
-chave !== "" &&
-chave === ADMIN_KEY
-);
-
-}
-
-/*
-
-REGRAS DE SAQUE
-
-*/
-
-function calcularSaque(
-pontos
-) {
-
-if (
-pontos === 2000
-) {
-
-return 1;
-
-}
-
-if (
-pontos === 6000
-) {
-
-return 5;
-
-}
-
-if (
-pontos === 11000
-) {
-
-return 10;
-
-}
-
-return 0;
-
-}
-
-/*
-
-DESCONTAR PONTOS
-
-*/
-
-function descontarPontos(
-usuario,
-quantidade
-) {
-
-let restante =
-Number(
-quantidade
-);
-
-const descontoQuiz =
-Math.min(
-Number(
-usuario.pontosQuiz ||
-0
-),
-restante
-);
-
-usuario.pontosQuiz -=
-descontoQuiz;
-
-restante -=
-descontoQuiz;
-
-if (
-restante > 0
-) {
-
-const descontoPatrocinado =  
-  Math.min(  
-    Number(  
-      usuario.pontosPatrocinados ||  
-      0  
-    ),  
-    restante  
-  );  
-
-usuario.pontosPatrocinados -=  
-  descontoPatrocinado;  
-
-restante -=  
-  descontoPatrocinado;
-
-}
-
-if (
-restante > 0
-) {
-
-return false;
-
-}
-
-atualizarTotalPontos(
-usuario
-);
-
-return true;
-
-}
-
-/*
-
-SERVIDOR
-
-*/
-
-const servidor =
-http.createServer(
-async (
-req,
-res
-) => {
-
-if (  
-    req.method ===  
-    "OPTIONS"  
-  ) {  
-
-    res.writeHead(  
-      204,  
-      {  
-
-        "Access-Control-Allow-Origin":  
-          "*",  
-
-        "Access-Control-Allow-Methods":  
-          "GET,POST,OPTIONS",  
-
-        "Access-Control-Allow-Headers":  
-          "Content-Type, X-Admin-Key"  
-
+  
+    .tela {  
+      display: none;  
+    }  
+  
+    .tela.ativa {  
+      display: block;  
+    }  
+  
+    #telaLogin,  
+    #telaCadastro {  
+      min-height: 100vh;  
+      padding: 20px;  
+      align-items: center;  
+      justify-content: center;  
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);  
+    }  
+  
+    #telaLogin.ativa,  
+    #telaCadastro.ativa {  
+      display: flex;  
+    }  
+  
+    .login-box {  
+      width: 100%;  
+      background: white;  
+      border-radius: 24px;  
+      padding: 30px 22px;  
+      box-shadow: 0 15px 40px rgba(0,0,0,.2);  
+      text-align: center;  
+    }  
+  
+    .logo {  
+      font-size: 55px;  
+      margin-bottom: 8px;  
+    }  
+  
+    .login-box h1 {  
+      font-size: 32px;  
+      color: #4f46e5;  
+      margin-bottom: 5px;  
+    }  
+  
+    .login-box p {  
+      color: #666;  
+      margin-bottom: 22px;  
+    }  
+  
+    input,  
+    select,  
+    textarea {  
+      font-family: Arial, Helvetica, sans-serif;  
+    }  
+  
+    .login-box input,  
+    .campo {  
+      width: 100%;  
+      padding: 15px;  
+      margin-bottom: 12px;  
+      border: 1px solid #ddd;  
+      border-radius: 12px;  
+      font-size: 16px;  
+      outline: none;  
+    }  
+  
+    .login-box input:focus,  
+    .campo:focus {  
+      border-color: #4f46e5;  
+    }  
+  
+    .btn {  
+      border: none;  
+      width: 100%;  
+      padding: 15px;  
+      border-radius: 12px;  
+      background: #4f46e5;  
+      color: white;  
+      font-size: 16px;  
+      font-weight: bold;  
+      cursor: pointer;  
+    }  
+  
+    .btn:disabled {  
+      opacity: .6;  
+      cursor: not-allowed;  
+    }  
+  
+    .btn-secundario {  
+      margin-top: 10px;  
+      background: #eee;  
+      color: #333;  
+    }  
+  
+    .erro {  
+      color: #dc2626;  
+      font-size: 14px;  
+      min-height: 20px;  
+      margin-bottom: 8px;  
+    }  
+  
+    .topo {  
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);  
+      color: white;  
+      padding: 18px 15px;  
+      text-align: center;  
+    }  
+  
+    .topo h1 {  
+      font-size: 26px;  
+    }  
+  
+    .topo p {  
+      margin-top: 4px;  
+      opacity: .9;  
+      font-size: 13px;  
+    }  
+  
+    .botao-sair-topo {  
+      margin-top: 12px;  
+      border: none;  
+      background: rgba(255,255,255,.2);  
+      color: white;  
+      padding: 10px 20px;  
+      border-radius: 10px;  
+      font-weight: bold;  
+      cursor: pointer;  
+    }  
+  
+    .saldo-box {  
+      margin: 15px;  
+      background: white;  
+      border-radius: 18px;  
+      padding: 18px;  
+      text-align: center;  
+      box-shadow: 0 4px 15px rgba(0,0,0,.08);  
+    }  
+  
+    .saldo-label {  
+      color: #777;  
+      font-size: 13px;  
+    }  
+  
+    .saldo {  
+      font-size: 30px;  
+      font-weight: bold;  
+      color: #16a34a;  
+      margin-top: 5px;  
+    }  
+  
+    .pontos {  
+      color: #555;  
+      font-size: 13px;  
+      margin-top: 4px;  
+    }  
+  
+    .area-publicidade {  
+      width: 100%;  
+      display: flex;  
+      justify-content: center;  
+      align-items: center;  
+      padding: 5px 10px 15px;  
+      text-align: center;  
+      overflow: hidden;  
+    }  
+  
+    .area-publicidade > div {  
+      max-width: 100%;  
+    }  
+  
+    .publicidade-label {  
+      font-size: 10px;  
+      color: #999;  
+      margin-bottom: 4px;  
+    }  
+  
+    .menu {  
+      display: grid;  
+      grid-template-columns: repeat(5, 1fr);  
+      gap: 6px;  
+      padding: 0 10px 12px;  
+    }  
+  
+    .menu-item {  
+      background: white;  
+      border: none;  
+      border-radius: 13px;  
+      padding: 10px 2px;  
+      cursor: pointer;  
+      box-shadow: 0 3px 10px rgba(0,0,0,.07);  
+      font-size: 10px;  
+      font-weight: bold;  
+      color: #333;  
+    }  
+  
+    .menu-item span {  
+      display: block;  
+      font-size: 21px;  
+      margin-bottom: 4px;  
+    }  
+  
+    .menu-item.ativo {  
+      background: #4f46e5;  
+      color: white;  
+    }  
+  
+    .conteudo {  
+      padding: 0 15px 25px;  
+    }  
+  
+    .card {  
+      background: white;  
+      border-radius: 18px;  
+      padding: 20px;  
+      margin-bottom: 15px;  
+      box-shadow: 0 4px 15px rgba(0,0,0,.07);  
+    }  
+  
+    .card h2 {  
+      color: #4f46e5;  
+      margin-bottom: 10px;  
+      font-size: 21px;  
+    }  
+  
+    .card h3 {  
+      margin-bottom: 8px;  
+    }  
+  
+    .card p {  
+      color: #666;  
+      line-height: 1.5;  
+    }  
+  
+    .rodada {  
+      text-align: center;  
+      font-weight: bold;  
+      color: #666;  
+      margin-bottom: 12px;  
+    }  
+  
+    .dado {  
+      width: 110px;  
+      height: 110px;  
+      margin: 10px auto 18px;  
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);  
+      color: white;  
+      border-radius: 22px;  
+      display: flex;  
+      align-items: center;  
+      justify-content: center;  
+      font-size: 52px;  
+      font-weight: bold;  
+      box-shadow: 0 8px 20px rgba(79,70,229,.3);  
+    }  
+  
+    .dado.girando {  
+      animation: girar .8s linear;  
+    }  
+  
+    @keyframes girar {  
+      0% {  
+        transform: rotate(0deg) scale(1);  
       }  
-    );  
-
-    res.end();  
-
-    return;  
-
-  }  
-
-  const url =  
-    new URL(  
-      req.url,  
-      `http://${req.headers.host}`  
-    );  
-
-  const caminho =  
-    url.pathname;  
-
-
-  /*  
-  ===================================================  
-    CADASTRO  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/cadastro" &&  
-    req.method === "POST"  
-  ) {  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const nome =  
-        String(  
-          dados.nome || ""  
-        ).trim();  
-
-      const cpf =  
-        String(  
-          dados.cpf || ""  
-        ).trim();  
-
-      const email =  
-        String(  
-          dados.email || ""  
-        )  
-          .trim()  
-          .toLowerCase();  
-
-      const senha =  
-        String(  
-          dados.senha || ""  
-        );  
-
-      const codigoRecebido =  
-        String(  
-          dados.codigo || ""  
-        )  
-          .trim()  
-          .toUpperCase();  
-
-      if (  
-        !nome ||  
-        !cpf ||  
-        !email ||  
-        !senha  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Preencha todos os campos obrigatórios."  
-          }  
-        );  
-
-        return;  
-
+  
+      50% {  
+        transform: rotate(180deg) scale(1.1);  
       }  
-
-      if (  
-        senha.length < 6  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "A senha deve ter pelo menos 6 caracteres."  
-          }  
-        );  
-
-        return;  
-
+  
+      100% {  
+        transform: rotate(360deg) scale(1);  
       }  
-
-      const existeEmail =  
-        usuarios.find(  
-          usuario =>  
-            usuario.email ===  
-            email  
-        );  
-
-      if (existeEmail) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Este e-mail já está cadastrado."  
-          }  
-        );  
-
-        return;  
-
+    }  
+  
+    .pontos-rodada {  
+      text-align: center;  
+      font-weight: bold;  
+      color: #16a34a;  
+      margin-bottom: 10px;  
+      min-height: 20px;  
+    }  
+  
+    .nivel {  
+      text-align: center;  
+      color: #7c3aed;  
+      font-weight: bold;  
+      margin-bottom: 12px;  
+    }  
+  
+    .pergunta {  
+      font-size: 20px;  
+      font-weight: bold;  
+      text-align: center;  
+      margin-bottom: 15px;  
+      line-height: 1.4;  
+    }  
+  
+    .timer {  
+      text-align: center;  
+      font-size: 22px;  
+      font-weight: bold;  
+      color: #dc2626;  
+      margin-bottom: 12px;  
+    }  
+  
+    .respostas {  
+      display: grid;  
+      gap: 10px;  
+    }  
+  
+    .respostas button {  
+      width: 100%;  
+      border: 1px solid #ddd;  
+      background: white;  
+      border-radius: 12px;  
+      padding: 14px;  
+      font-size: 15px;  
+      cursor: pointer;  
+      text-align: left;  
+    }  
+  
+    .respostas button:hover {  
+      border-color: #4f46e5;  
+      background: #f5f3ff;  
+    }  
+  
+    .respostas button.correta {  
+      background: #dcfce7;  
+      border-color: #16a34a;  
+    }  
+  
+    .respostas button.errada {  
+      background: #fee2e2;  
+      border-color: #dc2626;  
+    }  
+  
+    .resultado {  
+      text-align: center;  
+      font-weight: bold;  
+      margin-top: 15px;  
+      min-height: 22px;  
+    }  
+  
+    .codigo-indicacao {  
+      background: #f3f0ff;  
+      border: 2px dashed #7c3aed;  
+      border-radius: 14px;  
+      padding: 18px;  
+      text-align: center;  
+      margin-top: 15px;  
+    }  
+  
+    .codigo-indicacao strong {  
+      display: block;  
+      font-size: 24px;  
+      color: #4f46e5;  
+      margin: 8px 0;  
+    }  
+  
+    .link-indicacao {  
+      word-break: break-all;  
+      font-size: 13px;  
+      color: #666;  
+    }  
+  
+    .beneficio {  
+      display: flex;  
+      align-items: center;  
+      gap: 12px;  
+      margin: 12px 0;  
+    }  
+  
+    .beneficio-icon {  
+      font-size: 25px;  
+    }  
+  
+    .indicacao-item {  
+      border: 1px solid #eee;  
+      border-radius: 14px;  
+      padding: 15px;  
+      margin-top: 10px;  
+    }  
+  
+    .indicacao-item p {  
+      margin-top: 7px;  
+    }  
+  
+    .premium {  
+      background: linear-gradient(135deg, #f59e0b, #facc15);  
+      color: #3b2600;  
+    }  
+  
+    .premium h2 {  
+      color: #3b2600;  
+    }  
+  
+    .plano {  
+      border: 2px solid #eee;  
+      border-radius: 15px;  
+      padding: 16px;  
+      margin-top: 12px;  
+    }  
+  
+    .plano.destaque {  
+      border-color: #f59e0b;  
+    }  
+  
+    .preco {  
+      font-size: 28px;  
+      font-weight: bold;  
+      margin: 8px 0;  
+    }  
+  
+    .plano-atual {  
+      text-align: center;  
+      background: #f3f4f6;  
+      border-radius: 12px;  
+      padding: 12px;  
+      margin-top: 12px;  
+    }  
+  
+    .saque-opcoes {  
+      display: grid;  
+      gap: 10px;  
+      margin-top: 15px;  
+    }  
+  
+    .opcao-saque {  
+      width: 100%;  
+      padding: 15px;  
+      border: 1px solid #ddd;  
+      border-radius: 12px;  
+      background: white;  
+      cursor: pointer;  
+      text-align: left;  
+      font-size: 15px;  
+    }  
+  
+    .opcao-saque strong {  
+      color: #16a34a;  
+    }  
+  
+    .campo-saque {  
+      width: 100%;  
+      padding: 14px;  
+      border: 1px solid #ddd;  
+      border-radius: 12px;  
+      margin-top: 10px;  
+      font-size: 15px;  
+      outline: none;  
+    }  
+  
+    .taxa-plataforma {  
+      margin-top: 15px;  
+      padding: 15px;  
+      background: #fff7ed;  
+      border: 1px solid #fed7aa;  
+      border-radius: 12px;  
+    }  
+  
+    .taxa-plataforma strong {  
+      color: #c2410c;  
+    }  
+  
+    .sac-item {  
+      padding: 15px 0;  
+      border-bottom: 1px solid #eee;  
+    }  
+  
+    .sac-item:last-child {  
+      border-bottom: none;  
+    }  
+  
+    .sac-item strong {  
+      display: block;  
+      margin-bottom: 6px;  
+    }  
+  
+    .sac-textarea {  
+      width: 100%;  
+      min-height: 110px;  
+      margin-top: 12px;  
+      border: 1px solid #ddd;  
+      border-radius: 12px;  
+      padding: 12px;  
+      resize: vertical;  
+      font-family: Arial;  
+      font-size: 15px;  
+    }  
+  
+    .rodape {  
+      text-align: center;  
+      padding: 20px;  
+      color: #999;  
+      font-size: 12px;  
+    }  
+  
+    @media (max-width: 350px) {  
+      .menu {  
+        gap: 4px;  
       }  
-
-      let indicador =  
-        null;  
-
-      if (  
-        codigoRecebido  
-      ) {  
-
-        indicador =  
-          usuarios.find(  
-            usuario =>  
-              usuario.codigoIndicacao ===  
-              codigoRecebido  
-          );  
-
-        if (!indicador) {  
-
-          responder(  
-            res,  
-            400,  
-            {  
-              erro:  
-                "Código de indicação inválido."  
-            }  
-          );  
-
-          return;  
-
-        }  
-
+  
+      .menu-item {  
+        font-size: 9px;  
       }  
+  
+      .menu-item span {  
+        font-size: 18px;  
+      }  
+    }  
+  </style>  </head>  <body>  <div class="app">    <!-- =========================  
+       LOGIN  
+       ========================= -->    <section id="telaLogin" class="tela ativa">  <div class="login-box">  
 
-      const usuario = {  
+  <div class="logo">🎯</div>  
 
-        id:  
-          Date.now() +  
-          Math.floor(  
-            Math.random() *  
-            10000  
-          ),  
+  <h1>QuizUp</h1>  
 
-        idJogador:  
-          gerarIdJogador(),  
+  <p>  
+    Gire. Responda. Pontue!  
+  </p>  
 
-        nome,  
+  <input  
+    type="email"  
+    id="loginEmail"  
+    placeholder="Seu e-mail"  
+  >  
 
-        cpf,  
+  <input  
+    type="password"  
+    id="loginSenha"  
+    placeholder="Sua senha"  
+  >  
 
-        email,  
+  <div id="erroLogin" class="erro"></div>  
 
-        senha,  
+  <button  
+    class="btn"  
+    onclick="fazerLogin()"  
+  >  
+    ENTRAR  
+  </button>  
 
-        codigoIndicacao:  
-          gerarCodigoIndicacao(  
-            nome,  
-            email  
-          ),  
+  <button  
+    class="btn btn-secundario"  
+    onclick="mostrarCadastro()"  
+  >  
+    CRIAR CONTA  
+  </button>  
 
-        codigoUsado:  
-          codigoRecebido || "",  
+  <!-- ADSTERRA -->  
+  <div  
+    style="  
+      width:320px;  
+      max-width:100%;  
+      margin:18px auto 0;  
+      text-align:center;  
+    "  
+  >  
+    <div  
+      style="  
+        font-size:10px;  
+        color:#999;  
+        margin-bottom:4px;  
+      "  
+    >  
+      PUBLICIDADE  
+    </div>  
 
-        indicadoPorId:  
-          indicador  
-            ? indicador.id  
-            : null,  
-
-        indicacoes: [],  
-
-        plano:  
-          "GRATUITO",  
-
-        pontosQuiz:  
-          0,  
-
-        pontosPatrocinados:  
-          0,  
-
-        pontos:  
-          0,  
-
-        saldo:  
-          0,  
-
-        pix:  
-          "",  
-
-        tipoPix:  
-          "",  
-
-        paypal:  
-          "",  
-
-        tipoPagamentoPreferido:  
-          "",  
-
-        saquesHoje:  
-          0,  
-
-        dataSaques:  
-          new Date()  
-            .toDateString(),  
-
-        historicoSaques:  
-          [],  
-
-        criadoEm:  
-          new Date()  
-            .toISOString(),  
-
-        ultimoLogin:  
-          new Date()  
-            .toISOString(),  
-
-        ativo:  
-          true  
-
+    <script>  
+      atOptions = {  
+        'key' : '1038af95c5145869ee5257519d9480c4',  
+        'format' : 'iframe',  
+        'height' : 50,  
+        'width' : 320,  
+        'params' : {}  
       };  
+    </script>  
+
+    <script  
+      src="https://www.highperformanceformat.com/1038af95c5145869ee5257519d9480c4/invoke.js">  
+    </script>  
+  </div>  
+
+</div>
+
+  </section>    <!-- =========================  
+       CADASTRO  
+       ========================= -->    <section id="telaCadastro" class="tela">  <div class="login-box">  
+
+  <div class="logo">🎯</div>  
+
+  <h1>Criar conta</h1>  
+
+  <p>  
+    Cadastre-se no QuizUp  
+  </p>  
 
-      usuarios.push(  
-        usuario  
-      );  
+  <input  
+    type="text"  
+    id="cadNome"  
+    placeholder="Nome completo"  
+  >  
 
-      if (indicador) {  
+  <input  
+    type="text"  
+    id="cadCpf"  
+    placeholder="CPF"  
+  >  
 
-        if (  
-          !Array.isArray(  
-            indicador.indicacoes  
-          )  
-        ) {  
+  <input  
+    type="email"  
+    id="cadEmail"  
+    placeholder="E-mail"  
+  >  
+
+  <input  
+    type="password"  
+    id="cadSenha"  
+    placeholder="Senha (mínimo 6 caracteres)"  
+  >  
 
-          indicador.indicacoes =  
-            [];  
+  <input  
+    type="text"  
+    id="cadCodigo"  
+    placeholder="Código de indicação (opcional)"  
+  >  
 
-        }  
+  <div  
+    id="erroCadastro"  
+    class="erro"  
+  ></div>  
 
-        indicador.indicacoes.push({  
-
-          usuarioId:  
-            usuario.id,  
-
-          idJogador:  
-            usuario.idJogador,  
-
-          nome:  
-            usuario.nome,  
-
-          pontos:  
-            0,  
-
-          meta:  
-            300,  
-
-          bonus:  
-            50,  
-
-          bonusPago:  
-            false,  
-
-          status:  
-            "EM ANDAMENTO",  
-
-          data:  
-            new Date()  
-              .toISOString()  
-
-        });  
-
-      }  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        201,  
-        {  
-
-          mensagem:  
-            "Cadastro realizado com sucesso.",  
-
-          idJogador:  
-            usuario.idJogador,  
-
-          codigoIndicacao:  
-            usuario.codigoIndicacao,  
-
-          usuario: {  
-
-            idJogador:  
-              usuario.idJogador,  
-
-            nome:  
-              usuario.nome,  
-
-            email:  
-              usuario.email,  
-
-            pontos:  
-              usuario.pontos,  
-
-            saldo:  
-              usuario.saldo,  
-
-            codigoIndicacao:  
-              usuario.codigoIndicacao,  
-
-            plano:  
-              usuario.plano  
-
-          }  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      console.log(  
-        "Erro no cadastro:",  
-        erro  
-      );  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Dados inválidos."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    LOGIN  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/login" &&  
-    req.method === "POST"  
-  ) {  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const email =  
-        String(  
-          dados.email || ""  
-        )  
-          .trim()  
-          .toLowerCase();  
-
-      const senha =  
-        String(  
-          dados.senha || ""  
-        );  
-
-      const usuario =  
-        usuarios.find(  
-          item =>  
-            item.email ===  
-              email &&  
-            item.senha ===  
-              senha  
-        );  
-
-      if (!usuario) {  
-
-        responder(  
-          res,  
-          401,  
-          {  
-            erro:  
-              "E-mail ou senha incorretos."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      atualizarTotalPontos(  
-        usuario  
-      );  
-
-      usuario.ultimoLogin =  
-        new Date()  
-          .toISOString();  
-
-      usuario.ativo =  
-        true;  
-
-      atualizarIndicacoesDoUsuario(  
-        usuario  
-      );  
-
-      atualizarTotalPontos(  
-        usuario  
-      );  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          mensagem:  
-            "Login realizado com sucesso.",  
-
-          usuario: {  
-
-            id:  
-              usuario.id,  
-
-            idJogador:  
-              usuario.idJogador,  
-
-            nome:  
-              usuario.nome,  
-
-            email:  
-              usuario.email,  
-
-            pontos:  
-              usuario.pontos,  
-
-            saldo:  
-              usuario.saldo,  
-
-            codigoIndicacao:  
-              usuario.codigoIndicacao,  
-
-            codigoUsado:  
-              usuario.codigoUsado,  
-
-            plano:  
-              usuario.plano,  
-
-            pix:  
-              usuario.pix || "",  
-
-            tipoPix:  
-              usuario.tipoPix || "",  
-
-            paypal:  
-              usuario.paypal || "",  
-
-            tipoPagamentoPreferido:  
-              usuario.tipoPagamentoPreferido || "",  
-
-            indicacoes:  
-              usuario.indicacoes || [],  
-
-            saquesHoje:  
-              usuario.saquesHoje || 0  
-
-          }  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Dados inválidos."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    LOGOUT  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/logout" &&  
-    req.method === "POST"  
-  ) {  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const usuario =  
-        encontrarUsuario(  
-          dados  
-        );  
-
-      if (usuario) {  
-
-        usuario.ativo =  
-          false;  
-
-        usuario.ultimoLogout =  
-          new Date()  
-            .toISOString();  
-
-        salvarBanco();  
-
-      }  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          mensagem:  
-            "Você saiu do QuizUp com segurança.",  
-
-          dadosSalvos:  
-            true  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível sair."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    PERFIL  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/perfil" &&  
-    req.method === "POST"  
-  ) {  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const usuario =  
-        encontrarUsuario(  
-          dados  
-        );  
-
-      if (!usuario) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Jogador não encontrado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      atualizarIndicacoesDoUsuario(  
-        usuario  
-      );  
-
-      atualizarTotalPontos(  
-        usuario  
-      );  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          idJogador:  
-            usuario.idJogador,  
-
-          nome:  
-            usuario.nome,  
-
-          email:  
-            usuario.email,  
-
-          pontos:  
-            usuario.pontos,  
-
-          saldo:  
-            usuario.saldo,  
-
-          codigoIndicacao:  
-            usuario.codigoIndicacao,  
-
-          plano:  
-            usuario.plano,  
-
-          pix:  
-            usuario.pix || "",  
-
-          tipoPix:  
-            usuario.tipoPix || "",  
-
-          paypal:  
-            usuario.paypal || "",  
-
-          tipoPagamentoPreferido:  
-            usuario.tipoPagamentoPreferido || "",  
-
-          indicacoes:  
-            usuario.indicacoes || [],  
-
-          saquesHoje:  
-            usuario.saquesHoje || 0  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível carregar o perfil."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    PAGAMENTO / PIX  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/pagamento" &&  
-    req.method === "POST"  
-  ) {  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const usuario =  
-        encontrarUsuario(  
-          dados  
-        );  
-
-      if (!usuario) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Jogador não encontrado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      const pix =  
-        String(  
-          dados.pix || ""  
-        ).trim();  
-
-      const tipoPix =  
-        String(  
-          dados.tipoPix || ""  
-        )  
-          .trim()  
-          .toUpperCase();  
-
-      const paypal =  
-        String(  
-          dados.paypal || ""  
-        )  
-          .trim()  
-          .toLowerCase();  
-
-      const preferido =  
-        String(  
-          dados.tipo || ""  
-        )  
-          .trim()  
-          .toLowerCase();  
-
-      if (  
-        !pix &&  
-        !paypal  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Informe uma chave Pix ou um e-mail do PayPal."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        preferido === "pix" &&  
-        !pix  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Informe a chave Pix."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        preferido === "paypal" &&  
-        !paypal  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Informe o e-mail do PayPal."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (pix) {  
-
-        usuario.pix =  
-          pix;  
-
-        usuario.tipoPix =  
-          tipoPix ||  
-          identificarTipoPix(  
-            pix  
-          ) ||  
-          "";  
-
-      }  
-
-      if (paypal) {  
-
-        usuario.paypal =  
-          paypal;  
-
-      }  
-
-      if (  
-        preferido === "pix" ||  
-        preferido === "paypal"  
-      ) {  
-
-        usuario.tipoPagamentoPreferido =  
-          preferido;  
-
-      }  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          mensagem:  
-            "Dados de pagamento salvos.",  
-
-          idJogador:  
-            usuario.idJogador,  
-
-          pix:  
-            usuario.pix,  
-
-          tipoPix:  
-            usuario.tipoPix,  
-
-          paypal:  
-            usuario.paypal,  
-
-          tipoPagamentoPreferido:  
-            usuario.tipoPagamentoPreferido  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível salvar os dados de pagamento."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
+  <button  
+    class="btn"  
+    onclick="cadastrar()"  
+  >  
+    CADASTRAR  
+  </button>  
+
+  <button  
+    class="btn btn-secundario"  
+    onclick="mostrarLogin()"  
+  >  
+    VOLTAR PARA LOGIN  
+  </button>  
+
+</div>
+
+  </section>    <!-- =========================  
+       APLICATIVO  
+       ========================= -->    <section id="telaJogo" class="tela">  <header class="topo">  
+
+  <h1>🎯 QuizUp</h1>  
+
+  <p>  
+    Gire. Responda. Pontue!  
+  </p>  
+
+  <p>  
+    Olá,  
+    <strong id="nomeUsuario"></strong>  
+  </p>  
+
+  <button  
+    class="botao-sair-topo"  
+    onclick="sair()"  
+  >  
+    🚪 SAIR DA CONTA  
+  </button>  
+
+</header>  
+
+
+<!-- SALDO -->  
+
+<div class="saldo-box">  
+
+  <div class="saldo-label">  
+    Seu saldo  
+  </div>  
+
+  <div class="saldo">  
+    <span id="saldo">0</span>  
+    pontos  
+  </div>  
+
+  <div class="pontos">  
+    <span id="pontos">0</span>  
+    pontos acumulados  
+  </div>  
+
+</div>  
+
+
+<!-- =========================  
+     MONETAG 11575378  
+     GREAT TAG / IN-PAGE PUSH  
+     ========================= -->  
+
+<div class="area-publicidade">  
+
+  <div>  
+
+    <div class="publicidade-label">  
+      PUBLICIDADE  
+    </div>  
+
+    <script>  
+      (function(s){  
+        s.dataset.zone='11575378';  
+        s.src='https://nap5k.com/tag.min.js';  
+      })([document.documentElement, document.body]  
+        .filter(Boolean)  
+        .pop()  
+        .appendChild(document.createElement('script')));  
+    </script>  
+
+  </div>  
+
+</div>  
+
+
+<!-- HILLTOPADS -->  
+
+<div  
+  style="  
+    width:100%;  
+    max-width:300px;  
+    margin:15px auto;  
+    text-align:center;  
+  "  
+>  
+
+  <div  
+    style="  
+      font-size:10px;  
+      color:#999;  
+      margin-bottom:4px;  
+    "  
+  >  
+    PUBLICIDADE  
+  </div>  
+
+  <script>  
+    (function(ydhm){  
+      var d = document,  
+          s = d.createElement('script'),  
+          l = d.scripts[d.scripts.length - 1];  
+
+      s.settings = ydhm || {};  
+      s.src = "\/\/prizefamily.com\/bUXFV.sqd\/GPlZ0\/YrWRcf\/SeAm\/9\/u\/ZBU-lCksPBTLcEz\/M\/zXAW3rMlDqU\/t\/NOzjMiz-MoDDcPwNOsQO";  
+      s.async = true;  
+      s.referrerPolicy = 'no-referrer-when-downgrade';  
+
+      l.parentNode.insertBefore(s, l);  
+    })({});  
+  </script>  
+
+</div>  
+
+
+<!-- MENU -->  
+
+<nav class="menu">  
+
+  <button  
+    class="menu-item ativo"  
+    onclick="abrirTelaMenu('jogo', this)"  
+  >  
+    <span>🎯</span>  
+    JOGAR  
+  </button>  
+
+  <button  
+    class="menu-item"  
+    onclick="abrirTelaMenu('indicacoes', this)"  
+  >  
+    <span>👥</span>  
     INDICAÇÕES  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/indicacoes" &&  
-    req.method === "POST"  
-  ) {  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const usuario =  
-        encontrarUsuario(  
-          dados  
-        );  
-
-      if (!usuario) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Usuário não encontrado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      atualizarIndicacoesDoUsuario(  
-        usuario  
-      );  
-
-      atualizarTotalPontos(  
-        usuario  
-      );  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          idJogador:  
-            usuario.idJogador,  
-
-          codigoIndicacao:  
-            usuario.codigoIndicacao,  
-
-          pontos:  
-            usuario.pontos,  
-
-          saldo:  
-            usuario.saldo,  
-
-          plano:  
-            usuario.plano,  
-
-          indicacoes:  
-            usuario.indicacoes  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível carregar as indicações."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    PONTUAÇÃO  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/pontuacao" &&  
-    req.method === "POST"  
-  ) {  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const usuario =  
-        encontrarUsuario(  
-          dados  
-        );  
-
-      const pontosRecebidos =  
-        Number(  
-          dados.pontos || 0  
-        );  
-
-      if (!usuario) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Usuário não encontrado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        !Number.isFinite(  
-          pontosRecebidos  
-        ) ||  
-        pontosRecebidos < 0  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Pontuação inválida."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      usuario.pontosQuiz =  
-        pontosRecebidos;  
-
-      atualizarTotalPontos(  
-        usuario  
-      );  
-
-      if (  
-        usuario.indicadoPorId  
-      ) {  
-
-        const indicador =  
-          usuarios.find(  
-            item =>  
-              item.id ===  
-              usuario.indicadoPorId  
-          );  
-
-        if (indicador) {  
-
-          if (  
-            !Array.isArray(  
-              indicador.indicacoes  
-            )  
-          ) {  
-
-            indicador.indicacoes =  
-              [];  
-
-          }  
-
-          const indicacao =  
-            indicador.indicacoes.find(  
-              item =>  
-                item.usuarioId ===  
-                usuario.id  
-            );  
-
-          if (indicacao) {  
-
-            if (  
-              usuario.pontos >=  
-                300 &&  
-              !indicacao.bonusPago  
-            ) {  
-
-              indicador.pontosQuiz =  
-                Number(  
-                  indicador.pontosQuiz || 0  
-                ) + 50;  
-
-              atualizarTotalPontos(  
-                indicador  
-              );  
-
-              indicacao.pontos =  
-                300;  
-
-              indicacao.bonus =  
-                50;  
-
-              indicacao.bonusPago =  
-                true;  
-
-              indicacao.status =  
-                "CONCLUÍDO";  
-
-              indicacao.dataConclusao =  
-                new Date()  
-                  .toISOString();  
-
-            } else if (  
-              !indicacao.bonusPago  
-            ) {  
-
-              indicacao.pontos =  
-                Math.min(  
-                  usuario.pontos,  
-                  300  
-                );  
-
-              indicacao.status =  
-                "EM ANDAMENTO";  
-
-            }  
-
-          }  
-
-        }  
-
-      }  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          mensagem:  
-            "Pontuação salva.",  
-
-          idJogador:  
-            usuario.idJogador,  
-
-          pontos:  
-            usuario.pontos,  
-
-          saldo:  
-            usuario.saldo  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      console.log(  
-        "Erro na pontuação:",  
-        erro  
-      );  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível salvar a pontuação."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    PONTOS PATROCINADOS  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/pontuacao-patrocinado" &&  
-    req.method === "POST"  
-  ) {  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const usuario =  
-        encontrarUsuario(  
-          dados  
-        );  
-
-      const pontosRecebidos =  
-        Number(  
-          dados.pontos || 0  
-        );  
-
-      if (!usuario) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Usuário não encontrado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        !Number.isFinite(  
-          pontosRecebidos  
-        ) ||  
-        pontosRecebidos < 0  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Pontuação patrocinada inválida."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      usuario.pontosPatrocinados +=  
-        pontosRecebidos;  
-
-      atualizarTotalPontos(  
-        usuario  
-      );  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          mensagem:  
-            "Pontos patrocinados adicionados.",  
-
-          idJogador:  
-            usuario.idJogador,  
-
-          pontos:  
-            usuario.pontos,  
-
-          saldo:  
-            usuario.saldo  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível adicionar os pontos patrocinados."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
+  </button>  
+
+  <button  
+    class="menu-item"  
+    onclick="mostrarPremium(); ativarMenu(this)"  
+  >  
+    <span>⭐</span>  
+    PREMIUM  
+  </button>  
+
+  <button  
+    class="menu-item"  
+    onclick="mostrarSaque(); ativarMenu(this)"  
+  >  
+    <span>💰</span>  
     SAQUE  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/saque" &&  
-    req.method === "POST"  
-  ) {  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const usuario =  
-        encontrarUsuario(  
-          dados  
-        );  
-
-      const quantidade =  
-        Number(  
-          dados.pontos || 0  
-        );  
-
-      const tipo =  
-        String(  
-          dados.tipo || ""  
-        )  
-          .trim()  
-          .toLowerCase();  
-
-      const destino =  
-        String(  
-          dados.destino || ""  
-        ).trim();  
-
-      const tipoPixRecebido =  
-        String(  
-          dados.tipoPix || ""  
-        )  
-          .trim()  
-          .toUpperCase();  
-
-      if (!usuario) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Jogador não encontrado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      const valorJogador =  
-        calcularSaque(  
-          quantidade  
-        );  
-
-      if (  
-        valorJogador <= 0  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Os saques disponíveis são: 2.000 pontos = R$ 1,00; 6.000 pontos = R$ 5,00; 11.000 pontos = R$ 10,00."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      /*  
-      =================================================  
-        SALDO INSUFICIENTE  
-      =================================================  
-      */  
-
-      if (  
-        usuario.pontos <  
-        quantidade  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Saldo insuficiente. Você não possui pontos suficientes para realizar este saque."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      const percentualPlataforma =  
-        0.30;  
-
-      const valorPlataforma =  
-        Number(  
-          (  
-            valorJogador *  
-            percentualPlataforma  
-          ).toFixed(2)  
-        );  
-
-      const custoTotal =  
-        Number(  
-          (  
-            valorJogador +  
-            valorPlataforma  
-          ).toFixed(2)  
-        );  
-
-      let destinoFinal =  
-        destino;  
-
-      let tipoPixFinal =  
-        tipoPixRecebido;  
-
-      if (  
-        tipo === "pix"  
-      ) {  
-
-        destinoFinal =  
-          destino ||  
-          usuario.pix ||  
-          "";  
-
-        tipoPixFinal =  
-          tipoPixFinal ||  
-          usuario.tipoPix ||  
-          identificarTipoPix(  
-            destinoFinal  
-          ) ||  
-          "";  
-
-      }  
-
-      if (  
-        tipo === "paypal"  
-      ) {  
-
-        destinoFinal =  
-          destino ||  
-          usuario.paypal ||  
-          "";  
-
-      }  
-
-      if (  
-        tipo !== "pix" &&  
-        tipo !== "paypal"  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Escolha PIX ou PayPal."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (!destinoFinal) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Cadastre sua chave Pix ou e-mail do PayPal antes de solicitar o saque."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        tipo === "pix" &&  
-        ![  
-          "CPF",  
-          "CNPJ",  
-          "EMAIL",  
-          "PHONE",  
-          "EVP"  
-        ].includes(  
-          tipoPixFinal  
-        )  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Não foi possível identificar o tipo da chave Pix. Cadastre novamente a chave Pix informando o tipo."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      const hoje =  
-        new Date()  
-          .toDateString();  
-
-      if (  
-        usuario.dataSaques !==  
-        hoje  
-      ) {  
-
-        usuario.dataSaques =  
-          hoje;  
-
-        usuario.saquesHoje =  
-          0;  
-
-      }  
-
-      if (  
-        usuario.saquesHoje >=  
-        2  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Você já realizou 2 solicitações de saque hoje."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      const pendentes =  
-        saques.filter(  
-          saque =>  
-            saque.usuarioId ===  
-              usuario.id &&  
-            (  
-              saque.status ===  
-                "PENDENTE" ||  
-              saque.status ===  
-                "PAGAMENTO_PENDENTE"  
-            )  
-        );  
-
-      const pontosPendentes =  
-        pendentes.reduce(  
-          (  
-            total,  
-            saque  
-          ) =>  
-            total +  
-            Number(  
-              saque.pontos || 0  
-            ),  
-          0  
-        );  
-
-      if (  
-        usuario.pontos -  
-          pontosPendentes <  
-        quantidade  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Você possui pontos comprometidos em uma solicitação de saque pendente."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      const saque = {  
-
-        id:  
-          "SAC" +  
-          Date.now() +  
-          Math.floor(  
-            Math.random() *  
-            1000  
-          ),  
-
-        usuarioId:  
-          usuario.id,  
-
-        idJogador:  
-          usuario.idJogador,  
-
-        nome:  
-          usuario.nome,  
-
-        email:  
-          usuario.email,  
-
-        pontos:  
-          quantidade,  
-
-        valorJogador:  
-          valorJogador,  
-
-        percentualPlataforma:  
-          30,  
-
-        valorPlataforma:  
-          valorPlataforma,  
-
-        custoTotal:  
-          custoTotal,  
-
-        tipo:  
-          tipo,  
-
-        destino:  
-          destinoFinal,  
-
-        tipoPix:  
-          tipo === "pix"  
-            ? tipoPixFinal  
-            : "",  
-
-        status:  
-          "PENDENTE",  
-
-        elegibilidade:  
-          "AGUARDANDO ANÁLISE",  
-
-        data:  
-          new Date()  
-            .toISOString(),  
-
-        analisadoEm:  
-          null,  
-
-        motivoRecusa:  
-          "",  
-
-        pago:  
-          false,  
-
-        pontosDescontados:  
-          false,  
-
-        asaasTransferId:  
-          null,  
-
-        asaasStatus:  
-          null,  
-
-        asaasErro:  
-          null  
-
-      };  
-
-      saques.push(  
-        saque  
-      );  
-
-      usuario.saquesHoje++;  
-
-      if (  
-        !Array.isArray(  
-          usuario.historicoSaques  
-        )  
-      ) {  
-
-        usuario.historicoSaques =  
-          [];  
-
-      }  
-
-      usuario.historicoSaques.push(  
-        saque.id  
-      );  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          mensagem:  
-            "Solicitação de saque enviada e aguardando análise.",  
-
-          idJogador:  
-            usuario.idJogador,  
-
-          saque: {  
-
-            id:  
-              saque.id,  
-
-            pontos:  
-              saque.pontos,  
-
-            valorJogador:  
-              saque.valorJogador,  
-
-            percentualPlataforma:  
-              saque.percentualPlataforma,  
-
-            valorPlataforma:  
-              saque.valorPlataforma,  
-
-            custoTotal:  
-              saque.custoTotal,  
-
-            tipo:  
-              saque.tipo,  
-
-            tipoPix:  
-              saque.tipoPix,  
-
-            status:  
-              saque.status,  
-
-            elegibilidade:  
-              saque.elegibilidade  
-
-          },  
-
-          saldo:  
-            usuario.saldo  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      console.log(  
-        "Erro no saque:",  
-        erro  
-      );  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível solicitar o saque."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    HISTÓRICO  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/saques" &&  
-    req.method === "POST"  
-  ) {  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const usuario =  
-        encontrarUsuario(  
-          dados  
-        );  
-
-      if (!usuario) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Jogador não encontrado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      const lista =  
-        saques.filter(  
-          saque =>  
-            saque.usuarioId ===  
-            usuario.id  
-        );  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          idJogador:  
-            usuario.idJogador,  
-
-          saques:  
-            lista  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível carregar os saques."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
+  </button>  
+
+  <button  
+    class="menu-item"  
+    onclick="mostrarSAC(); ativarMenu(this)"  
+  >  
+    <span>🎧</span>  
     SAC  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/sac" &&  
-    req.method === "POST"  
-  ) {  
+  </button>  
 
-    try {  
+</nav>  
 
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const email =  
-        String(  
-          dados.email || ""  
-        )  
-          .trim()  
-          .toLowerCase();  
-
-      const mensagem =  
-        String(  
-          dados.mensagem || ""  
-        ).trim();  
-
-      const idJogador =  
-        String(  
-          dados.idJogador || ""  
-        ).trim();  
-
-      if (  
-        !email ||  
-        !mensagem  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Informe o e-mail e a mensagem."  
-          }  
-        );  
-
-        return;  
 
-      }  
-
-      mensagens.push({  
+<main class="conteudo">  
 
-        id:  
-          "MSG" +  
-          Date.now(),  
+  <!-- JOGO -->  
 
-        idJogador:  
-          idJogador,  
+  <section  
+    id="conteudoJogo"  
+    class="tela ativa"  
+  >  
 
-        email:  
-          email,  
+    <div class="card">  
 
-        mensagem:  
-          mensagem,  
+      <div class="rodada">  
+        Rodada  
+        <span id="rodada">1</span>  
+      </div>  
 
-        data:  
-          new Date()  
-            .toISOString(),  
+      <div  
+        class="nivel"  
+        id="nivel"  
+      ></div>  
 
-        status:  
-          "NOVA"  
+      <div  
+        class="dado"  
+        id="dado"  
+      >  
+        ?  
+      </div>  
 
-      });  
+      <div  
+        class="pontos-rodada"  
+        id="pontosRodada"  
+      ></div>  
 
-      salvarBanco();  
+      <button  
+        class="btn"  
+        id="botaoGirar"  
+        onclick="girarDado()"  
+      >  
+        🎲 GIRAR DADO  
+      </button>  
 
-      responder(  
-        res,  
-        200,  
-        {  
-          mensagem:  
-            "Mensagem enviada com sucesso."  
-        }  
-      );  
+      <div  
+        id="areaPergunta"  
+        style="margin-top:20px;"  
+      >  
 
-    } catch (erro) {  
+        <div class="timer">  
+          ⏱️  
+          <span id="timer">5</span>  
+        </div>  
 
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível enviar a mensagem."  
-        }  
-      );  
+        <div  
+          class="pergunta"  
+          id="pergunta"  
+        >  
+          Gire o dado para começar!  
+        </div>  
 
-    }  
+        <div  
+          class="respostas"  
+          id="respostas"  
+        ></div>  
 
-    return;  
+        <div  
+          class="resultado"  
+          id="resultado"  
+        ></div>  
 
-  }  
+      </div>  
 
+    </div>  
 
-  /*  
-  ===================================================  
-    ADMIN JOGADORES  
-  ===================================================  
-  */  
 
-  if (  
-    caminho ===  
-      "/api/admin/jogadores" &&  
-    req.method === "GET"  
-  ) {  
+    <div class="card">  
 
-    if (  
-      !verificarAdministrador(  
-        req  
-      )  
-    ) {  
+      <h2>🏆 Como jogar</h2>  
 
-      responder(  
-        res,  
-        401,  
-        {  
-          erro:  
-            "Acesso administrativo não autorizado."  
-        }  
-      );  
+      <p>  
+        Gire o dado para descobrir quantos pontos  
+        estão valendo na rodada.  
+      </p>  
 
-      return;  
+      <br>  
 
-    }  
+      <p>  
+        Depois responda à pergunta antes dos  
+        5 segundos terminarem.  
+      </p>  
 
-    const lista =  
-      usuarios.map(  
-        usuario => {  
+      <br>  
 
-          atualizarTotalPontos(  
-            usuario  
-          );  
+      <p>  
+        ✅ Acertou: ganha os pontos do dado.  
+      </p>  
 
-          return {  
+      <p>  
+        ❌ Errou: não ganha os pontos.  
+      </p>  
 
-            id:  
-              usuario.id,  
+      <p>  
+        ⏰ Tempo acabou: não ganha os pontos.  
+      </p>  
 
-            idJogador:  
-              usuario.idJogador,  
+    </div>  
 
-            nome:  
-              usuario.nome,  
+  </section>  
 
-            email:  
-              usuario.email,  
 
-            plano:  
-              usuario.plano,  
+  <!-- INDICAÇÕES -->  
 
-            pontosQuiz:  
-              usuario.pontosQuiz,  
+  <section  
+    id="conteudoIndicacoes"  
+    class="tela"  
+  >  
 
-            pontosPatrocinados:  
-              usuario.pontosPatrocinados,  
+    <div class="card">  
 
-            pontosTotal:  
-              usuario.pontos,  
+      <h2>👥 Minhas indicações</h2>  
 
-            saldo:  
-              usuario.saldo,  
+      <p>  
+        Convide seus amigos para jogar QuizUp  
+        usando seu código de indicação.  
+      </p>  
 
-            codigoIndicacao:  
-              usuario.codigoIndicacao,  
+      <div class="codigo-indicacao">  
 
-            codigoUsado:  
-              usuario.codigoUsado,  
+        <div>  
+          Seu código de indicação  
+        </div>  
 
-            indicadoPorId:  
-              usuario.indicadoPorId,  
+        <strong id="meuCodigoIndicacao">  
+          --------  
+        </strong>  
 
-            ativo:  
-              usuario.ativo,  
+        <div class="link-indicacao">  
+          Compartilhe seu código com seus amigos.  
+        </div>  
 
-            criadoEm:  
-              usuario.criadoEm,  
+      </div>  
 
-            ultimoLogin:  
-              usuario.ultimoLogin,  
+      <button  
+        class="btn"  
+        style="margin-top:15px"  
+        onclick="copiarCodigoIndicacao()"  
+      >  
+        📋 COPIAR CÓDIGO  
+      </button>  
 
-            saquesHoje:  
-              usuario.saquesHoje || 0  
+    </div>  
 
-          };  
 
-        }  
-      );  
+    <div class="card">  
 
-    salvarBanco();  
+      <h2>📊 Seus números</h2>  
 
-    responder(  
-      res,  
-      200,  
-      {  
+      <div class="beneficio">  
 
-        total:  
-          lista.length,  
+        <div class="beneficio-icon">  
+          👤  
+        </div>  
 
-        jogadores:  
-          lista  
+        <div>  
 
-      }  
-    );  
+          <strong>  
+            Jogadores indicados  
+          </strong>  
 
-    return;  
+          <br>  
 
-  }  
-
-
-  /*  
-  ===================================================  
-    ADMIN RESUMO  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/admin/resumo" &&  
-    req.method === "GET"  
-  ) {  
-
-    if (  
-      !verificarAdministrador(  
-        req  
-      )  
-    ) {  
-
-      responder(  
-        res,  
-        401,  
-        {  
-          erro:  
-            "Acesso administrativo não autorizado."  
-        }  
-      );  
-
-      return;  
-
-    }  
-
-    let pontosQuizTotal =  
-      0;  
-
-    let pontosPatrocinadosTotal =  
-      0;  
-
-    usuarios.forEach(  
-      usuario => {  
-
-        atualizarTotalPontos(  
-          usuario  
-        );  
-
-        pontosQuizTotal +=  
-          Number(  
-            usuario.pontosQuiz ||  
+          <span id="totalIndicados">  
             0  
-          );  
+          </span>  
 
-        pontosPatrocinadosTotal +=  
-          Number(  
-            usuario.pontosPatrocinados ||  
-            0  
-          );  
+        </div>  
 
-      }  
-    );  
+      </div>  
 
-    const pendentes =  
-      saques.filter(  
-        saque =>  
-          saque.status ===  
-          "PENDENTE"  
-      ).length;  
+      <div class="beneficio">  
 
-    const aprovados =  
-      saques.filter(  
-        saque =>  
-          saque.status ===  
-          "APROVADO"  
-      ).length;  
+        <div class="beneficio-icon">  
+          💰  
+        </div>  
 
-    const recusados =  
-      saques.filter(  
-        saque =>  
-          saque.status ===  
-          "RECUSADO"  
-      ).length;  
+        <div>  
 
-    salvarBanco();  
+          <strong>  
+            Ganhos por indicação  
+          </strong>  
 
-    responder(  
-      res,  
-      200,  
-      {  
+          <br>  
 
-        usuarios:  
-          usuarios.length,  
+          <span id="ganhosIndicacao">  
+            0 pontos  
+          </span>  
 
-        jogadoresAtivos:  
-          usuarios.filter(  
-            usuario =>  
-              usuario.ativo ===  
-              true  
-          ).length,  
+        </div>  
 
-        pontosQuiz:  
-          pontosQuizTotal,  
+      </div>  
 
-        pontosPatrocinados:  
-          pontosPatrocinadosTotal,  
-
-        pontosTotal:  
-          pontosQuizTotal +  
-          pontosPatrocinadosTotal,  
-
-        saques:  
-          saques.length,  
-
-        saquesPendentes:  
-          pendentes,  
-
-        saquesAprovados:  
-          aprovados,  
-
-        saquesRecusados:  
-          recusados,  
-
-        mensagens:  
-          mensagens.length  
-
-      }  
-    );  
-
-    return;  
-
-  }  
+    </div>  
 
 
-  /*  
-  ===================================================  
-    ADMIN SAQUES  
-  ===================================================  
-  */  
+    <div class="card">  
 
-  if (  
-    caminho ===  
-      "/api/admin/saques" &&  
-    req.method === "GET"  
-  ) {  
+      <h2>  
+        👥 Jogadores que você convidou  
+      </h2>  
 
-    if (  
-      !verificarAdministrador(  
-        req  
-      )  
-    ) {  
+      <div id="listaIndicacoes">  
 
-      responder(  
-        res,  
-        401,  
-        {  
-          erro:  
-            "Acesso administrativo não autorizado."  
-        }  
-      );  
+        <p>  
+          Você ainda não possui indicações.  
+        </p>  
 
-      return;  
+      </div>  
 
+    </div>  
+
+  </section>  
+
+
+  <!-- PREMIUM -->  
+
+  <section  
+    id="telaPremium"  
+    class="tela"  
+  >  
+
+    <div class="card premium">  
+
+      <h2>⭐ QuizUp Premium</h2>  
+
+      <p>  
+        Tenha uma experiência especial no QuizUp.  
+      </p>  
+
+      <div class="plano destaque">  
+
+        <h3>  
+          ⭐ PLANO PREMIUM  
+        </h3>  
+
+        <div class="preco">  
+          R$ 9,90  
+        </div>  
+
+        <p>  
+          Plano mensal  
+        </p>  
+
+        <button  
+          class="btn"  
+          style="  
+            margin-top:12px;  
+            background:#3b2600;  
+          "  
+          onclick="assinarPremium()"  
+        >  
+          ASSINAR PREMIUM  
+        </button>  
+
+      </div>  
+
+    </div>  
+
+
+    <div class="card">  
+
+      <h2>✨ Seu plano</h2>  
+
+      <div class="plano-atual">  
+
+        Plano atual:  
+
+        <strong id="premiumPlano">  
+          GRATUITO  
+        </strong>  
+
+      </div>  
+
+    </div>  
+
+
+    <div class="card">  
+
+      <h2>✨ Benefícios</h2>  
+
+      <div class="beneficio">  
+
+        <div class="beneficio-icon">  
+          ⭐  
+        </div>  
+
+        <div>  
+          Experiência Premium  
+        </div>  
+
+      </div>  
+
+      <div class="beneficio">  
+
+        <div class="beneficio-icon">  
+          🎯  
+        </div>  
+
+        <div>  
+          Recursos exclusivos  
+        </div>  
+
+      </div>  
+
+      <div class="beneficio">  
+
+        <div class="beneficio-icon">  
+          🏆  
+        </div>  
+
+        <div>  
+          Mais destaque no jogo  
+        </div>  
+
+      </div>  
+
+      <div  
+        id="resultadoPremium"  
+        style="  
+          margin-top:15px;  
+          font-weight:bold;  
+        "  
+      ></div>  
+
+    </div>  
+
+  </section>  
+
+
+  <!-- SAQUE -->  
+
+  <section  
+    id="telaSaque"  
+    class="tela"  
+  >  
+
+    <div class="card">  
+
+      <h2>💰 Saque</h2>  
+
+      <p>  
+        Seu saldo disponível:  
+      </p>  
+
+      <div  
+        style="  
+          font-size:28px;  
+          font-weight:bold;  
+          color:#16a34a;  
+          margin:8px 0 15px;  
+        "  
+      >  
+        <span id="saldoSaque">0</span>  
+        pontos  
+      </div>  
+
+      <p>  
+        <strong>  
+          1.000 pontos = R$ 1,00  
+        </strong>  
+      </p>  
+
+      <p>  
+        <strong>  
+          5.000 pontos = R$ 5,00  
+        </strong>  
+      </p>  
+
+      <p>  
+        <strong>  
+          10.000 pontos = R$ 10,00  
+        </strong>  
+      </p>  
+
+      <div class="taxa-plataforma">  
+
+        <strong>  
+          ℹ️ Taxa da plataforma  
+        </strong>  
+
+        <p style="margin-top:6px;">  
+          A plataforma fica com 30% do valor  
+          gerado e 70% corresponde ao valor  
+          destinado ao jogador, conforme as  
+          regras do QuizUp.  
+        </p>  
+
+      </div>  
+
+      <div class="saque-opcoes">  
+
+        <button  
+          class="opcao-saque"  
+          onclick="preencherSaque(1000)"  
+        >  
+          💵  
+          <strong>  
+            R$ 1,00  
+          </strong>  
+          <br>  
+          1.000 pontos  
+        </button>  
+
+        <button  
+          class="opcao-saque"  
+          onclick="preencherSaque(5000)"  
+        >  
+          💵  
+          <strong>  
+            R$ 5,00  
+          </strong>  
+          <br>  
+          5.000 pontos  
+        </button>  
+
+        <button  
+          class="opcao-saque"  
+          onclick="preencherSaque(10000)"  
+        >  
+          💵  
+          <strong>  
+            R$ 10,00  
+          </strong>  
+          <br>  
+          10.000 pontos  
+        </button>  
+
+      </div>  
+
+    </div>  
+
+
+    <div class="card">  
+
+      <h2>💳 Solicitar saque</h2>  
+
+      <label>  
+        Quantidade de pontos  
+      </label>  
+
+      <input  
+        class="campo-saque"  
+        type="number"  
+        id="valorSaque"  
+        placeholder="Ex.: 1000"  
+      >  
+
+      <label  
+        style="  
+          display:block;  
+          margin-top:12px;  
+        "  
+      >  
+        Forma de recebimento  
+      </label>  
+
+      <select  
+        class="campo-saque"  
+        id="tipoSaque"  
+      >  
+
+        <option value="Pix">  
+          PIX  
+        </option>  
+
+        <option value="PayPal">  
+          PayPal  
+        </option>  
+
+      </select>  
+
+      <input  
+        class="campo-saque"  
+        type="text"  
+        id="destinoSaque"  
+        placeholder="Chave PIX ou e-mail PayPal"  
+      >  
+
+      <button  
+        class="btn"  
+        style="margin-top:15px"  
+        onclick="solicitarSaque()"  
+      >  
+        SOLICITAR SAQUE  
+      </button>  
+
+      <div  
+        id="resultadoSaque"  
+        style="  
+          margin-top:15px;  
+          font-weight:bold;  
+        "  
+      ></div>  
+
+      <p  
+        style="  
+          margin-top:15px;  
+          font-size:12px;  
+        "  
+      >  
+        Limite de até 2 solicitações de saque  
+        por dia.  
+      </p>  
+
+    </div>  
+
+  </section>  
+
+
+  <!-- SAC -->  
+
+  <section  
+    id="telaSAC"  
+    class="tela"  
+  >  
+
+    <div class="card">  
+
+      <h2>🎧 SAC</h2>  
+
+      <p>  
+        Precisa de ajuda?  
+        Estamos aqui para atender você.  
+      </p>  
+
+      <div class="sac-item">  
+
+        <strong>  
+          ❓ Como funciona o QuizUp?  
+        </strong>  
+
+        <span>  
+          Gire o dado, responda às perguntas  
+          e acumule pontos.  
+        </span>  
+
+      </div>  
+
+      <div class="sac-item">  
+
+        <strong>  
+          💰 Como faço um saque?  
+        </strong>  
+
+        <span>  
+          Acesse a aba Saque e escolha a quantidade  
+          de pontos disponível.  
+        </span>  
+
+      </div>  
+
+      <div class="sac-item">  
+
+        <strong>  
+          👥 Como funciona a indicação?  
+        </strong>  
+
+        <span>  
+          Compartilhe seu código de indicação  
+          com seus amigos.  
+        </span>  
+
+      </div>  
+
+    </div>  
+
+
+    <div class="card">  
+
+      <h2>📩 Fale conosco</h2>  
+
+      <textarea  
+        id="mensagemSAC"  
+        class="sac-textarea"  
+        placeholder="Digite sua mensagem..."  
+      ></textarea>  
+
+      <button  
+        class="btn"  
+        style="margin-top:12px"  
+        onclick="enviarSAC()"  
+      >  
+        ENVIAR MENSAGEM  
+      </button>  
+
+      <div  
+        id="resultadoSAC"  
+        style="  
+          margin-top:15px;  
+          font-weight:bold;  
+        "  
+      ></div>  
+
+    </div>  
+
+  </section>  
+
+
+  <!-- RODAPÉ -->  
+
+  <div class="rodape">  
+
+    QuizUp © 2026  
+
+    <br>  
+
+    Gire. Responda. Pontue!  
+
+    <br><br>  
+
+    <button  
+      onclick="sair()"  
+      style="  
+        border:none;  
+        background:none;  
+        color:#999;  
+        cursor:pointer;  
+        text-decoration:underline;  
+      "  
+    >  
+      Sair da conta  
+    </button>  
+
+  </div>  
+
+</main>
+
+  </section>  </div>  <!-- =========================  
+     FUNÇÕES AUXILIARES  
+     ========================= -->  <script>  
+  
+  function abrirTelaMenu(nome, botao) {  
+  
+    document.querySelectorAll(  
+      "#telaJogo .conteudo > .tela"  
+    ).forEach(function(tela) {  
+  
+      tela.classList.remove("ativa");  
+  
+    });  
+  
+    let id;  
+  
+    if (nome === "jogo") {  
+      id = "conteudoJogo";  
+    } else if (nome === "indicacoes") {  
+      id = "conteudoIndicacoes";  
     }  
-
-    responder(  
-      res,  
-      200,  
-      {  
-
-        total:  
-          saques.length,  
-
-        pendentes:  
-          saques.filter(  
-            saque =>  
-              saque.status ===  
-              "PENDENTE"  
-          ),  
-
-        aprovados:  
-          saques.filter(  
-            saque =>  
-              saque.status ===  
-              "APROVADO"  
-          ),  
-
-        recusados:  
-          saques.filter(  
-            saque =>  
-              saque.status ===  
-              "RECUSADO"  
-          ),  
-
-        pagamentosPendentes:  
-          saques.filter(  
-            saque =>  
-              saque.status ===  
-              "PAGAMENTO_PENDENTE"  
-          ),  
-
-        saques:  
-          saques  
-
-      }  
-    );  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    ADMIN APROVAR SAQUE + ASAAS  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/admin/saque/aprovar" &&  
-    req.method === "POST"  
-  ) {  
-
-    if (  
-      !verificarAdministrador(  
-        req  
-      )  
-    ) {  
-
-      responder(  
-        res,  
-        401,  
-        {  
-          erro:  
-            "Acesso administrativo não autorizado."  
-        }  
-      );  
-
-      return;  
-
+  
+    const tela = id  
+      ? document.getElementById(id)  
+      : null;  
+  
+    if (tela) {  
+      tela.classList.add("ativa");  
     }  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const idSaque =  
-        String(  
-          dados.idSaque ||  
-          dados.id ||  
-          ""  
-        ).trim();  
-
-      const saque =  
-        saques.find(  
-          item =>  
-            item.id ===  
-            idSaque  
-        );  
-
-      if (!saque) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Saque não encontrado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        saque.asaasTransferId  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Este saque já possui uma transferência Asaas.",  
-            transferencia:  
-              saque.asaasTransferId  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        saque.status !==  
-        "PENDENTE"  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Este saque já foi analisado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      const usuario =  
-        usuarios.find(  
-          item =>  
-            item.id ===  
-            saque.usuarioId  
-        );  
-
-      if (!usuario) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Jogador do saque não encontrado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      atualizarTotalPontos(  
-        usuario  
-      );  
-
-      const pontosSaque =  
-        Number(  
-          saque.pontos  
-        );  
-
-      if (  
-        !Number.isFinite(  
-          pontosSaque  
-        ) ||  
-        pontosSaque <= 0  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Quantidade de pontos do saque inválida."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        usuario.pontos <  
-        pontosSaque  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Saldo insuficiente. O jogador não possui pontos suficientes para este saque."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        saque.tipo !==  
-        "pix"  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "O pagamento automático pelo Asaas está disponível somente para saques via PIX."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        !saque.tipoPix  
-      ) {  
-
-        saque.tipoPix =  
-          identificarTipoPix(  
-            saque.destino  
-          );  
-
-      }  
-
-      if (  
-        !saque.tipoPix  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Não foi possível identificar o tipo da chave Pix."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      let transferencia;  
-
-      try {  
-
-        transferencia =  
-          await criarTransferenciaPixAsaas(  
-            saque  
-          );  
-
-      } catch (  
-        erroAsaas  
-      ) {  
-
-        console.log(  
-          "Erro na transferência Asaas:",  
-          erroAsaas.message  
-        );  
-
-        saque.asaasStatus =  
-          "ERRO";  
-
-        saque.asaasErro =  
-          erroAsaas.message;  
-
-        saque.asaasTentativaEm =  
-          new Date()  
-            .toISOString();  
-
-        salvarBanco();  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "O Asaas não conseguiu criar a transferência.",  
-
-            detalhe:  
-              erroAsaas.message,  
-
-            saque:  
-              saque  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      saque.asaasTransferId =  
-        transferencia.id ||  
-        null;  
-
-      saque.asaasStatus =  
-        transferencia.status ||  
-        "PENDING";  
-
-      saque.asaasCriadoEm =  
-        new Date()  
-          .toISOString();  
-
-      saque.asaasResposta =  
-        transferencia;  
-
-      if (  
-        transferencia.status ===  
-        "DONE"  
-      ) {  
-
-        const descontou =  
-          descontarPontos(  
-            usuario,  
-            pontosSaque  
-          );  
-
-        if (!descontou) {  
-
-          saque.status =  
-            "PAGO_COM_ERRO_PONTOS";  
-
-          saque.elegibilidade =  
-            "PAGO - VERIFICAR PONTOS";  
-
-          saque.pago =  
-            true;  
-
-          saque.pontosDescontados =  
-            false;  
-
-          salvarBanco();  
-
-          responder(  
-            res,  
-            500,  
-            {  
-              erro:  
-                "O Asaas confirmou o pagamento, mas os pontos não puderam ser descontados. Verifique o saque manualmente.",  
-
-              transferencia:  
-                transferencia,  
-
-              saque:  
-                saque  
-            }  
-          );  
-
-          return;  
-
-        }  
-
-        saque.status =  
-          "APROVADO";  
-
-        saque.elegibilidade =  
-          "PAGO";  
-
-        saque.pago =  
-          true;  
-
-        saque.pontosDescontados =  
-          true;  
-
-        saque.analisadoEm =  
-          new Date()  
-            .toISOString();  
-
-        saque.aprovadoEm =  
-          new Date()  
-            .toISOString();  
-
-        saque.pagoEm =  
-          new Date()  
-            .toISOString();  
-
-        salvarBanco();  
-
-        responder(  
-          res,  
-          200,  
-          {  
-
-            mensagem:  
-              "Saque aprovado e pagamento Pix enviado pelo Asaas.",  
-
-            saque:  
-              saque,  
-
-            jogador: {  
-
-              idJogador:  
-                usuario.idJogador,  
-
-              pontosQuiz:  
-                usuario.pontosQuiz,  
-
-              pontosPatrocinados:  
-                usuario.pontosPatrocinados,  
-
-              pontos:  
-                usuario.pontos,  
-
-              saldo:  
-                usuario.saldo  
-
-            }  
-
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        transferencia.status ===  
-        "PENDING"  
-      ) {  
-
-        saque.status =  
-          "PAGAMENTO_PENDENTE";  
-
-        saque.elegibilidade =  
-          "PAGAMENTO ASAAS PENDENTE";  
-
-        saque.pontosDescontados =  
-          false;  
-
-        salvarBanco();  
-
-        responder(  
-          res,  
-          200,  
-          {  
-
-            mensagem:  
-              "Transferência criada no Asaas e aguardando conclusão.",  
-
-            saque:  
-              saque,  
-
-            transferencia: {  
-
-              id:  
-                transferencia.id,  
-
-              status:  
-                transferencia.status  
-
-            },  
-
-            pontos:  
-              usuario.pontos,  
-
-            saldo:  
-              usuario.saldo  
-
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      saque.asaasErro =  
-        "Transferência não concluída. Status: " +  
-        String(  
-          transferencia.status ||  
-          "DESCONHECIDO"  
-        );  
-
-      saque.status =  
-        "PENDENTE";  
-
-      saque.elegibilidade =  
-        "ASAAS NÃO CONCLUÍDO";  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        400,  
-        {  
-
-          erro:  
-            "A transferência do Asaas não foi concluída.",  
-
-          statusAsaas:  
-            transferencia.status,  
-
-          saque:  
-            saque  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      console.log(  
-        "Erro ao aprovar saque:",  
-        erro  
-      );  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível processar o saque.",  
-
-          detalhe:  
-            erro.message  
-        }  
-      );  
-
+  
+    ativarMenu(botao);  
+  
+    window.scrollTo({  
+      top: 0,  
+      behavior: "smooth"  
+    });  
+  
+  }  
+  
+  
+  function ativarMenu(botao) {  
+  
+    document.querySelectorAll(  
+      ".menu-item"  
+    ).forEach(function(item) {  
+  
+      item.classList.remove("ativo");  
+  
+    });  
+  
+    if (botao) {  
+      botao.classList.add("ativo");  
     }  
-
-    return;  
-
+  
   }  
-
-
-  /*  
-  ===================================================  
-    ADMIN RECUSAR SAQUE  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/admin/saque/recusar" &&  
-    req.method === "POST"  
-  ) {  
-
-    if (  
-      !verificarAdministrador(  
-        req  
-      )  
-    ) {  
-
-      responder(  
-        res,  
-        401,  
-        {  
-          erro:  
-            "Acesso administrativo não autorizado."  
-        }  
-      );  
-
-      return;  
-
+  
+  
+  function preencherSaque(pontos) {  
+  
+    const campo =  
+      document.getElementById("valorSaque");  
+  
+    if (campo) {  
+      campo.value = pontos;  
     }  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const saque =  
-        saques.find(  
-          item =>  
-            item.id ===  
-            String(  
-              dados.idSaque ||  
-              dados.id ||  
-              ""  
-            ).trim()  
-        );  
-
-      if (!saque) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Saque não encontrado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      if (  
-        saque.status !==  
-        "PENDENTE"  
-      ) {  
-
-        responder(  
-          res,  
-          400,  
-          {  
-            erro:  
-              "Este saque já foi analisado."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      saque.status =  
-        "RECUSADO";  
-
-      saque.elegibilidade =  
-        "RECUSADO";  
-
-      saque.motivoRecusa =  
-        String(  
-          dados.motivo ||  
-          "Solicitação recusada pelo administrador."  
-        ).trim();  
-
-      saque.analisadoEm =  
-        new Date()  
-          .toISOString();  
-
-      saque.recusadoEm =  
-        new Date()  
-          .toISOString();  
-
-      saque.pontosDescontados =  
-        false;  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          mensagem:  
-            "Saque recusado. Os pontos não foram descontados.",  
-
-          saque:  
-            saque  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível recusar o saque."  
-        }  
-      );  
-
+  
+    const tela =  
+      document.getElementById("telaSaque");  
+  
+    document.querySelectorAll(  
+      "#telaJogo .conteudo > .tela"  
+    ).forEach(function(item) {  
+  
+      item.classList.remove("ativa");  
+  
+    });  
+  
+    if (tela) {  
+      tela.classList.add("ativa");  
     }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    ADMIN MENSAGENS  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/admin/mensagens" &&  
-    req.method === "GET"  
-  ) {  
-
-    if (  
-      !verificarAdministrador(  
-        req  
-      )  
-    ) {  
-
-      responder(  
-        res,  
-        401,  
-        {  
-          erro:  
-            "Acesso administrativo não autorizado."  
-        }  
-      );  
-
-      return;  
-
+  
+    document.querySelectorAll(  
+      ".menu-item"  
+    ).forEach(function(item) {  
+  
+      item.classList.remove("ativo");  
+  
+    });  
+  
+    const botoes =  
+      document.querySelectorAll(".menu-item");  
+  
+    if (botoes[3]) {  
+      botoes[3].classList.add("ativo");  
     }  
-
-    responder(  
-      res,  
-      200,  
-      {  
-
-        total:  
-          mensagens.length,  
-
-        novas:  
-          mensagens.filter(  
-            mensagem =>  
-              mensagem.status ===  
-              "NOVA"  
-          ).length,  
-
-        mensagens:  
-          mensagens  
-
-      }  
-    );  
-
-    return;  
-
+  
+    window.scrollTo({  
+      top: 0,  
+      behavior: "smooth"  
+    });  
+  
   }  
-
-
-  /*  
-  ===================================================  
-    ADMIN MENSAGEM LIDA  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/admin/mensagem/lida" &&  
-    req.method === "POST"  
-  ) {  
-
-    if (  
-      !verificarAdministrador(  
-        req  
-      )  
-    ) {  
-
-      responder(  
-        res,  
-        401,  
-        {  
-          erro:  
-            "Acesso administrativo não autorizado."  
-        }  
-      );  
-
-      return;  
-
-    }  
-
-    try {  
-
-      const dados =  
-        await receberDados(  
-          req  
-        );  
-
-      const mensagem =  
-        mensagens.find(  
-          item =>  
-            item.id ===  
-            String(  
-              dados.idMensagem ||  
-              dados.id ||  
-              ""  
-            ).trim()  
-        );  
-
-      if (!mensagem) {  
-
-        responder(  
-          res,  
-          404,  
-          {  
-            erro:  
-              "Mensagem não encontrada."  
-          }  
-        );  
-
-        return;  
-
-      }  
-
-      mensagem.status =  
-        "LIDA";  
-
-      mensagem.lidaEm =  
-        new Date()  
-          .toISOString();  
-
-      salvarBanco();  
-
-      responder(  
-        res,  
-        200,  
-        {  
-
-          mensagem:  
-            "Mensagem marcada como lida.",  
-
-          dados:  
-            mensagem  
-
-        }  
-      );  
-
-    } catch (erro) {  
-
-      responder(  
-        res,  
-        400,  
-        {  
-          erro:  
-            "Não foi possível atualizar a mensagem."  
-        }  
-      );  
-
-    }  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    STATUS  
-  ===================================================  
-  */  
-
-  if (  
-    caminho ===  
-      "/api/status" &&  
-    req.method === "GET"  
-  ) {  
-
-    responder(  
-      res,  
-      200,  
-      {  
-
-        status:  
-          "online",  
-
-        mensagem:  
-          "QuizUp funcionando!",  
-
-        asaas:  
-          ASAAS_API_KEY  
-            ? "configurado"  
-            : "não configurado",  
-
-        usuarios:  
-          usuarios.length,  
-
-        jogadoresAtivos:  
-          usuarios.filter(  
-            usuario =>  
-              usuario.ativo ===  
-              true  
-          ).length,  
-
-        saques:  
-          saques.length,  
-
-        saquesPendentes:  
-          saques.filter(  
-            saque =>  
-              saque.status ===  
-              "PENDENTE"  
-          ).length,  
-
-        pagamentosAsaasPendentes:  
-          saques.filter(  
-            saque =>  
-              saque.status ===  
-              "PAGAMENTO_PENDENTE"  
-          ).length,  
-
-        mensagens:  
-          mensagens.length,  
-
-        indicacoes:  
-          usuarios.reduce(  
-            (  
-              total,  
-              usuario  
-            ) =>  
-              total +  
-              (  
-                Array.isArray(  
-                  usuario.indicacoes  
-                )  
-                  ? usuario.indicacoes.length  
-                  : 0  
-              ),  
-            0  
-          )  
-
-      }  
-    );  
-
-    return;  
-
-  }  
-
-
-  /*  
-  ===================================================  
-    ARQUIVOS  
-  ===================================================  
-  */  
-
-  let arquivo =  
-    caminho;  
-
-  if (  
-    arquivo === "/"  
-  ) {  
-
-    arquivo =  
-      "/index.html";  
-
-  }  
-
-  arquivo =  
-    path.join(  
-      __dirname,  
-      arquivo  
-    );  
-
-  const pastaProjeto =  
-    path.resolve(  
-      __dirname  
-    );  
-
-  const arquivoFinal =  
-    path.resolve(  
-      arquivo  
-    );  
-
-  if (  
-    arquivoFinal !==  
-      pastaProjeto &&  
-    !arquivoFinal.startsWith(  
-      pastaProjeto +  
-      path.sep  
-    )  
-  ) {  
-
-    res.writeHead(  
-      403,  
-      {  
-        "Content-Type":  
-          "text/plain; charset=utf-8"  
-      }  
-    );  
-
-    res.end(  
-      "Acesso negado."  
-    );  
-
-    return;  
-
-  }  
-
-  enviarArquivo(  
-    res,  
-    arquivoFinal  
-  );  
-
-}
-
-);
-
-/*
-
-INICIAR SERVIDOR
-
-*/
-
-servidor.listen(
-PORT,
-"0.0.0.0",
-() => {
-
-console.log(  
-  `QuizUp funcionando na porta ${PORT}`  
-);  
-
-testarAsaas();
-
-}
-);
+  
+</script>  <!-- =========================  
+     SCRIPT PRINCIPAL  
+     ========================= -->  <script src="script.js"></script>  </body>  
+</html>
