@@ -1,13 +1,35 @@
+const express = require("express");
+const { Pool } = require("pg");
+
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const PORT = process.env.PORT || 10000;
+
+// PostgreSQL do Render
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL
+    ? { rejectUnauthorized: false }
+    : false
+});
+
+// ================================
+// TESTE DO BANCO
+// ================================
+
+async function testarBanco() {
+  const resultado = await pool.query("SELECT NOW()");
+  console.log("PostgreSQL conectado:", resultado.rows[0].now);
+}
+
+// ================================
+// CRIAÇÃO DAS TABELAS
+// ================================
+
 async function criarTabelas() {
-  /*
-   * =====================================================
-   * USUÁRIOS
-   * =====================================================
-   *
-   * O ID dos usuários é TEXT.
-   * Portanto, todas as colunas que apontam para usuarios(id)
-   * também precisam ser TEXT.
-   */
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS usuarios (
@@ -15,224 +37,205 @@ async function criarTabelas() {
       nome TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       senha_hash TEXT NOT NULL,
-      codigo_indicacao TEXT UNIQUE,
-      indicado_por TEXT,
-      pontos INTEGER NOT NULL DEFAULT 0,
-      pontos_ganhos INTEGER NOT NULL DEFAULT 0,
-      premium BOOLEAN NOT NULL DEFAULT FALSE,
-      premium_ate TIMESTAMP NULL,
-      criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  /*
-   * Se a tabela já existia, garante que indicado_por
-   * tenha o mesmo tipo do usuarios.id.
-   */
-  await pool.query(`
-    ALTER TABLE usuarios
-    ALTER COLUMN id TYPE TEXT
-    USING id::TEXT
-  `).catch(() => {});
-
-  await pool.query(`
-    ALTER TABLE usuarios
-    ALTER COLUMN indicado_por TYPE TEXT
-    USING indicado_por::TEXT
-  `).catch(() => {});
-
-  /*
-   * Cria a chave estrangeira somente se ainda não existir.
-   */
-  await pool.query(`
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'usuarios_indicado_por_fkey'
-      ) THEN
-        ALTER TABLE usuarios
-        ADD CONSTRAINT usuarios_indicado_por_fkey
-        FOREIGN KEY (indicado_por)
-        REFERENCES usuarios(id)
-        ON DELETE SET NULL;
-      END IF;
-    END
-    $$;
-  `);
-
-  /*
-   * =====================================================
-   * ATIVIDADES
-   * =====================================================
-   */
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS atividades (
-      id BIGSERIAL PRIMARY KEY,
-      usuario_id TEXT,
-      tipo TEXT NOT NULL,
-      descricao TEXT,
       pontos INTEGER NOT NULL DEFAULT 0,
       criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
-  /*
-   * Corrige bancos antigos onde usuario_id possa ter
-   * sido criado com outro tipo.
-   */
   await pool.query(`
-    ALTER TABLE atividades
-    ALTER COLUMN usuario_id TYPE TEXT
-    USING usuario_id::TEXT
-  `).catch(() => {});
-
-  /*
-   * Remove uma eventual FK antiga com tipo incompatível.
-   */
-  await pool.query(`
-    DO $$
-    DECLARE
-      nome_constraint TEXT;
-    BEGIN
-      SELECT conname
-      INTO nome_constraint
-      FROM pg_constraint
-      WHERE conrelid = 'atividades'::regclass
-        AND contype = 'f'
-        AND pg_get_constraintdef(oid) LIKE '%usuario_id%usuarios%';
-
-      IF nome_constraint IS NOT NULL THEN
-        EXECUTE format(
-          'ALTER TABLE atividades DROP CONSTRAINT %I',
-          nome_constraint
-        );
-      END IF;
-    END
-    $$;
-  `).catch(() => {});
-
-  await pool.query(`
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'atividades_usuario_id_fkey'
-      ) THEN
-        ALTER TABLE atividades
-        ADD CONSTRAINT atividades_usuario_id_fkey
-        FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id)
-        ON DELETE SET NULL;
-      END IF;
-    END
-    $$;
-  `);
-
-  /*
-   * =====================================================
-   * MENSAGENS
-   * =====================================================
-   */
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS mensagens (
+    CREATE TABLE IF NOT EXISTS perguntas (
       id BIGSERIAL PRIMARY KEY,
-      usuario_id TEXT,
-      nome TEXT,
-      email TEXT,
-      assunto TEXT,
-      mensagem TEXT NOT NULL,
-      resposta TEXT,
-      status TEXT NOT NULL DEFAULT 'ABERTO',
-      criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      respondido_em TIMESTAMP NULL
+      pergunta TEXT NOT NULL,
+      opcao_a TEXT NOT NULL,
+      opcao_b TEXT NOT NULL,
+      opcao_c TEXT NOT NULL,
+      opcao_d TEXT NOT NULL,
+      resposta_correta TEXT NOT NULL,
+      pontos INTEGER NOT NULL DEFAULT 10,
+      ativa BOOLEAN NOT NULL DEFAULT TRUE,
+      criada_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
-  /*
-   * Corrige a estrutura de bancos antigos.
-   */
   await pool.query(`
-    ALTER TABLE mensagens
-    ALTER COLUMN usuario_id TYPE TEXT
-    USING usuario_id::TEXT
-  `).catch(() => {});
-
-  /*
-   * Remove FK antiga incompatível, se existir.
-   */
-  await pool.query(`
-    DO $$
-    DECLARE
-      nome_constraint TEXT;
-    BEGIN
-      SELECT conname
-      INTO nome_constraint
-      FROM pg_constraint
-      WHERE conrelid = 'mensagens'::regclass
-        AND contype = 'f'
-        AND pg_get_constraintdef(oid) LIKE '%usuario_id%usuarios%';
-
-      IF nome_constraint IS NOT NULL THEN
-        EXECUTE format(
-          'ALTER TABLE mensagens DROP CONSTRAINT %I',
-          nome_constraint
-        );
-      END IF;
-    END
-    $$;
-  `).catch(() => {});
-
-  await pool.query(`
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'mensagens_usuario_id_fkey'
-      ) THEN
-        ALTER TABLE mensagens
-        ADD CONSTRAINT mensagens_usuario_id_fkey
-        FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id)
-        ON DELETE SET NULL;
-      END IF;
-    END
-    $$;
-  `);
-
-  /*
-   * =====================================================
-   * ÍNDICES
-   * =====================================================
-   *
-   * Aqui está o ponto que estava causando:
-   *
-   * column "usuario_id" does not exist
-   *
-   * Os índices só são criados depois que as colunas
-   * foram garantidas.
-   */
-
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_atividades_usuario
-    ON atividades(usuario_id)
+    CREATE TABLE IF NOT EXISTS respostas (
+      id BIGSERIAL PRIMARY KEY,
+      usuario_id TEXT NOT NULL,
+      pergunta_id BIGINT NOT NULL,
+      acertou BOOLEAN NOT NULL DEFAULT FALSE,
+      pontos INTEGER NOT NULL DEFAULT 0,
+      respondida_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_mensagens_usuario
-    ON mensagens(usuario_id)
+    CREATE INDEX IF NOT EXISTS idx_respostas_usuario
+    ON respostas(usuario_id)
   `);
 
   await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_usuarios_indicado_por
-    ON usuarios(indicado_por)
+    CREATE INDEX IF NOT EXISTS idx_respostas_pergunta
+    ON respostas(pergunta_id)
   `);
 
-  console.log("Estrutura do PostgreSQL verificada com sucesso.");
+  console.log("Tabelas verificadas com sucesso.");
 }
+
+// ================================
+// ROTA PRINCIPAL
+// ================================
+
+app.get("/", (req, res) => {
+  res.json({
+    sucesso: true,
+    mensagem: "QuizUp funcionando!",
+    status: "online"
+  });
+});
+
+// ================================
+// TESTE DO BANCO
+// ================================
+
+app.get("/api/status", async (req, res) => {
+
+  try {
+
+    const resultado = await pool.query("SELECT NOW()");
+
+    res.json({
+      sucesso: true,
+      servidor: "online",
+      banco: "conectado",
+      horario: resultado.rows[0].now
+    });
+
+  } catch (erro) {
+
+    console.error("Erro no banco:", erro);
+
+    res.status(500).json({
+      sucesso: false,
+      servidor: "online",
+      banco: "erro"
+    });
+
+  }
+
+});
+
+// ================================
+// LISTAR PERGUNTAS
+// ================================
+
+app.get("/api/perguntas", async (req, res) => {
+
+  try {
+
+    const resultado = await pool.query(`
+      SELECT
+        id,
+        pergunta,
+        opcao_a,
+        opcao_b,
+        opcao_c,
+        opcao_d,
+        pontos
+      FROM perguntas
+      WHERE ativa = TRUE
+      ORDER BY id
+    `);
+
+    res.json({
+      sucesso: true,
+      perguntas: resultado.rows
+    });
+
+  } catch (erro) {
+
+    console.error("Erro ao buscar perguntas:", erro);
+
+    res.status(500).json({
+      sucesso: false,
+      erro: "Não foi possível carregar as perguntas."
+    });
+
+  }
+
+});
+
+// ================================
+// INICIAR SERVIDOR
+// ================================
+
+async function iniciar() {
+
+  try {
+
+    console.log("Iniciando QuizUp...");
+    console.log("Porta configurada:", PORT);
+
+    console.log("Testando conexão com PostgreSQL...");
+    await testarBanco();
+
+    console.log("Criando/verificando tabelas...");
+    await criarTabelas();
+
+    app.listen(PORT, "0.0.0.0", () => {
+
+      console.log("=================================");
+      console.log("QuizUp funcionando!");
+      console.log(`Servidor escutando em 0.0.0.0:${PORT}`);
+      console.log("=================================");
+
+    });
+
+  } catch (erro) {
+
+    console.error("ERRO AO INICIAR QUIZUP:");
+    console.error(erro);
+
+    process.exit(1);
+
+  }
+
+}
+
+// ================================
+// ENCERRAMENTO SEGURO
+// ================================
+
+process.on("SIGTERM", async () => {
+
+  console.log("SIGTERM recebido. Encerrando QuizUp...");
+
+  try {
+    await pool.end();
+    console.log("Banco de dados desconectado.");
+  } catch (erro) {
+    console.error("Erro ao fechar banco:", erro);
+  }
+
+  process.exit(0);
+
+});
+
+process.on("SIGINT", async () => {
+
+  console.log("SIGINT recebido. Encerrando QuizUp...");
+
+  try {
+    await pool.end();
+  } catch (erro) {
+    console.error(erro);
+  }
+
+  process.exit(0);
+
+});
+
+// ================================
+// INICIAR
+// ================================
+
+iniciar();
